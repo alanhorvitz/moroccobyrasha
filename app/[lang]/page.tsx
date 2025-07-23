@@ -1,10 +1,16 @@
 'use client'
 
 import { HeroSection } from '@/components/hero/hero-section'
+import { useTranslation } from 'react-i18next'
 
-export default function Home() {
+export default function Home({
+  params,
+}: {
+  params: { lang: string }
+}) {
+  const { t } = useTranslation()
+
   const handleExploreClick = () => {
-    // Implement smooth scroll to destinations section
     const destinationsSection = document.getElementById('destinations')
     if (destinationsSection) {
       destinationsSection.scrollIntoView({ behavior: 'smooth' })
@@ -14,10 +20,9 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       <HeroSection
-        videoUrl="/videos/morocco-intro.mp4"
-        title="Discover Morocco"
-        subtitle="Experience the magic of ancient cities, vibrant culture, and breathtaking landscapes"
-        ctaText="Explore Destinations"
+        title={t('hero.title')}
+        subtitle={t('hero.subtitle')}
+        ctaText={t('hero.cta')}
         onCtaClick={handleExploreClick}
       />
       
@@ -27,4 +32,4 @@ export default function Home() {
       </div>
     </main>
   )
-}
+} 

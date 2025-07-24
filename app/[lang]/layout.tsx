@@ -14,13 +14,15 @@ export const metadata: Metadata = {
   description: "Discover authentic Moroccan experiences with personalized tours and cultural adventures.",
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-  params: { lang },
+  params,
 }: {
   children: React.ReactNode
   params: { lang: string }
 }) {
+  const { lang } = params
+  
   return (
     <html lang={lang}>
       <body className={inter.className}>

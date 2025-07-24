@@ -164,7 +164,7 @@ export function RegisterForm() {
             <div className="text-sm font-medium text-destructive">{error}</div>
           )}
 
-          <Button type="submit" className="w-full">
+          <Button type="submit" variant="gradient" className="w-full">
             {t('auth.register.submit')}
           </Button>
         </form>

@@ -129,10 +129,10 @@ export function MainNav() {
                 key={route.href}
                 href={route.href}
                 className={cn(
-                  'text-sm font-medium transition-colors hover:text-primary relative py-2',
+                  'text-sm font-medium transition-colors transition-transform duration-200 ease-out cursor-pointer relative py-2 hover:scale-95',
                   route.active
-                    ? isScrolled ? 'text-primary' : 'text-white font-semibold'
-                    : isScrolled ? 'text-gray-600' : 'text-white/90'
+                    ? 'text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400 font-bold'
+                    : isScrolled ? 'text-gray-600 hover:text-primary' : 'text-white/90 hover:text-primary'
                 )}
               >
                 {route.label}
@@ -148,7 +148,7 @@ export function MainNav() {
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "flex items-center gap-2 transition-colors",
+                  "flex items-center gap-2 transition-colors transition-transform duration-200 ease-out cursor-pointer hover:scale-95 hover:bg-transparent hover:text-inherit",
                   isScrolled ? "text-gray-600 hover:text-gray-900" : "text-white hover:text-white/80"
                 )}
                 onClick={(e) => {
@@ -167,10 +167,10 @@ export function MainNav() {
                       key={lang}
                       onClick={() => handleLanguageChange(lang)}
                       className={cn(
-                        "w-full text-left px-4 py-2 text-sm transition-colors",
+                        "w-full text-left px-4 py-2 text-sm transition-colors cursor-pointer hover:bg-black hover:text-white",
                         currentLang === lang
                           ? "bg-primary/5 text-primary"
-                          : "text-gray-700 hover:bg-gray-50"
+                          : "text-gray-700"
                       )}
                     >
                       {languageNames[lang as keyof typeof languageNames]}
@@ -185,7 +185,7 @@ export function MainNav() {
               <Button
                 variant="ghost"
                 className={cn(
-                  "transition-colors",
+                  "transition-colors transition-transform duration-200 ease-out cursor-pointer hover:scale-95 hover:bg-transparent hover:text-inherit",
                   isScrolled ? "text-gray-600 hover:text-gray-900" : "text-white hover:text-white/80"
                 )}
                 size="sm"
@@ -196,7 +196,7 @@ export function MainNav() {
             
             <Link href={`/${currentLang}/register`}>
               <Button
-                className="bg-primary hover:bg-primary/90 text-white"
+                variant="gradient"
                 size="sm"
               >
                 {t('nav.signup')}
@@ -277,7 +277,8 @@ export function MainNav() {
                 </Link>
                 <Link href={`/${currentLang}/register`}>
                   <Button
-                    className="w-full justify-center bg-primary hover:bg-primary/90 text-white"
+                    variant="gradient"
+                    className="w-full justify-center"
                     size="sm"
                   >
                     {t('nav.signup')}

@@ -181,23 +181,27 @@ export function MainNav() {
             </div>
 
             {/* Auth Buttons */}
-            <Button
-              variant="ghost"
-              className={cn(
-                "transition-colors",
-                isScrolled ? "text-gray-600 hover:text-gray-900" : "text-white hover:text-white/80"
-              )}
-              size="sm"
-            >
-              {t('nav.login')}
-            </Button>
+            <Link href={`/${currentLang}/login`}>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "transition-colors",
+                  isScrolled ? "text-gray-600 hover:text-gray-900" : "text-white hover:text-white/80"
+                )}
+                size="sm"
+              >
+                {t('nav.login')}
+              </Button>
+            </Link>
             
-            <Button
-              className="bg-primary hover:bg-primary/90 text-white"
-              size="sm"
-            >
-              {t('nav.signup')}
-            </Button>
+            <Link href={`/${currentLang}/register`}>
+              <Button
+                className="bg-primary hover:bg-primary/90 text-white"
+                size="sm"
+              >
+                {t('nav.signup')}
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -262,19 +266,23 @@ export function MainNav() {
 
               {/* Mobile Auth Buttons */}
               <div className="px-4 pt-4 border-t border-gray-100 flex flex-col space-y-2">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-center text-gray-600 hover:text-gray-900"
-                  size="sm"
-                >
-                  {t('nav.login')}
-                </Button>
-                <Button
-                  className="w-full justify-center bg-primary hover:bg-primary/90 text-white"
-                  size="sm"
-                >
-                  {t('nav.signup')}
-                </Button>
+                <Link href={`/${currentLang}/login`}>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-center text-gray-600 hover:text-gray-900"
+                    size="sm"
+                  >
+                    {t('nav.login')}
+                  </Button>
+                </Link>
+                <Link href={`/${currentLang}/register`}>
+                  <Button
+                    className="w-full justify-center bg-primary hover:bg-primary/90 text-white"
+                    size="sm"
+                  >
+                    {t('nav.signup')}
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

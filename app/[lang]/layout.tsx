@@ -24,6 +24,8 @@ export default async function RootLayout({
   const { lang } = await params
   
   return (
+    <html lang={lang}>
+      <body className={inter.className}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -32,7 +34,7 @@ export default async function RootLayout({
         >
           <I18nProvider locale={lang}>
             <AuthProvider>
-              <div className={"relative flex min-h-screen flex-col " + inter.className}>
+              <div className="relative flex min-h-screen flex-col">
                 <MainNav />
                 <main className="flex-1">{children}</main>
                 <Footer />
@@ -40,5 +42,7 @@ export default async function RootLayout({
             </AuthProvider>
           </I18nProvider>
         </ThemeProvider>
+      </body>
+    </html>
   )
 } 

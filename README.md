@@ -1,5 +1,27 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Features
+
+### 🗺️ Interactive Morocco Map
+- **Discovery Page**: Interactive map focused on Morocco with clickable city markers
+- **City Details**: Detailed pages for each major Moroccan city including:
+  - Population and location information
+  - Top attractions and landmarks
+  - Cultural descriptions in English and Arabic
+  - Image galleries
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
+
+### 🌐 Internationalization
+- Support for English and Arabic languages
+- Automatic language detection and switching
+- Localized content for all cities and attractions
+
+### 🔐 Authentication System
+- User registration and login
+- Email verification
+- Password reset functionality
+- Protected routes and session management
+
 ## Getting Started
 
 First, run the development server:
@@ -16,7 +38,11 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Accessing the Discovery Map
+1. Navigate to the home page
+2. Click on "Explore Map" or "Start Discovering" buttons
+3. Or directly visit `/discovery` to access the interactive map
+4. Click on any city marker to view detailed information
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

@@ -1,0 +1,288 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import './styles/rtl.css';
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom animations for Morocco Tourism Platform */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-delay {
+  0%, 30% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-delay-2 {
+  0%, 60% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out;
+}
+
+.animate-fade-in-delay {
+  animation: fade-in-delay 1.5s ease-out;
+}
+
+.animate-fade-in-delay-2 {
+  animation: fade-in-delay-2 2s ease-out;
+}
+
+/* Custom marker styles for Leaflet */
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Smooth transitions for interactive elements */
+.transition-all {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Enhanced carousel styling */
+.carousel-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* VR Tour specific styles */
+.vr-tour-container {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.panorama-viewer {
+  will-change: transform;
+  transition: transform 0.1s ease-out;
+}
+
+/* Gallery grid enhancements */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.media-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.media-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Booking system progress indicators */
+.booking-step {
+  position: relative;
+}
+
+.booking-step::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -2rem;
+  width: 2rem;
+  height: 2px;
+  background: #e5e7eb;
+  transform: translateY(-50%);
+}
+
+.booking-step.active::after {
+  background: #059669;
+}
+
+.booking-step:last-child::after {
+  display: none;
+}
+
+/* Morocco-themed color palette utilities */
+.bg-morocco-red {
+  background-color: #c53030;
+}
+
+.bg-morocco-gold {
+  background-color: #d69e2e;
+}
+
+.bg-morocco-blue {
+  background-color: #2b6cb0;
+}
+
+.bg-morocco-green {
+  background-color: #059669;
+}
+
+.text-morocco-red {
+  color: #c53030;
+}
+
+.text-morocco-gold {
+  color: #d69e2e;
+}
+
+.text-morocco-blue {
+  color: #2b6cb0;
+}
+
+.text-morocco-green {
+  color: #059669;
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+  .gallery-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .booking-steps {
+    flex-direction: column;
+  }
+  
+  .booking-step::after {
+    top: auto;
+    bottom: -1rem;
+    right: 50%;
+    width: 2px;
+    height: 1rem;
+    transform: translateX(50%);
+  }
+}
+
+/* Loading states */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Enhanced focus states for accessibility */
+.focus-visible {
+  outline: 2px solid #059669;
+  outline-offset: 2px;
+}
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

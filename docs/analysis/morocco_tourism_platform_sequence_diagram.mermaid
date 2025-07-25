@@ -1,0 +1,145 @@
+sequenceDiagram
+    participant User
+    participant App
+    participant Router
+    participant AppContext
+    participant DataService
+    participant LocalStorage
+    participant Section
+    participant Component
+    
+    %% Application Initialization
+    User->>App: Access Morocco Tourism Platform
+    App->>Router: Initialize routes
+    App->>AppContext: Create global context
+    AppContext->>DataService: Initialize data service
+    DataService->>LocalStorage: Check for existing data
+    DataService->>LocalStorage: Load initial data
+    DataService-->>AppContext: Return loaded data
+    AppContext-->>App: Context initialized
+    App-->>User: Display home page
+    
+    %% Navigation Between Sections
+    User->>App: Click section link (e.g., DISCOVER MOROCCO)
+    App->>Router: Route to section
+    Router->>Section: Initialize section component
+    Section->>AppContext: Get required data
+    AppContext->>DataService: Request section data
+    DataService->>LocalStorage: Retrieve section data
+    LocalStorage-->>DataService: Return stored data
+    DataService-->>AppContext: Return processed data
+    AppContext-->>Section: Provide data for rendering
+    Section-->>User: Display section content
+    
+    %% Interactive Map Flow
+    User->>Section: Open DISCOVER MOROCCO
+    Section->>Component: Initialize MapComponent
+    Component->>AppContext: Request region data
+    AppContext->>DataService: Get regions
+    DataService->>LocalStorage: Retrieve region data
+    LocalStorage-->>DataService: Return region data
+    DataService-->>AppContext: Return region objects
+    AppContext-->>Component: Provide region data
+    Component-->>User: Display interactive map
+    User->>Component: Click region on map
+    Component->>AppContext: Set selected region
+    AppContext->>Section: Update with selected region
+    Section->>DataService: Get region details
+    DataService->>LocalStorage: Retrieve detailed data
+    LocalStorage-->>DataService: Return region details
+    DataService-->>Section: Return complete region data
+    Section-->>User: Display region details
+    
+    %% Gallery Browsing Flow
+    User->>Section: Open GALLERY section
+    Section->>Component: Initialize GalleryComponent
+    Component->>AppContext: Request media items
+    AppContext->>DataService: Get media items
+    DataService->>LocalStorage: Retrieve media data
+    LocalStorage-->>DataService: Return media items
+    DataService-->>AppContext: Return media objects
+    AppContext-->>Component: Provide media data
+    Component-->>User: Display media gallery
+    User->>Component: Click media item
+    Component->>AppContext: Set selected media item
+    AppContext->>Section: Update with selected item
+    Section-->>User: Display media item details
+    
+    %% Content Hub Flow
+    User->>Section: Open CONTENT HUB section
+    Section->>Component: Initialize ContentFeed
+    Component->>AppContext: Request content items
+    AppContext->>DataService: Get content items
+    DataService->>LocalStorage: Retrieve content data
+    LocalStorage-->>DataService: Return content items
+    DataService-->>AppContext: Return content objects
+    AppContext-->>Component: Provide content data
+    Component-->>User: Display content feed
+    User->>Component: Click content item
+    Component->>AppContext: Set selected content
+    AppContext->>Section: Update with selected content
+    Section->>Component: Initialize ContentViewer
+    Component-->>User: Display full content
+    
+    %% Tourism Services Flow
+    User->>Section: Open TOURISM SERVICES section
+    Section->>Component: Initialize ServiceExplorer
+    Component->>AppContext: Request service data
+    AppContext->>DataService: Get guides & transport
+    DataService->>LocalStorage: Retrieve service data
+    LocalStorage-->>DataService: Return service data
+    DataService-->>AppContext: Return service objects
+    AppContext-->>Component: Provide service data
+    Component-->>User: Display service options
+    User->>Component: Select guide profile
+    Component->>AppContext: Set selected guide
+    AppContext->>Section: Update with selected guide
+    Section-->>User: Display guide details
+    User->>Component: Request booking
+    Component->>AppContext: Save booking request
+    AppContext->>DataService: Store booking request
+    DataService->>LocalStorage: Save booking data
+    LocalStorage-->>DataService: Confirm save operation
+    DataService-->>AppContext: Return success status
+    AppContext-->>Component: Confirm booking saved
+    Component-->>User: Display booking confirmation
+    
+    %% Search Functionality Flow
+    User->>App: Enter search query
+    App->>AppContext: Process search request
+    AppContext->>DataService: Search all content
+    DataService->>LocalStorage: Retrieve relevant data
+    LocalStorage-->>DataService: Return matching items
+    DataService-->>AppContext: Return search results
+    AppContext-->>App: Provide search results
+    App-->>User: Display search results page
+    User->>App: Click search result
+    App->>Router: Navigate to relevant section
+    Router->>Section: Initialize with result context
+    Section->>AppContext: Get detailed item data
+    AppContext->>DataService: Request specific item
+    DataService->>LocalStorage: Retrieve item data
+    LocalStorage-->>DataService: Return item details
+    DataService-->>AppContext: Return complete item
+    AppContext-->>Section: Provide item for display
+    Section-->>User: Display selected item
+    
+    %% User Preferences Flow
+    User->>App: Update preferences
+    App->>AppContext: Save user preferences
+    AppContext->>DataService: Update preferences
+    DataService->>LocalStorage: Store user preferences
+    LocalStorage-->>DataService: Confirm preferences saved
+    DataService-->>AppContext: Return success status
+    AppContext-->>App: Apply updated preferences
+    App-->>User: Display preferences applied
+    
+    %% Data Export Flow
+    User->>App: Request data export
+    App->>AppContext: Process export request
+    AppContext->>DataService: Export all data
+    DataService->>LocalStorage: Retrieve all data
+    LocalStorage-->>DataService: Return complete dataset
+    DataService-->>AppContext: Return formatted export
+    AppContext-->>App: Provide export file
+    App-->>User: Download data export file

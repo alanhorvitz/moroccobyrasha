@@ -1,0 +1,118 @@
+sequenceDiagram
+    participant U as User
+    participant FE as Frontend
+    participant API as API Routes
+    participant DB as Database
+    participant AUTH as Auth Service
+    participant PAY as Payment Service
+    participant MEDIA as Media Service
+    participant EMAIL as Email Service
+
+    %% User Registration & Authentication
+    U->>FE: Access platform
+    FE->>AUTH: Check authentication
+    AUTH-->>FE: Return auth status
+    
+    alt User not authenticated
+        U->>FE: Click sign in/up
+        FE->>AUTH: Initiate auth flow
+        AUTH->>DB: Create/validate user
+        DB-->>AUTH: Return user data
+        AUTH-->>FE: Return session
+        FE-->>U: Redirect to dashboard
+    end
+
+    %% Browse Cultural Content
+    U->>FE: Navigate to Discover Morocco
+    FE->>API: GET /api/regions
+    API->>DB: Query regions with cultural sites
+    DB-->>API: Return regions data
+    API-->>FE: Return JSON response
+    FE-->>U: Display interactive map
+
+    U->>FE: Click on region
+    FE->>API: GET /api/regions/:id/cultural-sites
+    API->>DB: Query cultural sites
+    DB-->>API: Return sites with media
+    API->>MEDIA: Get optimized images
+    MEDIA-->>API: Return CDN URLs
+    API-->>FE: Return sites data
+    FE-->>U: Display cultural sites
+
+    %% Virtual Tour Experience
+    U->>FE: Start virtual tour
+    FE->>API: GET /api/virtual-tours/:id
+    API->>DB: Query tour data
+    DB-->>API: Return tour with panoramas
+    API-->>FE: Return tour configuration
+    FE->>FE: Initialize 3D viewer
+    FE-->>U: Render 360° experience
+
+    %% Guide Booking Flow
+    U->>FE: Browse tourism services
+    FE->>API: GET /api/guides
+    API->>DB: Query available guides
+    DB-->>API: Return guides with availability
+    API-->>FE: Return guides data
+    FE-->>U: Display guide listings
+
+    U->>FE: Select guide and time slot
+    FE->>API: POST /api/bookings/guide
+    API->>AUTH: Validate user session
+    AUTH-->>API: Confirm user identity
+    API->>DB: Create booking record
+    DB-->>API: Return booking ID
+    
+    API->>PAY: Create payment intent
+    PAY-->>API: Return payment details
+    API-->>FE: Return booking with payment
+    FE-->>U: Show payment form
+
+    U->>FE: Submit payment
+    FE->>PAY: Process payment
+    PAY->>DB: Update payment status
+    PAY-->>FE: Return payment result
+    
+    alt Payment successful
+        FE->>API: POST /api/bookings/:id/confirm
+        API->>DB: Update booking status
+        API->>EMAIL: Send confirmation email
+        EMAIL-->>U: Booking confirmation
+        API-->>FE: Booking confirmed
+        FE-->>U: Success message
+    else Payment failed
+        FE->>API: POST /api/bookings/:id/cancel
+        API->>DB: Cancel booking
+        API-->>FE: Booking cancelled
+        FE-->>U: Payment error message
+    end
+
+    %% Content Management
+    U->>FE: Upload travel photos
+    FE->>MEDIA: Upload to Cloudinary
+    MEDIA-->>FE: Return optimized URLs
+    FE->>API: POST /api/user-content
+    API->>DB: Save content metadata
+    DB-->>API: Return content ID
+    API-->>FE: Content saved
+    FE-->>U: Upload successful
+
+    %% Review System
+    U->>FE: Submit guide review
+    FE->>API: POST /api/reviews
+    API->>AUTH: Validate user booking
+    AUTH->>DB: Check booking history
+    DB-->>AUTH: Confirm booking exists
+    AUTH-->>API: User authorized
+    API->>DB: Create review record
+    DB-->>API: Review saved
+    API-->>FE: Review submitted
+    FE-->>U: Thank you message
+
+    %% Search and Discovery
+    U->>FE: Search for "desert tours"
+    FE->>API: GET /api/search?q=desert tours
+    API->>DB: Full-text search across content
+    DB-->>API: Return matching results
+    API-->>FE: Return search results
+    FE-->>U: Display filtered content

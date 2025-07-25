@@ -1,0 +1,239 @@
+classDiagram
+    class User {
+        +id: string
+        +email: string
+        +name: string
+        +avatar: string
+        +role: UserRole
+        +language: string
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        +bookings: Booking[]
+        +reviews: Review[]
+        +content: UserContent[]
+        +profile: UserProfile
+        +__init__(email: string, name: string)
+        +updateProfile(data: ProfileData): Promise~User~
+        +getBookingHistory(): Promise~Booking[]~
+    }
+
+    class UserProfile {
+        +userId: string
+        +bio: string
+        +interests: string[]
+        +travelPreferences: TravelPreferences
+        +nationality: string
+        +spokenLanguages: string[]
+        +user: User
+        +__init__(userId: string)
+        +updatePreferences(prefs: TravelPreferences): Promise~void~
+    }
+
+    class Guide {
+        +id: string
+        +userId: string
+        +licenseNumber: string
+        +specialties: string[]
+        +languages: string[]
+        +regions: string[]
+        +hourlyRate: number
+        +isVerified: boolean
+        +availability: GuideAvailability[]
+        +bookings: GuideBooking[]
+        +reviews: Review[]
+        +user: User
+        +__init__(userId: string, licenseNumber: string)
+        +updateAvailability(slots: TimeSlot[]): Promise~void~
+        +calculateRating(): Promise~number~
+        +getBookings(dateRange: DateRange): Promise~GuideBooking[]~
+    }
+
+    class Region {
+        +id: string
+        +name: string
+        +nameAr: string
+        +nameFr: string
+        +description: string
+        +coordinates: Coordinates
+        +attractions: Attraction[]
+        +tourPackages: TourPackage[]
+        +culturalSites: CulturalSite[]
+        +__init__(name: string, coordinates: Coordinates)
+        +getAttractions(): Promise~Attraction[]~
+        +getTourPackages(): Promise~TourPackage[]~
+    }
+
+    class CulturalSite {
+        +id: string
+        +name: string
+        +nameAr: string
+        +nameFr: string
+        +description: string
+        +category: CulturalCategory
+        +regionId: string
+        +coordinates: Coordinates
+        +images: MediaFile[]
+        +virtualTours: VirtualTour[]
+        +region: Region
+        +__init__(name: string, regionId: string)
+        +addVirtualTour(tour: VirtualTour): Promise~void~
+        +getMediaGallery(): Promise~MediaFile[]~
+    }
+
+    class TourPackage {
+        +id: string
+        +title: string
+        +description: string
+        +duration: number
+        +price: number
+        +maxParticipants: number
+        +regionId: string
+        +inclusions: string[]
+        +exclusions: string[]
+        +itinerary: ItineraryItem[]
+        +bookings: TourBooking[]
+        +region: Region
+        +__init__(title: string, regionId: string)
+        +calculateAvailability(date: Date): Promise~number~
+        +createBooking(userId: string, participants: number): Promise~TourBooking~
+    }
+
+    class Booking {
+        +id: string
+        +userId: string
+        +type: BookingType
+        +status: BookingStatus
+        +totalAmount: number
+        +bookingDate: DateTime
+        +serviceDate: DateTime
+        +paymentStatus: PaymentStatus
+        +user: User
+        +payment: Payment
+        +__init__(userId: string, type: BookingType)
+        +confirmBooking(): Promise~void~
+        +cancelBooking(): Promise~void~
+        +processPayment(paymentData: PaymentData): Promise~Payment~
+    }
+
+    class GuideBooking {
+        +bookingId: string
+        +guideId: string
+        +startTime: DateTime
+        +endTime: DateTime
+        +location: string
+        +specialRequests: string
+        +guide: Guide
+        +booking: Booking
+        +__init__(bookingId: string, guideId: string)
+        +updateSchedule(startTime: DateTime, endTime: DateTime): Promise~void~
+    }
+
+    class TourBooking {
+        +bookingId: string
+        +packageId: string
+        +participants: number
+        +participantDetails: ParticipantInfo[]
+        +tourPackage: TourPackage
+        +booking: Booking
+        +__init__(bookingId: string, packageId: string)
+        +addParticipant(info: ParticipantInfo): Promise~void~
+    }
+
+    class Review {
+        +id: string
+        +userId: string
+        +targetId: string
+        +targetType: ReviewTarget
+        +rating: number
+        +comment: string
+        +images: string[]
+        +createdAt: DateTime
+        +user: User
+        +__init__(userId: string, targetId: string, targetType: ReviewTarget)
+        +updateReview(rating: number, comment: string): Promise~void~
+    }
+
+    class MediaFile {
+        +id: string
+        +filename: string
+        +url: string
+        +thumbnailUrl: string
+        +type: MediaType
+        +size: number
+        +uploadedBy: string
+        +tags: string[]
+        +culturalSite: CulturalSite
+        +__init__(filename: string, url: string, type: MediaType)
+        +generateThumbnail(): Promise~string~
+        +optimizeForWeb(): Promise~void~
+    }
+
+    class VirtualTour {
+        +id: string
+        +name: string
+        +siteId: string
+        +panoramaUrls: string[]
+        +hotspots: Hotspot[]
+        +audioGuide: string
+        +duration: number
+        +culturalSite: CulturalSite
+        +__init__(name: string, siteId: string)
+        +addHotspot(hotspot: Hotspot): Promise~void~
+        +renderTour(): Promise~TourData~
+    }
+
+    class ContentArticle {
+        +id: string
+        +title: string
+        +slug: string
+        +content: string
+        +authorId: string
+        +category: ContentCategory
+        +publishedAt: DateTime
+        +tags: string[]
+        +featuredImage: string
+        +isPublished: boolean
+        +author: User
+        +__init__(title: string, authorId: string)
+        +publish(): Promise~void~
+        +generateSlug(): string
+        +updateContent(content: string): Promise~void~
+    }
+
+    class Payment {
+        +id: string
+        +bookingId: string
+        +amount: number
+        +currency: string
+        +paymentMethod: PaymentMethod
+        +status: PaymentStatus
+        +stripePaymentId: string
+        +processedAt: DateTime
+        +booking: Booking
+        +__init__(bookingId: string, amount: number)
+        +processPayment(paymentData: PaymentData): Promise~PaymentResult~
+        +refund(amount: number): Promise~RefundResult~
+    }
+
+    %% Relationships
+    User ||--o{ Booking : creates
+    User ||--o{ Review : writes
+    User ||--|| UserProfile : has
+    User ||--o| Guide : can_be
+    
+    Guide ||--o{ GuideBooking : accepts
+    Guide ||--o{ Review : receives
+    
+    Region ||--o{ CulturalSite : contains
+    Region ||--o{ TourPackage : offers
+    
+    CulturalSite ||--o{ MediaFile : has
+    CulturalSite ||--o{ VirtualTour : features
+    
+    TourPackage ||--o{ TourBooking : generates
+    
+    Booking ||--|| Payment : has
+    Booking ||--o| GuideBooking : can_be
+    Booking ||--o| TourBooking : can_be
+    
+    VirtualTour ||--o{ MediaFile : uses

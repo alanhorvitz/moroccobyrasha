@@ -1,0 +1,217 @@
+/* Marketplace Styles */
+
+/* Banner */
+.marketplace-banner {
+  position: relative;
+  background-image: url('/images/morocco-default.jpg');
+  background-size: cover;
+  background-position: center;
+  padding: 6rem 0;
+  overflow: hidden;
+}
+
+.banner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3));
+  z-index: 1;
+}
+
+.marketplace-banner .container {
+  position: relative;
+  z-index: 2;
+}
+
+.marketplace-banner-images {
+  position: relative;
+  height: 350px;
+}
+
+.banner-image {
+  position: absolute;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 220px;
+  height: 220px;
+  object-fit: cover;
+}
+
+.banner-image-1 {
+  top: 0;
+  left: 10%;
+  z-index: 3;
+  transform: rotate(-5deg);
+}
+
+.banner-image-2 {
+  top: 50px;
+  left: 35%;
+  z-index: 2;
+  transform: rotate(5deg);
+}
+
+.banner-image-3 {
+  top: 100px;
+  left: 60%;
+  z-index: 1;
+  transform: rotate(-3deg);
+}
+
+.marketplace-feature {
+  padding: 1rem;
+  color: white;
+}
+
+.marketplace-feature-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Product Cards */
+.product-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.product-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  padding-top: 75%; /* 4:3 Aspect Ratio */
+}
+
+.product-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.05);
+}
+
+.product-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 48px;
+}
+
+.product-rating .star-filled {
+  color: #f59e0b;
+  fill: #f59e0b;
+}
+
+.product-rating .star-half {
+  color: #f59e0b;
+  fill: url(#half-gradient);
+}
+
+.product-rating .star-empty {
+  color: #d1d5db;
+}
+
+.favorite-btn {
+  padding: 0.25rem;
+  border-radius: 50%;
+}
+
+.favorite-btn:hover {
+  color: #ef4444;
+}
+
+/* Featured Products */
+.featured-products {
+  margin-bottom: 2rem;
+}
+
+.featured-product-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.featured-product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.featured-image-container {
+  height: 200px;
+  overflow: hidden;
+}
+
+.featured-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.featured-product-card:hover .featured-image {
+  transform: scale(1.05);
+}
+
+.featured-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.featured-price {
+  font-weight: bold;
+  color: #10b981;
+}
+
+/* Category Filter */
+.category-filter .category-item {
+  color: #4b5563;
+  font-weight: 500;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.category-filter .category-item:hover {
+  background-color: #f3f4f6;
+  color: #10b981;
+}
+
+.category-filter .category-item.active {
+  background-color: #ecfdf5;
+  color: #10b981;
+}
+
+/* Artisan Spotlight */
+.artisan-spotlight {
+  text-align: center;
+}
+
+/* List View */
+.list-view .product-image-wrapper {
+  padding-top: 100%;
+  height: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .marketplace-banner {
+    padding: 4rem 0;
+  }
+  
+  .banner-image-1,
+  .banner-image-2,
+  .banner-image-3 {
+    display: none;
+  }
+}

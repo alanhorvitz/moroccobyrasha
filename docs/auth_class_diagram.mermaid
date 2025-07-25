@@ -1,0 +1,225 @@
+classDiagram
+    class UserProfile {
+        +string id
+        +string email
+        +string firstName
+        +string lastName
+        +string phone
+        +string avatarUrl
+        +UserRole role
+        +UserStatus status
+        +boolean emailVerified
+        +boolean twoFactorEnabled
+        +Date lastLogin
+        +UserPreferences preferences
+        +Date createdAt
+        +Date updatedAt
+        +validateEmail() boolean
+        +hasPermission(resource: string, action: string) boolean
+        +updatePreferences(prefs: UserPreferences) void
+    }
+
+    class AuthService {
+        -jwtSecret: string
+        -refreshSecret: string
+        +register(data: RegisterRequest) Promise~RegisterResponse~
+        +login(credentials: LoginRequest) Promise~LoginResponse~
+        +logout(userId: string) Promise~void~
+        +refreshToken(token: string) Promise~AuthTokens~
+        +verifyEmail(token: string) Promise~boolean~
+        +resetPassword(token: string, newPassword: string) Promise~boolean~
+        +generateTokens(user: UserProfile) AuthTokens
+        +verifyAccessToken(token: string) JWTPayload
+    }
+
+    class PasswordService {
+        -bcryptRounds: number
+        +hashPassword(password: string) Promise~string~
+        +verifyPassword(password: string, hash: string) Promise~boolean~
+        +validatePasswordStrength(password: string) ValidationResult
+        +generateResetToken() string
+        +isPasswordCompromised(password: string) Promise~boolean~
+    }
+
+    class RateLimitService {
+        -redis: RedisClient
+        -limits: RateLimitConfig
+        +checkRateLimit(key: string, type: string) Promise~boolean~
+        +incrementCounter(key: string, windowMs: number) Promise~number~
+        +resetCounter(key: string) Promise~void~
+        +isBlocked(identifier: string) Promise~boolean~
+    }
+
+    class UserRepository {
+        -database: Database
+        +create(userData: CreateUserData) Promise~UserProfile~
+        +findById(id: string) Promise~UserProfile~
+        +findByEmail(email: string) Promise~UserProfile~
+        +update(id: string, updates: Partial~UserProfile~) Promise~UserProfile~
+        +delete(id: string) Promise~boolean~
+        +findWithFilters(filters: UserFilters) Promise~UserProfile[]~
+        +updateLastLogin(id: string) Promise~void~
+        +incrementLoginCount(id: string) Promise~void~
+    }
+
+    class SessionRepository {
+        -database: Database
+        +create(sessionData: CreateSessionData) Promise~UserSession~
+        +findByToken(tokenHash: string) Promise~UserSession~
+        +findByUserId(userId: string) Promise~UserSession[]~
+        +update(id: string, updates: Partial~UserSession~) Promise~UserSession~
+        +delete(id: string) Promise~boolean~
+        +deleteExpired() Promise~number~
+        +deleteByUserId(userId: string) Promise~number~
+    }
+
+    class PermissionService {
+        -permissions: PermissionConfig
+        +hasPermission(userRole: UserRole, permission: string) boolean
+        +getAccessibleRoutes(userRole: UserRole) string[]
+        +getRolePermissions(role: UserRole) Permission[]
+        +validateAccess(user: UserProfile, resource: string, action: string) boolean
+        +getAdminNavigationItems(userRole: UserRole) NavigationItem[]
+    }
+
+    class EmailService {
+        -sendGridClient: SendGridClient
+        -templates: EmailTemplates
+        +sendVerificationEmail(user: UserProfile, token: string) Promise~void~
+        +sendPasswordResetEmail(user: UserProfile, token: string) Promise~void~
+        +sendWelcomeEmail(user: UserProfile) Promise~void~
+        +sendSecurityAlert(user: UserProfile, details: SecurityAlert) Promise~void~
+        +sendTwoFactorCode(user: UserProfile, code: string) Promise~void~
+    }
+
+    class AuditLogger {
+        -database: Database
+        +logAction(userId: string, action: string, details: AuditDetails) Promise~void~
+        +logSecurityEvent(event: SecurityEvent) Promise~void~
+        +logAdminAction(adminId: string, action: string, targetId: string) Promise~void~
+        +getAuditTrail(userId: string, limit: number) Promise~AuditLog[]~
+        +getSecurityEvents(timeframe: TimeRange) Promise~SecurityEvent[]~
+    }
+
+    class AuthStore {
+        +UserProfile user
+        +AuthTokens tokens
+        +boolean isAuthenticated
+        +boolean isLoading
+        +setUser(user: UserProfile) void
+        +setTokens(tokens: AuthTokens) void
+        +clearAuth() void
+        +updateUser(updates: Partial~UserProfile~) void
+        +refreshTokens() Promise~boolean~
+    }
+
+    class LoginComponent {
+        -authStore: AuthStore
+        -formData: LoginFormData
+        +handleSubmit(data: LoginRequest) Promise~void~
+        +handleSocialLogin(provider: string) Promise~void~
+        +handleForgotPassword(email: string) Promise~void~
+        +validateForm() FormValidation
+        +render() JSX.Element
+    }
+
+    class RegisterComponent {
+        -authStore: AuthStore
+        -formData: RegisterFormData
+        +handleSubmit(data: RegisterRequest) Promise~void~
+        +handleRoleSelection(role: UserRole) void
+        +validateForm() FormValidation
+        +checkEmailAvailability(email: string) Promise~boolean~
+        +render() JSX.Element
+    }
+
+    class AdminDashboard {
+        -authStore: AuthStore
+        -dashboardData: AdminDashboardData
+        +loadDashboardData() Promise~void~
+        +handleUserAction(userId: string, action: string) Promise~void~
+        +handleContentModeration(contentId: string, action: string) Promise~void~
+        +exportUserData(filters: UserFilters) Promise~void~
+        +render() JSX.Element
+    }
+
+    class UserManagementComponent {
+        -users: UserProfile[]
+        -pagination: PaginationState
+        -filters: UserFilters
+        +loadUsers(page: number, filters: UserFilters) Promise~void~
+        +updateUserStatus(userId: string, status: UserStatus) Promise~void~
+        +updateUserRole(userId: string, role: UserRole) Promise~void~
+        +banUser(userId: string, reason: string) Promise~void~
+        +exportUsers(format: string) Promise~void~
+        +render() JSX.Element
+    }
+
+    class ProtectedRoute {
+        -requiredRole: UserRole
+        -requiredPermission: Permission
+        -fallback: JSX.Element
+        +checkAccess(user: UserProfile) boolean
+        +renderContent() JSX.Element
+        +render() JSX.Element
+    }
+
+    class TwoFactorService {
+        -totpSecret: string
+        +generateSecret() string
+        +generateQRCode(user: UserProfile, secret: string) Promise~string~
+        +verifyCode(secret: string, code: string) boolean
+        +sendSMSCode(phone: string, code: string) Promise~void~
+        +generateBackupCodes() string[]
+    }
+
+    class SecurityService {
+        -suspiciousActivityPatterns: Pattern[]
+        +detectSuspiciousActivity(user: UserProfile, activity: Activity) boolean
+        +lockAccount(userId: string, reason: string) Promise~void~
+        +unlockAccount(userId: string) Promise~void~
+        +logSecurityEvent(event: SecurityEvent) Promise~void~
+        +checkDeviceFingerprint(fingerprint: string) boolean
+    }
+
+    class TokenInterceptor {
+        -authStore: AuthStore
+        +interceptRequest(request: Request) Promise~Request~
+        +interceptResponse(response: Response) Promise~Response~
+        +handleTokenRefresh() Promise~boolean~
+        +redirectToLogin() void
+    }
+
+    %% Relationships
+    AuthService --> UserRepository : uses
+    AuthService --> PasswordService : uses
+    AuthService --> SessionRepository : uses
+    AuthService --> RateLimitService : uses
+    AuthService --> EmailService : uses
+    AuthService --> AuditLogger : uses
+
+    LoginComponent --> AuthService : calls
+    LoginComponent --> AuthStore : uses
+    RegisterComponent --> AuthService : calls
+    RegisterComponent --> AuthStore : uses
+
+    AdminDashboard --> UserRepository : queries
+    AdminDashboard --> PermissionService : validates
+    UserManagementComponent --> UserRepository : manages
+    UserManagementComponent --> AuditLogger : logs
+
+    ProtectedRoute --> AuthStore : checks
+    ProtectedRoute --> PermissionService : validates
+
+    TokenInterceptor --> AuthStore : manages
+    TokenInterceptor --> AuthService : refreshes
+
+    TwoFactorService --> UserRepository : updates
+    TwoFactorService --> EmailService : sends
+    SecurityService --> AuditLogger : logs
+    SecurityService --> UserRepository : locks
+
+    UserProfile ||--o{ UserSession : has
+    UserProfile ||--o{ AuditLog : generates
+    UserRepository ||--|| UserProfile : manages
+    SessionRepository ||--|| UserSession : manages

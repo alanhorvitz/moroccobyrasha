@@ -27,27 +27,32 @@ export function MainNav() {
   const routes = [
     {
       href: `/${currentLang}`,
-      label: t('nav.home'),
+      label: t('nav.home', 'Home'),
       active: pathname === `/${currentLang}`,
     },
     {
+      href: `/${currentLang}/discovery`,
+      label: t('nav.discovery', 'Discovery'),
+      active: pathname.includes('/discovery'),
+    },
+    {
       href: `/${currentLang}/tours`,
-      label: t('nav.tours'),
+      label: t('nav.tours', 'Tours'),
       active: pathname.includes('/tours'),
     },
     {
       href: `/${currentLang}/destinations`,
-      label: t('nav.destinations'),
+      label: t('nav.destinations', 'Destinations'),
       active: pathname.includes('/destinations'),
     },
     {
       href: `/${currentLang}/experiences`,
-      label: t('nav.experiences'),
+      label: t('nav.experiences', 'Experiences'),
       active: pathname.includes('/experiences'),
     },
     {
       href: `/${currentLang}/contact`,
-      label: t('nav.contact'),
+      label: t('nav.contact', 'Contact'),
       active: pathname.includes('/contact'),
     },
   ]

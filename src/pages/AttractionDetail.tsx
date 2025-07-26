@@ -63,7 +63,7 @@ export default function AttractionDetail() {
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">{attraction.name}</h1>
             <div className="flex items-center text-white/80">
               <MapPin className="h-5 w-5 mr-2" />
-              <span>{region ? `${attraction.location}, ${region.name}` : attraction.location}</span>
+              <span>{region ? `${attraction.location.lat}, ${attraction.location.lng}, ${region.name}` : `${attraction.location.lat}, ${attraction.location.lng}`}</span>
             </div>
           </div>
         </div>
@@ -91,7 +91,7 @@ export default function AttractionDetail() {
                         <MapPin className="h-5 w-5 mr-2 text-emerald-600" />
                         <div>
                           <p className="font-medium">Location</p>
-                          <p className="text-sm text-slate-600">{attraction.location}</p>
+                          <p className="text-sm text-slate-600">{attraction.location.lat}, {attraction.location.lng}</p>
                         </div>
                       </div>
                       

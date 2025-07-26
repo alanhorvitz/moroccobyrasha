@@ -131,7 +131,9 @@ export default function RegionDetail() {
                       </div>
                       <CardHeader>
                         <CardTitle>{attraction.name}</CardTitle>
-                        <CardDescription>{attraction.location}</CardDescription>
+                        <CardDescription>
+                          Location: {attraction.location.lat}, {attraction.location.lng}
+                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <p className="text-slate-600 line-clamp-3">{attraction.description}</p>

@@ -210,5 +210,16 @@ export const mediaGallery: MediaItem[] = [
     regionId: "marrakech-safi",
     description: "Immersive 360° experience of the lively night market at Jemaa el-Fnaa square.",
     uploadedAt: "2024-04-20T20:00:00Z"
+  },
+  {
+    id: "media-demo-360",
+    title: "Demo 360° Video Experience",
+    type: "360",
+    url: "https://www.w3schools.com/html/mov_bbb.mp4", // Demo 360 video URL
+    thumbnailUrl: "/images/gallery/thumbnails/demo-360.jpg", // Placeholder thumbnail
+    category: ["demo", "360", "featured"],
+    regionId: "marrakech-safi",
+    description: "Demo 360° video to showcase immersive experiences in the Morocco gallery.",
+    uploadedAt: "2024-07-23T12:00:00Z"
   }
 ];

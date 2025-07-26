@@ -1,8 +1,7 @@
+@import './styles/rtl.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import './styles/rtl.css';
 
 @layer base {
   :root {

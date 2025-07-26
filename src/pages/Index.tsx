@@ -28,6 +28,7 @@ export default function HomePage() {
 
   return (
     <div className={`flex flex-col ${isRTL ? 'rtl' : 'ltr'}`}>
+      
       {/* Hero Section */}
       <section className="relative">
         {/* Placeholder for Hero Images - In a real implementation these would be actual images */}

@@ -35,6 +35,7 @@ import UserProfile from './pages/dashboard/UserProfile';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
 import GuideDashboard from './pages/dashboard/GuideDashboard';
 import TouristDashboard from './pages/dashboard/TouristDashboard';
+import VirtualTourDetail from './pages/VirtualTourDetail';
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,9 @@ const App = () => (
               <Route path="/dashboard/admin" element={<ProtectedRoute requiredRole="admin"><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
               <Route path="/dashboard/guide" element={<ProtectedRoute requiredRole="guide"><Layout><GuideDashboard /></Layout></ProtectedRoute>} />
               <Route path="/dashboard/tourist" element={<ProtectedRoute requiredRole="tourist"><Layout><TouristDashboard /></Layout></ProtectedRoute>} />
+              
+              {/* Virtual Tour Route */}
+              <Route path="/virtual-tours/:id" element={<Layout><VirtualTourDetail /></Layout>} />
               
               {/* 404 Route */}
               <Route path="*" element={<Layout><NotFound /></Layout>} />

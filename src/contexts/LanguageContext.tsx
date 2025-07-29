@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { translations } from '@/lib/translations';
 import { saveUserPreferences, getData } from '@/lib/storage';

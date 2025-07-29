@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+"use client";
+
+import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,22 +47,22 @@ const Footer = () => {
             <h3 className="text-lg font-semibold">{t('nav.discover')}</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/discover" className="text-slate-300 hover:text-white transition-colors">
+                <Link href="/discover" className="text-slate-300 hover:text-white transition-colors">
                   {t('nav.discover')}
                 </Link>
               </li>
               <li>
-                <Link to="/tourism" className="text-slate-300 hover:text-white transition-colors">
+                <Link href="/tourism" className="text-slate-300 hover:text-white transition-colors">
                   {t('nav.tourism')}
                 </Link>
               </li>
               <li>
-                <Link to="/gallery" className="text-slate-300 hover:text-white transition-colors">
+                <Link href="/gallery" className="text-slate-300 hover:text-white transition-colors">
                   {t('nav.gallery')}
                 </Link>
               </li>
               <li>
-                <Link to="/marketplace" className="text-slate-300 hover:text-white transition-colors">
+                <Link href="/marketplace" className="text-slate-300 hover:text-white transition-colors">
                   {t('nav.marketplace')}
                 </Link>
               </li>
@@ -72,22 +74,22 @@ const Footer = () => {
             <h3 className="text-lg font-semibold">{t('nav.services')}</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/services" className="text-slate-300 hover:text-white transition-colors">
+                <Link href="/services" className="text-slate-300 hover:text-white transition-colors">
                   {t('services.accommodation')}
                 </Link>
               </li>
               <li>
-                <Link to="/services" className="text-slate-300 hover:text-white transition-colors">
+                <Link href="/services" className="text-slate-300 hover:text-white transition-colors">
                   {t('services.transportation')}
                 </Link>
               </li>
               <li>
-                <Link to="/services" className="text-slate-300 hover:text-white transition-colors">
+                <Link href="/services" className="text-slate-300 hover:text-white transition-colors">
                   {t('services.guides')}
                 </Link>
               </li>
               <li>
-                <Link to="/content-hub" className="text-slate-300 hover:text-white transition-colors">
+                <Link href="/content-hub" className="text-slate-300 hover:text-white transition-colors">
                   {t('nav.contentHub')}
                 </Link>
               </li>
@@ -116,16 +118,16 @@ const Footer = () => {
         <div className="border-t border-slate-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6 text-sm">
-              <Link to="#" className="text-slate-300 hover:text-white transition-colors">
+              <Link href="#" className="text-slate-300 hover:text-white transition-colors">
                 {t('footer.aboutUs')}
               </Link>
-              <Link to="#" className="text-slate-300 hover:text-white transition-colors">
+              <Link href="#" className="text-slate-300 hover:text-white transition-colors">
                 {t('footer.contactUs')}
               </Link>
-              <Link to="#" className="text-slate-300 hover:text-white transition-colors">
+              <Link href="#" className="text-slate-300 hover:text-white transition-colors">
                 {t('footer.privacyPolicy')}
               </Link>
-              <Link to="#" className="text-slate-300 hover:text-white transition-colors">
+              <Link href="#" className="text-slate-300 hover:text-white transition-colors">
                 {t('footer.termsOfService')}
               </Link>
             </div>

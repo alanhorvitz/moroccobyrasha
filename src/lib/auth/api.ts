@@ -10,7 +10,7 @@ import {
 } from '@/lib/types/auth';
 
 // Replace with your actual API base URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.morocco-platform.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.morocco-platform.com';
 
 // Create axios instance
 const api = axios.create({

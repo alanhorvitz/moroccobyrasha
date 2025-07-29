@@ -1,61 +1,36 @@
-# Shadcn-UI Template Usage Instructions
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## technology stack
+## Getting Started
 
-This project is built with:
+First, run the development server:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-All shadcn/ui components have been downloaded under `@/components/ui`.
-
-## File Structure
-
-- `index.html` - HTML entry point
-- `vite.config.ts` - Vite configuration file
-- `tailwind.config.js` - Tailwind CSS configuration file
-- `package.json` - NPM dependencies and scripts
-- `src/app.tsx` - Root component of the project
-- `src/main.tsx` - Project entry point
-- `src/index.css` - Existing CSS configuration
-
-## Components
-
-- All shadcn/ui components are pre-downloaded and available at `@/components/ui`
-
-## Styling
-
-- Add global styles to `src/index.css` or create new CSS files as needed
-- Use Tailwind classes for styling components
-
-## Development
-
-- Import components from `@/components/ui` in your React components
-- Customize the UI by modifying the Tailwind configuration
-
-## Note
-
-The `@/` path alias points to the `src/` directory
-
-# Commands
-
-**Install Dependencies**
-
-```shell
-pnpm i
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-**Start Preview**
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-```shell
-pnpm run dev
-```
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-**To build**
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-```shell
-pnpm run build
-```
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

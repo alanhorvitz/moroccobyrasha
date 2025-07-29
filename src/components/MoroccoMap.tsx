@@ -1,9 +1,11 @@
+"use client";
+
 import { useState } from 'react';
 import { MapPin, Info } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 interface Region {
   id: string;
@@ -196,12 +198,12 @@ export function MoroccoMap({
 
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button asChild size="sm" className="flex-1">
-                      <Link to={`/regions/${selectedMarker.data.id}`}>
+                      <Link href={`/regions/${selectedMarker.data.id}`}>
                         Explore Region
                       </Link>
                     </Button>
                     <Button asChild variant="outline" size="sm" className="flex-1">
-                      <Link to={`/tourism?region=${selectedMarker.data.id}`}>
+                      <Link href={`/tourism?region=${selectedMarker.data.id}`}>
                         View Tours
                       </Link>
                     </Button>
@@ -228,12 +230,12 @@ export function MoroccoMap({
 
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button asChild size="sm" className="flex-1">
-                      <Link to={`/attractions/${selectedMarker.data.id}`}>
+                      <Link href={`/attractions/${selectedMarker.data.id}`}>
                         View Details
                       </Link>
                     </Button>
                     <Button asChild variant="outline" size="sm" className="flex-1">
-                      <Link to={`/tourism?attraction=${selectedMarker.data.id}`}>
+                      <Link href={`/tourism?attraction=${selectedMarker.data.id}`}>
                         Find Tours
                       </Link>
                     </Button>

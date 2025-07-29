@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { MapPin, Info, X, Navigation, Layers } from 'lucide-react';
@@ -5,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { moroccanRegions } from '@/lib/data/regions';
 import { touristAttractions } from '@/lib/data/attractions';
 import { Region, TouristAttraction } from '@/lib/types';
@@ -109,7 +111,7 @@ export default function EnhancedInteractiveMap() {
       case 'terrain':
         return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}';
       default:
-        return '/images/OpenStreetMap.jpg';
+        return 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
     }
   };
 
@@ -300,12 +302,12 @@ export default function EnhancedInteractiveMap() {
 
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button asChild size="sm" className="flex-1">
-                      <Link to={`/regions/${selectedMarker.data.id}`}>
+                      <Link href={`/regions/${selectedMarker.data.id}`}>
                         Explore Region
                       </Link>
                     </Button>
                     <Button asChild variant="outline" size="sm" className="flex-1">
-                      <Link to={`/tourism?region=${selectedMarker.data.id}`}>
+                      <Link href={`/tourism?region=${selectedMarker.data.id}`}>
                         View Tours
                       </Link>
                     </Button>
@@ -351,12 +353,12 @@ export default function EnhancedInteractiveMap() {
 
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button asChild size="sm" className="flex-1">
-                      <Link to={`/attractions/${selectedMarker.data.id}`}>
+                      <Link href={`/attractions/${selectedMarker.data.id}`}>
                         View Details
                       </Link>
                     </Button>
                     <Button asChild variant="outline" size="sm" className="flex-1">
-                      <Link to={`/tourism?attraction=${selectedMarker.data.id}`}>
+                      <Link href={`/tourism?attraction=${selectedMarker.data.id}`}>
                         Find Tours
                       </Link>
                     </Button>

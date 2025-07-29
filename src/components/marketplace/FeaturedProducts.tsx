@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Award } from 'lucide-react';
 import {
   Card,
@@ -37,7 +37,7 @@ const FeaturedProducts = ({ products }: FeaturedProductsProps) => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {displayProducts.map(product => (
-          <Link to={`/marketplace/product/${product.id}`} key={product.id} className="block h-full">
+          <Link href={`/marketplace/product/${product.id}`} key={product.id} className="block h-full">
             <Card className="overflow-hidden h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
               <div className="aspect-square overflow-hidden">
                 <img 

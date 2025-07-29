@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Star, ShoppingBag, Heart, MapPin } from 'lucide-react';
 import { 
   Card, 
@@ -57,7 +57,7 @@ const ProductCard = ({ product, viewMode = 'grid' }: ProductCardProps) => {
       <Card className="overflow-hidden product-card h-full">
         <div className="flex flex-col md:flex-row">
           <div className="relative md:w-1/3">
-            <Link to={`/marketplace/product/${product.id}`} className="block h-48 md:h-full">
+            <Link href={`/marketplace/product/${product.id}`} className="block h-48 md:h-full">
               <img 
                 src={product.image} 
                 alt={product.name} 
@@ -99,7 +99,7 @@ const ProductCard = ({ product, viewMode = 'grid' }: ProductCardProps) => {
                 <span className="font-medium text-emerald-600">${product.price.toFixed(2)}</span>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" asChild>
-                    <Link to={`/marketplace/product/${product.id}`}>
+                    <Link href={`/marketplace/product/${product.id}`}>
                       Details
                     </Link>
                   </Button>
@@ -119,7 +119,7 @@ const ProductCard = ({ product, viewMode = 'grid' }: ProductCardProps) => {
   return (
     <Card className="overflow-hidden product-card h-full">
       <div className="relative">
-        <Link to={`/marketplace/product/${product.id}`} className="block aspect-square overflow-hidden">
+        <Link href={`/marketplace/product/${product.id}`} className="block aspect-square overflow-hidden">
           <img 
             src={product.image} 
             alt={product.name} 

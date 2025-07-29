@@ -14,7 +14,7 @@ import {
   UserListResponse
 } from '@/lib/types/auth';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.morocco-platform.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.morocco-platform.com';
 
 // Enhanced API client with security features
 class EnhancedAPIClient {

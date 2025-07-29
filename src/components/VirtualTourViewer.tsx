@@ -1,3 +1,4 @@
+"use client";
 import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, RotateCcw, Maximize, Volume2, VolumeX, Info, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -200,7 +201,7 @@ export default function VirtualTourViewer({ tour, onClose }: VirtualTourViewerPr
                 {hotspot.type === 'video' && <Play className="h-3 w-3 text-white" />}
                 {hotspot.type === 'audio' && <Volume2 className="h-3 w-3 text-white" />}
                 {(hotspot.type === 'info' || !hotspot.type) && <Info className="h-3 w-3 text-white" />}
-                {hotspot.type === 'link' && <Navigation className="h-3 w-3 text-white" />}
+                {hotspot.type === 'link' && <Info className="h-3 w-3 text-white" />}
               </Button>
               
               {/* Hotspot preview tooltip */}

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, Users, CreditCard, CheckCircle, AlertCircle, MapPin, Phone, Mail } from 'lucide-react';
 import { Button } from "@/components/ui/button";

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useAuthStore } from '@/lib/auth/store';
 import { EnhancedAuthAPI as AuthAPI } from '@/lib/auth/enhanced-api';

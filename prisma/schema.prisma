@@ -1,0 +1,463 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Region {
+  id                String       @id @default(cuid())
+  name_en           String       @db.VarChar(255)
+  name_ar           String       @db.VarChar(255)
+  name_fr           String       @db.VarChar(255)
+  name_it           String       @db.VarChar(255)
+  name_es           String       @db.VarChar(255)
+  description_en    String?      @db.Text
+  description_ar    String?      @db.Text
+  description_fr    String?      @db.Text
+  description_it    String?      @db.Text
+  description_es    String?      @db.Text
+  climate_en        String?      @db.VarChar(100)
+  climate_ar        String?      @db.VarChar(100)
+  climate_fr        String?      @db.VarChar(100)
+  climate_it        String?      @db.VarChar(100)
+  climate_es        String?      @db.VarChar(100)
+  bestTimeToVisit_en String?      @db.VarChar(100)
+  bestTimeToVisit_ar String?      @db.VarChar(100)
+  bestTimeToVisit_fr String?      @db.VarChar(100)
+  bestTimeToVisit_it String?      @db.VarChar(100)
+  bestTimeToVisit_es String?      @db.VarChar(100)
+  keyFacts_en       String?      @db.Text
+  keyFacts_ar       String?      @db.Text
+  keyFacts_fr       String?      @db.Text
+  keyFacts_it       String?      @db.Text
+  keyFacts_es       String?      @db.Text
+  latitude        Float?
+  longitude       Float?
+  imageUrls       Json
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relations
+  attractions        Attraction[]
+  tourPackageRegions TourPackageRegion[]
+  mediaItems         MediaItem[]
+  contentItems       ContentItem[]
+  guides             GuideRegion[]
+  transportServices  TransportServiceRegion[]
+
+  @@map("regions")
+}
+
+model Attraction {
+  id                String   @id @default(cuid())
+  name_en           String   @db.VarChar(255)
+  name_ar           String   @db.VarChar(255)
+  name_fr           String   @db.VarChar(255)
+  name_it           String   @db.VarChar(255)
+  name_es           String   @db.VarChar(255)
+  description_en    String?  @db.Text
+  description_ar    String?  @db.Text
+  description_fr    String?  @db.Text
+  description_it    String?  @db.Text
+  description_es    String?  @db.Text
+  category_en       String?  @db.VarChar(100)
+  category_ar       String?  @db.VarChar(100)
+  category_fr       String?  @db.VarChar(100)
+  category_it       String?  @db.VarChar(100)
+  category_es       String?  @db.VarChar(100)
+  regionId    String
+  latitude    Float?
+  longitude   Float?
+  imageUrls   Json
+  rating      Float?   @default(0)
+  tags        Json
+  entryFee    Float?   @default(0)
+  currency    String?  @default("MAD") @db.VarChar(10)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Opening Hours (stored as JSON)
+  openingHours Json?
+
+  // Relations
+  region  Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  reviews Review[]
+
+  @@map("attractions")
+}
+
+model TourPackage {
+  id                String   @id @default(cuid())
+  title_en          String   @db.VarChar(255)
+  title_ar          String   @db.VarChar(255)
+  title_fr          String   @db.VarChar(255)
+  title_it          String   @db.VarChar(255)
+  title_es          String   @db.VarChar(255)
+  description_en    String?  @db.Text
+  description_ar    String?  @db.Text
+  description_fr    String?  @db.Text
+  description_it    String?  @db.Text
+  description_es    String?  @db.Text
+  difficulty_en     String?  @db.VarChar(50)
+  difficulty_ar     String?  @db.VarChar(50)
+  difficulty_fr     String?  @db.VarChar(50)
+  difficulty_it     String?  @db.VarChar(50)
+  difficulty_es     String?  @db.VarChar(50)
+  duration    Int // in days
+  price       Float
+  currency    String   @default("MAD") @db.VarChar(10)
+  imageUrls   Json
+  included    Json
+  excluded    Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  regions   TourPackageRegion[]
+  itinerary Itinerary?
+  reviews   Review[]
+
+  @@map("tour_packages")
+}
+
+model TourPackageRegion {
+  id            String      @id @default(cuid())
+  tourPackageId String
+  regionId      String
+
+  // Relations
+  tourPackage TourPackage @relation(fields: [tourPackageId], references: [id], onDelete: Cascade)
+  region      Region      @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  @@unique([tourPackageId, regionId])
+  @@map("tour_package_regions")
+}
+
+model Itinerary {
+  id            String @id @default(cuid())
+  tourPackageId String @unique
+
+  // Relations
+  tourPackage TourPackage    @relation(fields: [tourPackageId], references: [id], onDelete: Cascade)
+  days        ItineraryDay[]
+
+  @@map("itineraries")
+}
+
+model ItineraryDay {
+  id                String  @id @default(cuid())
+  title_en          String? @db.VarChar(255)
+  title_ar          String? @db.VarChar(255)
+  title_fr          String? @db.VarChar(255)
+  title_it          String? @db.VarChar(255)
+  title_es          String? @db.VarChar(255)
+  description_en    String? @db.Text
+  description_ar    String? @db.Text
+  description_fr    String? @db.Text
+  description_it    String? @db.Text
+  description_es    String? @db.Text
+  itineraryId String
+  dayNumber   Int
+  activities  Json
+
+  // Relations
+  itinerary      Itinerary       @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+  accommodation  Accommodation?
+  meals          Meal[]
+
+  @@unique([itineraryId, dayNumber])
+  @@map("itinerary_days")
+}
+
+model Accommodation {
+  id                String @id @default(cuid())
+  name_en           String @db.VarChar(255)
+  name_ar           String @db.VarChar(255)
+  name_fr           String @db.VarChar(255)
+  name_it           String @db.VarChar(255)
+  name_es           String @db.VarChar(255)
+  type_en           String? @db.VarChar(100)
+  type_ar           String? @db.VarChar(100)
+  type_fr           String? @db.VarChar(100)
+  type_it           String? @db.VarChar(100)
+  type_es           String? @db.VarChar(100)
+  description_en    String? @db.Text
+  description_ar    String? @db.Text
+  description_fr    String? @db.Text
+  description_it    String? @db.Text
+  description_es    String? @db.Text
+  itineraryDayId String @unique
+  address        String? @db.Text
+  stars          Int?
+
+  // Relations
+  itineraryDay ItineraryDay @relation(fields: [itineraryDayId], references: [id], onDelete: Cascade)
+
+  @@map("accommodations")
+}
+
+model Meal {
+  id                String  @id @default(cuid())
+  description_en    String? @db.Text
+  description_ar    String? @db.Text
+  description_fr    String? @db.Text
+  description_it    String? @db.Text
+  description_es    String? @db.Text
+  itineraryDayId String
+  type           String  @db.VarChar(50) // breakfast, lunch, dinner
+  included       Boolean @default(false)
+
+  // Relations
+  itineraryDay ItineraryDay @relation(fields: [itineraryDayId], references: [id], onDelete: Cascade)
+
+  @@map("meals")
+}
+
+model MediaItem {
+  id                String   @id @default(cuid())
+  title_en          String   @db.VarChar(255)
+  title_ar          String   @db.VarChar(255)
+  title_fr          String   @db.VarChar(255)
+  title_it          String   @db.VarChar(255)
+  title_es          String   @db.VarChar(255)
+  description_en    String?  @db.Text
+  description_ar    String?  @db.Text
+  description_fr    String?  @db.Text
+  description_it    String?  @db.Text
+  description_es    String?  @db.Text
+  type          String   @db.VarChar(50) // image, video, 360-photo, etc.
+  url           String   @db.VarChar(500)
+  thumbnailUrl  String?  @db.VarChar(500)
+  tags          Json
+  regionId      String?
+  categoryId    String?  @db.VarChar(100)
+  uploadDate    DateTime @default(now())
+  photographer  String?  @db.VarChar(255)
+  latitude      Float?
+  longitude     Float?
+  isFeatured    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  region Region? @relation(fields: [regionId], references: [id], onDelete: SetNull)
+
+  @@map("media_items")
+}
+
+model ContentItem {
+  id                String   @id @default(cuid())
+  title_en          String   @db.VarChar(255)
+  title_ar          String   @db.VarChar(255)
+  title_fr          String   @db.VarChar(255)
+  title_it          String   @db.VarChar(255)
+  title_es          String   @db.VarChar(255)
+  description_en    String?  @db.Text
+  description_ar    String?  @db.Text
+  description_fr    String?  @db.Text
+  description_it    String?  @db.Text
+  description_es    String?  @db.Text
+  content_en        String?  @db.LongText
+  content_ar        String?  @db.LongText
+  content_fr        String?  @db.LongText
+  content_it        String?  @db.LongText
+  content_es        String?  @db.LongText
+  type        String   @db.VarChar(50) // article, blog, guide, etc.
+  tags        Json
+  authorId    String?
+  publishDate DateTime @default(now())
+  mediaIds    Json
+  regionId    String?
+  categoryId  String?  @db.VarChar(100)
+  readTime    Int? // in minutes
+  isFeatured  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  region Region? @relation(fields: [regionId], references: [id], onDelete: SetNull)
+
+  @@map("content_items")
+}
+
+model Guide {
+  id                String   @id @default(cuid())
+  name_en           String   @db.VarChar(255)
+  name_ar           String   @db.VarChar(255)
+  name_fr           String   @db.VarChar(255)
+  name_it           String   @db.VarChar(255)
+  name_es           String   @db.VarChar(255)
+  description_en    String?  @db.Text
+  description_ar    String?  @db.Text
+  description_fr    String?  @db.Text
+  description_it    String?  @db.Text
+  description_es    String?  @db.Text
+  languages          Json
+  specialties        Json
+  certifications     Json
+  yearsOfExperience  Int?     @default(0)
+  imageUrls          Json
+  hourlyRate         Float?
+  currency           String?  @default("MAD") @db.VarChar(10)
+  email              String?  @db.VarChar(255)
+  phone              String?  @db.VarChar(50)
+  website            String?  @db.VarChar(500)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Availability (stored as JSON)
+  availability Json?
+
+  // Relations
+  regions GuideRegion[]
+  reviews Review[]
+
+  @@map("guides")
+}
+
+model GuideRegion {
+  id       String @id @default(cuid())
+  guideId  String
+  regionId String
+
+  // Relations
+  guide  Guide  @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  region Region @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  @@unique([guideId, regionId])
+  @@map("guide_regions")
+}
+
+model TransportService {
+  id                String   @id @default(cuid())
+  name_en           String   @db.VarChar(255)
+  name_ar           String   @db.VarChar(255)
+  name_fr           String   @db.VarChar(255)
+  name_it           String   @db.VarChar(255)
+  name_es           String   @db.VarChar(255)
+  description_en    String?  @db.Text
+  description_ar    String?  @db.Text
+  description_fr    String?  @db.Text
+  description_it    String?  @db.Text
+  description_es    String?  @db.Text
+  type_en           String   @db.VarChar(100)
+  type_ar           String   @db.VarChar(100)
+  type_fr           String   @db.VarChar(100)
+  type_it           String   @db.VarChar(100)
+  type_es           String   @db.VarChar(100)
+  airportTransfer Boolean  @default(false)
+  imageUrls       Json
+  email           String?  @db.VarChar(255)
+  phone           String?  @db.VarChar(50)
+  website         String?  @db.VarChar(500)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Service Area (stored as JSON)
+  serviceArea Json?
+
+  // Relations
+  regions        TransportServiceRegion[]
+  vehicleOptions VehicleOption[]
+  reviews        Review[]
+
+  @@map("transport_services")
+}
+
+model TransportServiceRegion {
+  id                 String @id @default(cuid())
+  transportServiceId String
+  regionId           String
+
+  // Relations
+  transportService TransportService @relation(fields: [transportServiceId], references: [id], onDelete: Cascade)
+  region           Region           @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  @@unique([transportServiceId, regionId])
+  @@map("transport_service_regions")
+}
+
+model VehicleOption {
+  id                 String   @id @default(cuid())
+  transportServiceId String
+  type               String   @db.VarChar(100)
+  capacity           Int
+  pricePerDay        Float
+  currency           String   @default("MAD") @db.VarChar(10)
+  features           Json
+  imageUrls          Json
+
+  // Relations
+  transportService TransportService @relation(fields: [transportServiceId], references: [id], onDelete: Cascade)
+
+  @@map("vehicle_options")
+}
+
+model Review {
+  id               String   @id @default(cuid())
+  userId           String
+  itemId           String
+  itemType         String   @db.VarChar(50) // attraction, tour_package, guide, transport_service
+  rating           Float
+  title            String?  @db.VarChar(255)
+  comment          String?  @db.Text
+  date             DateTime @default(now())
+  helpfulVotes     Int      @default(0)
+  verifiedUser     Boolean  @default(false)
+  verifiedPurchase Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations (polymorphic) - using unique constraint names
+  attraction       Attraction?       @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "reviews_attraction_fkey")
+  tourPackage      TourPackage?      @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "reviews_tour_package_fkey")
+  guide            Guide?            @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "reviews_guide_fkey")
+  transportService TransportService? @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "reviews_transport_service_fkey")
+
+  @@map("reviews")
+}
+
+model UserPreferences {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  language             String   @default("en") @db.VarChar(10)
+  currency             String   @default("MAD") @db.VarChar(10)
+  favoriteRegions      Json
+  preferredCategories  Json
+  darkMode             Boolean  @default(false)
+  emailNotifications   Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("user_preferences")
+}
+
+model SavedItem {
+  id        String   @id @default(cuid())
+  userId    String
+  itemId    String
+  itemType  String   @db.VarChar(50) // region, attraction, tour_package, media_item, content_item
+  savedDate DateTime @default(now())
+  notes     String?  @db.Text
+
+  @@unique([userId, itemId, itemType])
+  @@map("saved_items")
+}
+
+// Search-related models for better search functionality
+model SearchQuery {
+  id        String   @id @default(cuid())
+  query     String   @db.VarChar(500)
+  userId    String?
+  count     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("search_queries")
+}

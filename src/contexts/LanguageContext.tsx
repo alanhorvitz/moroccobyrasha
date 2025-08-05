@@ -7,7 +7,7 @@ export type Language = 'en' | 'ar' | 'fr' | 'es' | 'it';
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string, params?: Record<string, string>) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
   isRTL: boolean;
 }
 
@@ -58,7 +58,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     saveUserPreferences({ language: lang });
   };
 
-  const t = (key: string, params?: Record<string, string>): string => {
+  const t = (key: string, params?: Record<string, string | number>): string => {
     const keys = key.split('.');
     let translation: unknown = translations[language];
     
@@ -86,7 +86,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     if (typeof translation === 'string' && params) {
       // Replace parameters in translation
       return translation.replace(/\{(\w+)\}/g, (match, param) => {
-        return params[param] || match;
+        return String(params[param] || match);
       });
     }
 

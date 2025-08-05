@@ -216,7 +216,7 @@ export const fr = {
     shipping: 'Expédition',
     returns: 'Retours',
     warranty: 'Garantie',
-    description: 'Description',
+    productDescription: 'Description',
     specifications: 'Spécifications',
     similarProducts: 'Produits Similaires',
     recentlyViewed: 'Vus Récemment',
@@ -350,6 +350,71 @@ export const fr = {
     uploadData: 'Téléverser les Données',
     syncData: 'Synchroniser les Données',
     clearData: 'Effacer les Données',
+  },
+
+  // Discover Page
+  discover: {
+    title: 'Découvrir le Maroc',
+    subtitle: 'Explorez les régions diverses, le patrimoine, la cuisine et la culture qui font du Maroc une destination inoubliable.',
+    searchPlaceholder: 'Rechercher {category}...',
+    loadingMessage: 'Chargement des trésors du Maroc...',
+    errorTitle: 'Oups ! Quelque chose s\'est mal passé',
+    errorMessage: 'Nous avons des difficultés à charger les données. Veuillez essayer de rafraîchir la page.',
+    refreshButton: 'Rafraîchir la Page',
+    noResultsMessage: 'Aucun {category} trouvé correspondant à vos critères.',
+    noResultsRegions: 'Aucune région trouvée correspondant à votre recherche.',
+    noResultsAttractions: 'Aucune attraction trouvée correspondant à vos critères.',
+    noResultsHeritage: 'Aucun élément du patrimoine trouvé correspondant à vos critères.',
+    noResultsClothing: 'Aucun vêtement trouvé correspondant à vos critères.',
+    noResultsCuisine: 'Aucun plat trouvé correspondant à vos critères.',
+    noResultsFestivals: 'Aucun festival trouvé correspondant à vos critères.',
+    noMapData: 'Aucune donnée de carte disponible',
+    loadingMapData: 'Chargement des données de carte...',
+    mapTitle: 'Carte Interactive du Maroc',
+    mapDescription: 'Explorez les régions, attractions et points d\'intérêt du Maroc sur notre carte interactive. Cliquez sur les marqueurs pour en savoir plus sur chaque lieu.',
+    mapLegend: {
+      regions: 'Régions',
+      attractions: 'Attractions',
+      heritageSites: 'Sites du Patrimoine',
+      cities: 'Villes'
+    },
+    tabs: {
+      regions: 'Régions',
+      map: 'Carte',
+      attractions: 'Attractions',
+      heritage: 'Patrimoine',
+      clothing: 'Vêtements',
+      cuisine: 'Cuisine',
+      festivals: 'Festivals'
+    },
+    filters: {
+      filterByCategory: 'Filtrer par Catégorie',
+      filterByType: 'Filtrer par Type',
+      filterByGender: 'Filtrer par Genre',
+      allCategories: 'Toutes les Catégories',
+      allTypes: 'Tous les Types',
+      allGenders: 'Tous les Genres',
+      category: 'Catégorie : {value}',
+      type: 'Type : {value}',
+      gender: 'Genre : {value}'
+    },
+    cards: {
+      attractions: 'attractions',
+      exploreRegion: 'Explorer la Région',
+      viewDetails: 'Voir les Détails',
+      learnMore: 'En Savoir Plus',
+      seeRecipe: 'Voir la Recette',
+      viewFestival: 'Voir le Festival',
+      traditionalMoroccanAttire: 'Tenue Traditionnelle Marocaine',
+      moroccanCuisine: 'Cuisine Marocaine',
+      significance: 'Signification',
+      materials: 'Matériaux',
+      keyIngredients: 'Ingrédients Clés',
+      more: '+{count} de plus',
+      spiceLevel: 'Niveau d\'Épice {level}',
+      day: 'jour',
+      days: 'jours'
+    }
   },
 
   // Footer

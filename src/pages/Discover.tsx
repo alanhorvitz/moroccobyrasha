@@ -16,8 +16,10 @@ import { Badge } from "@/components/ui/badge";
 import { SimpleLeafletMap } from '@/components/SimpleLeafletMap';
 import { apiService, transformApiData } from '@/lib/api';
 import { Region, Attraction, HeritageItem, ClothingItem, CuisineItem, FestivalEvent } from '@/lib/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function DiscoverPage() {
+  const { t, isRTL, language } = useLanguage();
   const [activeTab, setActiveTab] = useState("regions");
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -30,42 +32,42 @@ export default function DiscoverPage() {
   
   // Fetch data from API using React Query
   const { data: apiRegions, isLoading: regionsLoading, error: regionsError } = useQuery({
-    queryKey: ['regions'],
+    queryKey: ['regions', language],
     queryFn: apiService.getRegions,
   });
 
   const { data: apiAttractions, isLoading: attractionsLoading, error: attractionsError } = useQuery({
-    queryKey: ['attractions'],
+    queryKey: ['attractions', language],
     queryFn: apiService.getAttractions,
   });
 
   const { data: apiHeritages, isLoading: heritagesLoading, error: heritagesError } = useQuery({
-    queryKey: ['heritages'],
+    queryKey: ['heritages', language],
     queryFn: apiService.getHeritages,
   });
 
   const { data: apiClothing, isLoading: clothingLoading, error: clothingError } = useQuery({
-    queryKey: ['clothing'],
+    queryKey: ['clothing', language],
     queryFn: apiService.getClothing,
   });
 
   const { data: apiCuisines, isLoading: cuisinesLoading, error: cuisinesError } = useQuery({
-    queryKey: ['cuisines'],
+    queryKey: ['cuisines', language],
     queryFn: apiService.getCuisines,
   });
 
   const { data: apiFestivals, isLoading: festivalsLoading, error: festivalsError } = useQuery({
-    queryKey: ['festivals'],
+    queryKey: ['festivals', language],
     queryFn: apiService.getFestivals,
   });
 
-  // Transform API data to frontend format
-  const regions = apiRegions?.map(transformApiData.region) || [];
-  const attractions = apiAttractions?.map(transformApiData.attraction) || [];
-  const heritageItems = apiHeritages?.map(transformApiData.heritage) || [];
-  const clothingItems = apiClothing?.map(transformApiData.clothing) || [];
-  const cuisineItems = apiCuisines?.map(transformApiData.cuisine) || [];
-  const festivalEvents = apiFestivals?.map(transformApiData.festival) || [];
+  // Transform API data to frontend format with current language
+  const regions = apiRegions?.map(region => transformApiData.region(region, language)) || [];
+  const attractions = apiAttractions?.map(attraction => transformApiData.attraction(attraction, language)) || [];
+  const heritageItems = apiHeritages?.map(heritage => transformApiData.heritage(heritage, language)) || [];
+  const clothingItems = apiClothing?.map(clothing => transformApiData.clothing(clothing, language)) || [];
+  const cuisineItems = apiCuisines?.map(cuisine => transformApiData.cuisine(cuisine, language)) || [];
+  const festivalEvents = apiFestivals?.map(festival => transformApiData.festival(festival, language)) || [];
 
   // Use useMemo to compute filtered data instead of useState + useEffect
   const filteredRegions = useMemo(() => {
@@ -228,12 +230,12 @@ export default function DiscoverPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
-                {selectedCategory ? `Category: ${selectedCategory}` : "Filter by Category"}
+                {selectedCategory ? t('discover.filters.category', { value: selectedCategory }) : t('discover.filters.filterByCategory')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => handleCategoryFilter(null)}>
-                All Categories
+                {t('discover.filters.allCategories')}
               </DropdownMenuItem>
               {attractionCategories.map((category) => (
                 <DropdownMenuItem key={category} onClick={() => handleCategoryFilter(category)}>
@@ -249,12 +251,12 @@ export default function DiscoverPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="flex items-center gap-2">
                 <Tag className="h-4 w-4" />
-                {selectedHeritageType ? `Type: ${selectedHeritageType.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}` : "Filter by Type"}
+                {selectedHeritageType ? t('discover.filters.type', { value: selectedHeritageType.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') }) : t('discover.filters.filterByType')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => handleHeritageTypeFilter(null)}>
-                All Types
+                {t('discover.filters.allTypes')}
               </DropdownMenuItem>
               {heritageTypes.map((type) => (
                 <DropdownMenuItem key={type} onClick={() => handleHeritageTypeFilter(type)}>
@@ -270,12 +272,12 @@ export default function DiscoverPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="flex items-center gap-2">
                 <Shirt className="h-4 w-4" />
-                {selectedClothingGender ? `Gender: ${selectedClothingGender.charAt(0).toUpperCase() + selectedClothingGender.slice(1)}` : "Filter by Gender"}
+                {selectedClothingGender ? t('discover.filters.gender', { value: selectedClothingGender.charAt(0).toUpperCase() + selectedClothingGender.slice(1) }) : t('discover.filters.filterByGender')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => handleClothingGenderFilter(null)}>
-                All Genders
+                {t('discover.filters.allGenders')}
               </DropdownMenuItem>
               {clothingGenders.map((gender) => (
                 <DropdownMenuItem key={gender} onClick={() => handleClothingGenderFilter(gender)}>
@@ -291,12 +293,12 @@ export default function DiscoverPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="flex items-center gap-2">
                 <Utensils className="h-4 w-4" />
-                {selectedCuisineType ? `Type: ${selectedCuisineType.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}` : "Filter by Type"}
+                {selectedCuisineType ? t('discover.filters.type', { value: selectedCuisineType.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') }) : t('discover.filters.filterByType')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => handleCuisineTypeFilter(null)}>
-                All Types
+                {t('discover.filters.allTypes')}
               </DropdownMenuItem>
               {cuisineTypes.map((type) => (
                 <DropdownMenuItem key={type} onClick={() => handleCuisineTypeFilter(type)}>
@@ -312,12 +314,12 @@ export default function DiscoverPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                {selectedFestivalType ? `Type: ${selectedFestivalType.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}` : "Filter by Type"}
+                {selectedFestivalType ? t('discover.filters.type', { value: selectedFestivalType.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') }) : t('discover.filters.filterByType')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => handleFestivalTypeFilter(null)}>
-                All Types
+                {t('discover.filters.allTypes')}
               </DropdownMenuItem>
               {festivalTypes.map((type) => (
                 <DropdownMenuItem key={type} onClick={() => handleFestivalTypeFilter(type)}>
@@ -338,7 +340,7 @@ export default function DiscoverPage() {
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-lg text-slate-600">Loading Morocco's treasures...</p>
+          <p className="text-lg text-slate-600">{t('discover.loadingMessage')}</p>
         </div>
       </div>
     );
@@ -349,12 +351,12 @@ export default function DiscoverPage() {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-2xl font-bold mb-4 text-red-600">Oops! Something went wrong</h1>
+          <h1 className="text-2xl font-bold mb-4 text-red-600">{t('discover.errorTitle')}</h1>
           <p className="text-lg text-slate-600 mb-6">
-            We're having trouble loading the data. Please try refreshing the page.
+            {t('discover.errorMessage')}
           </p>
           <Button onClick={() => window.location.reload()}>
-            Refresh Page
+            {t('discover.refreshButton')}
           </Button>
         </div>
       </div>
@@ -362,22 +364,22 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className={`container mx-auto px-4 py-12 ${isRTL ? 'rtl' : 'ltr'}`}>
       <div className="max-w-4xl mx-auto text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Discover Morocco</h1>
+        <h1 className="text-4xl font-bold mb-4">{t('discover.title')}</h1>
         <p className="text-xl text-slate-600">
-          Explore the diverse regions, heritage, cuisine, and culture that make Morocco an unforgettable destination.
+          {t('discover.subtitle')}
         </p>
       </div>
       
       {/* Search and Filter */}
       <div className="mb-8">
-        <div className="flex flex-col md:flex-row gap-4 justify-between mb-6">
+        <div className={`flex flex-col md:flex-row gap-4 justify-between mb-6 ${isRTL ? 'rtl-flex-row' : ''}`}>
           <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+            <Search className={`absolute top-1/2 transform -translate-y-1/2 text-slate-400 ${isRTL ? 'right-3' : 'left-3'}`} />
             <Input
-              placeholder={`Search ${activeTab}...`}
-              className="pl-10"
+              placeholder={t('discover.searchPlaceholder', { category: activeTab })}
+              className={isRTL ? 'pr-10' : 'pl-10'}
               value={searchTerm}
               onChange={handleSearch}
             />
@@ -389,14 +391,14 @@ export default function DiscoverPage() {
       
       {/* Tabs for different discover sections */}
       <Tabs defaultValue="regions" value={activeTab} onValueChange={handleTabChange} className="mb-8">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 gap-2">
-          <TabsTrigger value="regions">Regions</TabsTrigger>
-          <TabsTrigger value="map">Map</TabsTrigger>
-          <TabsTrigger value="attractions">Attractions</TabsTrigger>
-          <TabsTrigger value="heritage">Heritage</TabsTrigger>
-          <TabsTrigger value="clothing">Clothing</TabsTrigger>
-          <TabsTrigger value="cuisine">Cuisine</TabsTrigger>
-          <TabsTrigger value="festivals">Festivals</TabsTrigger>
+        <TabsList className={`grid w-full grid-cols-2 md:grid-cols-7 gap-2 ${isRTL ? 'rtl' : 'ltr'}`}>
+          <TabsTrigger value="regions">{t('discover.tabs.regions')}</TabsTrigger>
+          <TabsTrigger value="map">{t('discover.tabs.map')}</TabsTrigger>
+          <TabsTrigger value="attractions">{t('discover.tabs.attractions')}</TabsTrigger>
+          <TabsTrigger value="heritage">{t('discover.tabs.heritage')}</TabsTrigger>
+          <TabsTrigger value="clothing">{t('discover.tabs.clothing')}</TabsTrigger>
+          <TabsTrigger value="cuisine">{t('discover.tabs.cuisine')}</TabsTrigger>
+          <TabsTrigger value="festivals">{t('discover.tabs.festivals')}</TabsTrigger>
         </TabsList>
         
         {/* Regions Tab Content */}
@@ -404,12 +406,12 @@ export default function DiscoverPage() {
           {filteredRegions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredRegions.map((region) => (
-                <RegionCard key={region.id} region={region} attractions={attractions} />
+                <RegionCard key={region.id} region={region} attractions={attractions} t={t} isRTL={isRTL} />
               ))}
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-lg text-slate-500">No regions found matching your search.</p>
+              <p className="text-lg text-slate-500">{t('discover.noResultsRegions')}</p>
             </div>
           )}
         </TabsContent>
@@ -417,26 +419,25 @@ export default function DiscoverPage() {
         {/* Interactive Map Tab Content */}
         <TabsContent value="map" className="pt-6">
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <div className="flex items-center mb-4">
-              <Map className="h-5 w-5 mr-2 text-emerald-600" />
-              <h2 className="text-xl font-semibold">Interactive Map of Morocco</h2>
+            <div className={`flex items-center mb-4 ${isRTL ? 'rtl-flex' : ''}`}>
+              <Map className={`h-5 w-5 text-emerald-600 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              <h2 className="text-xl font-semibold">{t('discover.mapTitle')}</h2>
             </div>
             <p className="text-slate-600 mb-6">
-              Explore Morocco's regions, attractions, and points of interest on our interactive map. 
-              Click on markers to learn more about each location.
+              {t('discover.mapDescription')}
             </p>
             
             {isLoading ? (
               <div className="h-[600px] rounded-lg border flex items-center justify-center">
                 <div className="text-center">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-                  <p className="text-slate-600">Loading map data...</p>
+                  <p className="text-slate-600">{t('discover.loadingMapData')}</p>
                 </div>
               </div>
             ) : regions.length === 0 && attractions.length === 0 ? (
               <div className="h-[600px] rounded-lg border flex items-center justify-center">
                 <div className="text-center">
-                  <p className="text-slate-600">No map data available</p>
+                  <p className="text-slate-600">{t('discover.noMapData')}</p>
                 </div>
               </div>
             ) : (
@@ -450,22 +451,22 @@ export default function DiscoverPage() {
               </div>
             )}
             
-            <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-emerald-600 rounded-full mr-2"></div>
-                <span className="text-sm">Regions ({regions.length})</span>
+            <div className={`mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 ${isRTL ? 'rtl' : 'ltr'}`}>
+              <div className={`flex items-center ${isRTL ? 'rtl-flex' : ''}`}>
+                <div className={`w-4 h-4 bg-emerald-600 rounded-full ${isRTL ? 'ml-2' : 'mr-2'}`}></div>
+                <span className="text-sm">{t('discover.mapLegend.regions')} ({regions.length})</span>
               </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-blue-600 rounded-full mr-2"></div>
-                <span className="text-sm">Attractions ({attractions.length})</span>
+              <div className={`flex items-center ${isRTL ? 'rtl-flex' : ''}`}>
+                <div className={`w-4 h-4 bg-blue-600 rounded-full ${isRTL ? 'ml-2' : 'mr-2'}`}></div>
+                <span className="text-sm">{t('discover.mapLegend.attractions')} ({attractions.length})</span>
               </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-purple-600 rounded-full mr-2"></div>
-                <span className="text-sm">Heritage Sites</span>
+              <div className={`flex items-center ${isRTL ? 'rtl-flex' : ''}`}>
+                <div className={`w-4 h-4 bg-purple-600 rounded-full ${isRTL ? 'ml-2' : 'mr-2'}`}></div>
+                <span className="text-sm">{t('discover.mapLegend.heritageSites')}</span>
               </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-orange-600 rounded-full mr-2"></div>
-                <span className="text-sm">Cities</span>
+              <div className={`flex items-center ${isRTL ? 'rtl-flex' : ''}`}>
+                <div className={`w-4 h-4 bg-orange-600 rounded-full ${isRTL ? 'ml-2' : 'mr-2'}`}></div>
+                <span className="text-sm">{t('discover.mapLegend.cities')}</span>
               </div>
             </div>
           </div>
@@ -476,12 +477,12 @@ export default function DiscoverPage() {
           {filteredAttractions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredAttractions.map((attraction) => (
-                <AttractionCard key={attraction.id} attraction={attraction} regions={regions} />
+                <AttractionCard key={attraction.id} attraction={attraction} regions={regions} t={t} isRTL={isRTL} />
               ))}
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-lg text-slate-500">No attractions found matching your criteria.</p>
+              <p className="text-lg text-slate-500">{t('discover.noResultsAttractions')}</p>
             </div>
           )}
         </TabsContent>
@@ -491,12 +492,12 @@ export default function DiscoverPage() {
           {filteredHeritage.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredHeritage.map((heritage) => (
-                <HeritageCard key={heritage.id} heritage={heritage} regions={regions} />
+                <HeritageCard key={heritage.id} heritage={heritage} regions={regions} t={t} isRTL={isRTL} />
               ))}
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-lg text-slate-500">No heritage items found matching your criteria.</p>
+              <p className="text-lg text-slate-500">{t('discover.noResultsHeritage')}</p>
             </div>
           )}
         </TabsContent>
@@ -506,12 +507,12 @@ export default function DiscoverPage() {
           {filteredClothing.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredClothing.map((clothing) => (
-                <ClothingCard key={clothing.id} clothing={clothing} />
+                <ClothingCard key={clothing.id} clothing={clothing} t={t} isRTL={isRTL} />
               ))}
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-lg text-slate-500">No clothing items found matching your criteria.</p>
+              <p className="text-lg text-slate-500">{t('discover.noResultsClothing')}</p>
             </div>
           )}
         </TabsContent>
@@ -521,12 +522,12 @@ export default function DiscoverPage() {
           {filteredCuisine.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredCuisine.map((cuisine) => (
-                <CuisineCard key={cuisine.id} cuisine={cuisine} />
+                <CuisineCard key={cuisine.id} cuisine={cuisine} t={t} isRTL={isRTL} />
               ))}
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-lg text-slate-500">No cuisine items found matching your criteria.</p>
+              <p className="text-lg text-slate-500">{t('discover.noResultsCuisine')}</p>
             </div>
           )}
         </TabsContent>
@@ -536,12 +537,12 @@ export default function DiscoverPage() {
           {filteredFestivals.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredFestivals.map((festival) => (
-                <FestivalCard key={festival.id} festival={festival} regions={regions} />
+                <FestivalCard key={festival.id} festival={festival} regions={regions} t={t} isRTL={isRTL} />
               ))}
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-lg text-slate-500">No festivals found matching your criteria.</p>
+              <p className="text-lg text-slate-500">{t('discover.noResultsFestivals')}</p>
             </div>
           )}
         </TabsContent>
@@ -551,7 +552,7 @@ export default function DiscoverPage() {
 }
 
 // Region Card Component
-const RegionCard = ({ region, attractions }: { region: Region; attractions: Attraction[] }) => {
+const RegionCard = ({ region, attractions, t, isRTL }: { region: Region; attractions: Attraction[]; t: (key: string, params?: Record<string, string | number>) => string; isRTL: boolean }) => {
   const regionAttractionsCount = attractions.filter(a => a.regionId === region.id).length;
   
   return (
@@ -561,8 +562,8 @@ const RegionCard = ({ region, attractions }: { region: Region; attractions: Attr
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50"></div>
         <div className="absolute bottom-0 p-4">
           <h3 className="text-xl font-bold text-white">{region.name}</h3>
-          <div className="flex items-center text-white/80 text-sm">
-            <MapPin className="h-4 w-4 mr-1" />
+          <div className={`flex items-center text-white/80 text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <MapPin className={`h-4 w-4 ${isRTL ? 'ml-1' : 'mr-1'}`} />
             {region.capital}
           </div>
         </div>
@@ -571,9 +572,9 @@ const RegionCard = ({ region, attractions }: { region: Region; attractions: Attr
         <p className="text-slate-600 line-clamp-3">{region.description}</p>
       </CardContent>
       <CardFooter className="flex justify-between items-center">
-        <span className="text-sm text-slate-500">{regionAttractionsCount} attractions</span>
+        <span className="text-sm text-slate-500">{regionAttractionsCount} {t('discover.cards.attractions')}</span>
         <Button asChild>
-          <Link to={`/regions/${region.id}`}>Explore Region</Link>
+          <Link to={`/regions/${region.id}`}>{t('discover.cards.exploreRegion')}</Link>
         </Button>
       </CardFooter>
     </Card>
@@ -581,21 +582,21 @@ const RegionCard = ({ region, attractions }: { region: Region; attractions: Attr
 };
 
 // Attraction Card Component
-const AttractionCard = ({ attraction, regions }: { attraction: Attraction; regions: Region[] }) => {
+const AttractionCard = ({ attraction, regions, t, isRTL }: { attraction: Attraction; regions: Region[]; t: (key: string, params?: Record<string, string | number>) => string; isRTL: boolean }) => {
   const region = regions.find(r => r.id === attraction.regionId);
   
   return (
     <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
       <div className="relative h-48 bg-slate-200">
         {/* Attraction image would go here in implementation */}
-        <div className="absolute top-4 left-4 z-10">
+        <div className={`absolute top-4 z-10 ${isRTL ? 'right-4' : 'left-4'}`}>
           <Badge className="bg-emerald-600 hover:bg-emerald-700">{attraction.type}</Badge>
         </div>
       </div>
       <CardHeader>
         <CardTitle>{attraction.name}</CardTitle>
-        <CardDescription className="flex items-center">
-          <MapPin className="h-4 w-4 mr-1" />
+        <CardDescription className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <MapPin className={`h-4 w-4 ${isRTL ? 'ml-1' : 'mr-1'}`} />
           {region ? region.name : 'Morocco'}
         </CardDescription>
       </CardHeader>
@@ -604,7 +605,7 @@ const AttractionCard = ({ attraction, regions }: { attraction: Attraction; regio
       </CardContent>
       <CardFooter>
         <Button asChild variant="outline" className="w-full">
-          <Link to={`/attractions/${attraction.id}`}>View Details</Link>
+          <Link to={`/attractions/${attraction.id}`}>{t('discover.cards.viewDetails')}</Link>
         </Button>
       </CardFooter>
     </Card>
@@ -612,13 +613,13 @@ const AttractionCard = ({ attraction, regions }: { attraction: Attraction; regio
 };
 
 // Heritage Card Component
-const HeritageCard = ({ heritage, regions }: { heritage: HeritageItem; regions: Region[] }) => {
+const HeritageCard = ({ heritage, regions, t, isRTL }: { heritage: HeritageItem; regions: Region[]; t: (key: string, params?: Record<string, string | number>) => string; isRTL: boolean }) => {
   return (
     <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
-      <div className="flex flex-col md:flex-row h-full">
+      <div className={`flex flex-col md:flex-row h-full ${isRTL ? 'rtl-flex-row' : ''}`}>
         <div className="w-full md:w-2/5 h-60 md:h-auto bg-slate-200 relative">
           {/* Heritage image would go here in implementation */}
-          <div className="absolute top-4 left-4">
+          <div className={`absolute top-4 ${isRTL ? 'right-4' : 'left-4'}`}>
             <Badge variant="secondary" className="capitalize">
               {heritage.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
             </Badge>
@@ -637,14 +638,14 @@ const HeritageCard = ({ heritage, regions }: { heritage: HeritageItem; regions: 
           <CardContent className="flex-grow">
             <p className="text-slate-600 line-clamp-4 mb-3">{heritage.description}</p>
             <div className="text-sm text-emerald-700">
-              <p className="font-medium">Significance:</p>
+              <p className="font-medium">{t('discover.cards.significance')}:</p>
               <p className="line-clamp-2">{heritage.importance}</p>
             </div>
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" className="w-full">
               <Link to={`/heritage/${heritage.id}`}>
-                Learn More
+                {t('discover.cards.learnMore')}
               </Link>
             </Button>
           </CardFooter>
@@ -655,13 +656,13 @@ const HeritageCard = ({ heritage, regions }: { heritage: HeritageItem; regions: 
 };
 
 // Clothing Card Component
-const ClothingCard = ({ clothing }: { clothing: ClothingItem }) => {
+const ClothingCard = ({ clothing, t, isRTL }: { clothing: ClothingItem; t: (key: string, params?: Record<string, string | number>) => string; isRTL: boolean }) => {
   return (
     <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
-      <div className="flex flex-col md:flex-row h-full">
+      <div className={`flex flex-col md:flex-row h-full ${isRTL ? 'rtl-flex-row' : ''}`}>
         <div className="w-full md:w-2/5 h-60 md:h-auto bg-slate-200 relative">
           {/* Clothing image would go here in implementation */}
-          <div className="absolute top-4 left-4">
+          <div className={`absolute top-4 ${isRTL ? 'right-4' : 'left-4'}`}>
             <Badge className="capitalize">
               {clothing.gender}
             </Badge>
@@ -671,28 +672,28 @@ const ClothingCard = ({ clothing }: { clothing: ClothingItem }) => {
           <CardHeader>
             <CardTitle className="text-xl">{clothing.name}</CardTitle>
             <CardDescription>
-              Traditional Moroccan Attire
+              {t('discover.cards.traditionalMoroccanAttire')}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
             <p className="text-slate-600 line-clamp-4 mb-3">{clothing.description}</p>
             
             <div className="flex flex-wrap gap-2 mb-3">
-              <p className="text-sm font-medium text-slate-700">Materials:</p>
+              <p className="text-sm font-medium text-slate-700">{t('discover.cards.materials')}:</p>
               {clothing.materials.slice(0, 3).map((material, i) => (
                 <Badge key={i} variant="outline" className="capitalize">
                   {material}
                 </Badge>
               ))}
               {clothing.materials.length > 3 && (
-                <span className="text-xs text-slate-500">+{clothing.materials.length - 3} more</span>
+                <span className="text-xs text-slate-500">{t('discover.cards.more', { count: String(clothing.materials.length - 3) })}</span>
               )}
             </div>
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" className="w-full">
               <Link to={`/clothing/${clothing.id}`}>
-                View Details
+                {t('discover.cards.viewDetails')}
               </Link>
             </Button>
           </CardFooter>
@@ -703,25 +704,25 @@ const ClothingCard = ({ clothing }: { clothing: ClothingItem }) => {
 };
 
 // Cuisine Card Component
-const CuisineCard = ({ cuisine }: { cuisine: CuisineItem }) => {
+const CuisineCard = ({ cuisine, t, isRTL }: { cuisine: CuisineItem; t: (key: string, params?: Record<string, string | number>) => string; isRTL: boolean }) => {
   return (
     <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
-      <div className="flex flex-col md:flex-row h-full">
+      <div className={`flex flex-col md:flex-row h-full ${isRTL ? 'rtl-flex-row' : ''}`}>
         <div className="w-full md:w-2/5 h-60 md:h-auto bg-slate-200 relative">
           {/* Cuisine image would go here in implementation */}
-          <div className="absolute top-4 left-4">
+          <div className={`absolute top-4 ${isRTL ? 'right-4' : 'left-4'}`}>
             <Badge variant="secondary" className="capitalize">
               {cuisine.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
             </Badge>
           </div>
           {cuisine.spiceLevel !== 'none' && (
-            <div className="absolute top-4 right-4">
+            <div className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'}`}>
               <Badge variant={
                 cuisine.spiceLevel === 'mild' ? "outline" : 
                 cuisine.spiceLevel === 'medium' ? "secondary" : 
                 "destructive"
               }>
-                {cuisine.spiceLevel.charAt(0).toUpperCase() + cuisine.spiceLevel.slice(1)} Spice
+                {t('discover.cards.spiceLevel', { level: cuisine.spiceLevel.charAt(0).toUpperCase() + cuisine.spiceLevel.slice(1) })}
               </Badge>
             </div>
           )}
@@ -730,28 +731,28 @@ const CuisineCard = ({ cuisine }: { cuisine: CuisineItem }) => {
           <CardHeader>
             <CardTitle className="text-xl">{cuisine.name}</CardTitle>
             <CardDescription>
-              Moroccan Cuisine
+              {t('discover.cards.moroccanCuisine')}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
             <p className="text-slate-600 line-clamp-4 mb-3">{cuisine.description}</p>
             
             <div className="flex flex-wrap gap-2 mb-3">
-              <p className="text-sm font-medium text-slate-700">Key Ingredients:</p>
+              <p className="text-sm font-medium text-slate-700">{t('discover.cards.keyIngredients')}:</p>
               {cuisine.ingredients.slice(0, 4).map((ingredient, i) => (
                 <Badge key={i} variant="outline" className="capitalize">
                   {ingredient.split('-').join(' ')}
                 </Badge>
               ))}
               {cuisine.ingredients.length > 4 && (
-                <span className="text-xs text-slate-500">+{cuisine.ingredients.length - 4} more</span>
+                <span className="text-xs text-slate-500">{t('discover.cards.more', { count: String(cuisine.ingredients.length - 4) })}</span>
               )}
             </div>
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" className="w-full">
               <Link to={`/cuisine/${cuisine.id}`}>
-                See Recipe
+                {t('discover.cards.seeRecipe')}
               </Link>
             </Button>
           </CardFooter>
@@ -762,17 +763,17 @@ const CuisineCard = ({ cuisine }: { cuisine: CuisineItem }) => {
 };
 
 // Festival Card Component
-const FestivalCard = ({ festival, regions }: { festival: FestivalEvent; regions: Region[] }) => {
+const FestivalCard = ({ festival, regions, t, isRTL }: { festival: FestivalEvent; regions: Region[]; t: (key: string, params?: Record<string, string | number>) => string; isRTL: boolean }) => {
   const region = festival.regionId !== 'all' 
     ? regions.find(r => r.id === festival.regionId) 
     : null;
   
   return (
     <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
-      <div className="flex flex-col md:flex-row h-full">
+      <div className={`flex flex-col md:flex-row h-full ${isRTL ? 'rtl-flex-row' : ''}`}>
         <div className="w-full md:w-2/5 h-60 md:h-auto bg-slate-200 relative">
           {/* Festival image would go here in implementation */}
-          <div className="absolute top-4 left-4">
+          <div className={`absolute top-4 ${isRTL ? 'right-4' : 'left-4'}`}>
             <Badge variant="secondary" className="capitalize">
               {festival.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
             </Badge>
@@ -781,28 +782,28 @@ const FestivalCard = ({ festival, regions }: { festival: FestivalEvent; regions:
         <div className="w-full md:w-3/5 flex flex-col">
           <CardHeader>
             <CardTitle className="text-xl">{festival.name}</CardTitle>
-            <CardDescription className="flex items-center">
-              <MapPin className="h-4 w-4 mr-1" />
+            <CardDescription className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <MapPin className={`h-4 w-4 ${isRTL ? 'ml-1' : 'mr-1'}`} />
               {festival.location} {region && `(${region.name})`}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
             <p className="text-slate-600 line-clamp-4 mb-3">{festival.description}</p>
             
-            <div className="flex items-center text-sm text-slate-700 space-x-4 mb-2">
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 mr-1 text-slate-500" />
+            <div className={`flex items-center text-sm text-slate-700 space-x-4 mb-2 ${isRTL ? 'flex-row-reverse space-x-reverse' : ''}`}>
+              <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <Calendar className={`h-4 w-4 text-slate-500 ${isRTL ? 'ml-1' : 'mr-1'}`} />
                 <span>{festival.timeOfYear}</span>
               </div>
               <div>
-                <span className="font-medium">{festival.duration} {festival.duration > 1 ? 'days' : 'day'}</span>
+                <span className="font-medium">{festival.duration} {festival.duration > 1 ? t('discover.cards.days') : t('discover.cards.day')}</span>
               </div>
             </div>
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" className="w-full">
               <Link to={`/festivals/${festival.id}`}>
-                View Festival
+                {t('discover.cards.viewFestival')}
               </Link>
             </Button>
           </CardFooter>

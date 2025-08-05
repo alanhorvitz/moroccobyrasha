@@ -8,24 +8,26 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiService, transformApiData } from '@/lib/api';
 import { CuisineItem, Region } from '@/lib/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function CuisineDetail() {
   const { id } = useParams<{ id: string }>();
+  const { language, t, isRTL } = useLanguage();
 
   // Fetch cuisine and regions data
   const { data: apiCuisines, isLoading: cuisinesLoading, error: cuisinesError } = useQuery({
-    queryKey: ['cuisines'],
+    queryKey: ['cuisines', language],
     queryFn: apiService.getCuisines,
   });
 
   const { data: apiRegions, isLoading: regionsLoading, error: regionsError } = useQuery({
-    queryKey: ['regions'],
+    queryKey: ['regions', language],
     queryFn: apiService.getRegions,
   });
 
-  // Transform API data
-  const cuisineItems = apiCuisines?.map(transformApiData.cuisine) || [];
-  const regions = apiRegions?.map(transformApiData.region) || [];
+  // Transform API data with current language
+  const cuisineItems = apiCuisines?.map(cuisine => transformApiData.cuisine(cuisine, language)) || [];
+  const regions = apiRegions?.map(region => transformApiData.region(region, language)) || [];
 
   // Find the specific cuisine item and its regions
   const cuisine = cuisineItems.find(c => c.id === id);
@@ -37,7 +39,7 @@ export default function CuisineDetail() {
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-lg text-slate-600">Loading cuisine details...</p>
+          <p className="text-lg text-slate-600">{t('cuisineDetail.loadingMessage')}</p>
         </div>
       </div>
     );
@@ -48,10 +50,10 @@ export default function CuisineDetail() {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-red-600">Error Loading Cuisine</h1>
-          <p className="text-slate-600 mb-6">There was an error loading the cuisine data.</p>
+          <h1 className="text-2xl font-bold mb-4 text-red-600">{t('cuisineDetail.errorTitle')}</h1>
+          <p className="text-slate-600 mb-6">{t('cuisineDetail.errorMessage')}</p>
           <Button asChild>
-            <Link to="/discover">Back to Discover</Link>
+            <Link to="/discover">{t('cuisineDetail.backToDiscover')}</Link>
           </Button>
         </div>
       </div>
@@ -63,10 +65,10 @@ export default function CuisineDetail() {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Cuisine Not Found</h1>
-          <p className="text-slate-600 mb-6">The cuisine item you're looking for doesn't exist.</p>
+          <h1 className="text-2xl font-bold mb-4">{t('cuisineDetail.notFoundTitle')}</h1>
+          <p className="text-slate-600 mb-6">{t('cuisineDetail.notFoundMessage')}</p>
           <Button asChild>
-            <Link to="/discover">Back to Discover</Link>
+            <Link to="/discover">{t('cuisineDetail.backToDiscover')}</Link>
           </Button>
         </div>
       </div>
@@ -82,8 +84,8 @@ export default function CuisineDetail() {
           <div className="container mx-auto px-4">
             <Button asChild variant="outline" className="mb-6 bg-white/10 border-white text-white hover:bg-white/20">
               <Link to="/discover">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Discover
+                <ArrowLeft className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                {t('cuisineDetail.backToDiscover')}
               </Link>
             </Button>
             <div className="flex items-center gap-3 mb-4">
@@ -92,14 +94,14 @@ export default function CuisineDetail() {
               </Badge>
               {cuisine.spiceLevel !== 'none' && (
                 <Badge variant="outline" className="bg-white/80 border-0">
-                  {cuisine.spiceLevel.charAt(0).toUpperCase() + cuisine.spiceLevel.slice(1)} Spice
+                  {t('cuisineDetail.spiceLevel', { level: t(`cuisineDetail.${cuisine.spiceLevel}`) })}
                 </Badge>
               )}
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">{cuisine.name}</h1>
-            <div className="flex items-center text-white/80">
-              <MapPin className="h-5 w-5 mr-2" />
-              <span>{cuisineRegions.map(r => r.name).join(', ') || 'Morocco'}</span>
+            <div className={`flex items-center text-white/80 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <MapPin className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              <span>{cuisineRegions.map(r => r.name).join(', ') || t('cuisineDetail.morocco')}</span>
             </div>
           </div>
         </div>
@@ -113,14 +115,14 @@ export default function CuisineDetail() {
             <div className="lg:col-span-2">
               <Tabs defaultValue="overview" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
+                  <TabsTrigger value="overview">{t('cuisineDetail.tabs.overview')}</TabsTrigger>
+                  <TabsTrigger value="ingredients">{t('cuisineDetail.tabs.ingredients')}</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="overview" className="mt-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>About {cuisine.name}</CardTitle>
+                      <CardTitle>{t('cuisineDetail.aboutCuisine', { name: cuisine.name })}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <p className="text-slate-600 leading-relaxed">{cuisine.description}</p>
@@ -128,20 +130,20 @@ export default function CuisineDetail() {
                       <Separator />
                       
                       <div>
-                        <h3 className="text-lg font-semibold mb-3">Key Information</h3>
+                        <h3 className="text-lg font-semibold mb-3">{t('cuisineDetail.keyInformation')}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="flex items-center">
                             <MapPin className="h-5 w-5 mr-2 text-orange-600" />
                             <div>
-                              <p className="font-medium">Regions</p>
-                              <p className="text-sm text-slate-600">{cuisineRegions.map(r => r.name).join(', ') || 'Morocco'}</p>
+                              <p className="font-medium">{t('cuisineDetail.regions')}</p>
+                              <p className="text-sm text-slate-600">{cuisineRegions.map(r => r.name).join(', ') || t('cuisineDetail.morocco')}</p>
                             </div>
                           </div>
                           
                           <div className="flex items-center">
                             <Flame className="h-5 w-5 mr-2 text-orange-600" />
                             <div>
-                              <p className="font-medium">Spice Level</p>
+                              <p className="font-medium">{t('cuisineDetail.spiceLevel')}</p>
                               <p className="text-sm text-slate-600 capitalize">{cuisine.spiceLevel}</p>
                             </div>
                           </div>
@@ -154,11 +156,11 @@ export default function CuisineDetail() {
                 <TabsContent value="ingredients" className="mt-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Ingredients & Variants</CardTitle>
+                      <CardTitle>{t('cuisineDetail.ingredientsVariants')}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div>
-                        <h3 className="text-lg font-semibold mb-3">Key Ingredients</h3>
+                        <h3 className="text-lg font-semibold mb-3">{t('cuisineDetail.keyIngredients')}</h3>
                         <div className="flex flex-wrap gap-2">
                           {cuisine.ingredients.map((ingredient, index) => (
                             <Badge key={index} variant="outline" className="capitalize">
@@ -172,7 +174,7 @@ export default function CuisineDetail() {
                         <>
                           <Separator />
                           <div>
-                            <h3 className="text-lg font-semibold mb-3">Popular Variants</h3>
+                            <h3 className="text-lg font-semibold mb-3">{t('cuisineDetail.popularVariants')}</h3>
                             <div className="flex flex-wrap gap-2">
                               {cuisine.popularVariants.map((variant, index) => (
                                 <Badge key={index} variant="secondary" className="capitalize">
@@ -193,32 +195,32 @@ export default function CuisineDetail() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Quick Facts</CardTitle>
+                  <CardTitle>{t('cuisineDetail.quickFacts')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Type:</span>
+                    <span className="text-slate-600">{t('cuisineDetail.type')}:</span>
                     <span className="font-medium">
                       {cuisine.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Regions:</span>
+                    <span className="text-slate-600">{t('cuisineDetail.regions')}:</span>
                     <span className="font-medium">{cuisineRegions.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Spice Level:</span>
+                    <span className="text-slate-600">{t('cuisineDetail.spiceLevel')}:</span>
                     <span className="font-medium capitalize">{cuisine.spiceLevel}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Ingredients:</span>
+                    <span className="text-slate-600">{t('cuisineDetail.ingredients')}:</span>
                     <span className="font-medium">{cuisine.ingredients.length}</span>
                   </div>
                 </CardContent>
               </Card>
 
               <Button asChild className="w-full">
-                <Link to="/discover">Explore More Cuisine</Link>
+                <Link to="/discover">{t('cuisineDetail.exploreMoreCuisine')}</Link>
               </Button>
             </div>
           </div>

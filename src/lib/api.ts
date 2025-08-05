@@ -260,23 +260,29 @@ export const apiService = {
 // Utility functions to transform API data to frontend format
 export const transformApiData = {
   // Transform API region to frontend region format
-  region(apiRegion: ApiRegion) {
+  region(apiRegion: ApiRegion, language: string = 'en') {
+    // Helper function to get localized field
+    const getLocalizedField = (baseField: string) => {
+      const field = `${baseField}_${language}` as keyof ApiRegion;
+      return (apiRegion[field] as string) || (apiRegion[`${baseField}_en` as keyof ApiRegion] as string) || '';
+    };
+
     // Extract capital from keyFacts if available
-    const keyFacts = apiRegion.keyFacts_en || '';
+    const keyFacts = getLocalizedField('keyFacts');
     const capitalMatch = keyFacts.match(/Capital:\s*([^,]+)/);
-    const capital = capitalMatch ? capitalMatch[1].trim() : apiRegion.name_en;
+    const capital = capitalMatch ? capitalMatch[1].trim() : getLocalizedField('name');
     
     return {
       id: apiRegion.id,
-      name: apiRegion.name_en,
+      name: getLocalizedField('name'),
       nameAr: apiRegion.name_ar,
       nameFr: apiRegion.name_fr,
       capital: capital,
-      description: apiRegion.description_en || '',
+      description: getLocalizedField('description'),
       population: '', // Not in API, would need to be added
       attractions: apiRegion.attractions?.map(a => a.id) || [],
-      bestTimeToVisit: apiRegion.bestTimeToVisit_en || '',
-      climate: apiRegion.climate_en || '',
+      bestTimeToVisit: getLocalizedField('bestTimeToVisit'),
+      climate: getLocalizedField('climate'),
       coordinates: {
         lat: apiRegion.latitude || 31.7917, // Default to Morocco center if no coordinates
         lng: apiRegion.longitude || -7.0926,
@@ -286,13 +292,19 @@ export const transformApiData = {
   },
 
   // Transform API attraction to frontend attraction format
-  attraction(apiAttraction: ApiAttraction) {
+  attraction(apiAttraction: ApiAttraction, language: string = 'en') {
+    // Helper function to get localized field
+    const getLocalizedField = (baseField: string) => {
+      const field = `${baseField}_${language}` as keyof ApiAttraction;
+      return (apiAttraction[field] as string) || (apiAttraction[`${baseField}_en` as keyof ApiAttraction] as string) || '';
+    };
+
     return {
       id: apiAttraction.id,
-      name: apiAttraction.name_en,
-      description: apiAttraction.description_en || '',
+      name: getLocalizedField('name'),
+      description: getLocalizedField('description'),
       regionId: apiAttraction.regionId,
-      type: (apiAttraction.category_en as any) || 'cultural',
+      type: (getLocalizedField('category') as any) || 'cultural',
       images: Array.isArray(apiAttraction.imageUrls) ? apiAttraction.imageUrls : [],
       location: {
         lat: apiAttraction.latitude || 31.7917, // Default to Morocco center if no coordinates
@@ -302,10 +314,10 @@ export const transformApiData = {
   },
 
   // Transform API festival to frontend festival format
-  festival(apiFestival: ApiFestival) {
+  festival(apiFestival: ApiFestival, language: string = 'en') {
     return {
       id: apiFestival.id,
-      name: apiFestival.name,
+      name: apiFestival.name, // Note: Festival schema doesn't have multilingual fields yet
       description: apiFestival.description || '',
       type: apiFestival.type,
       location: apiFestival.location,
@@ -320,10 +332,10 @@ export const transformApiData = {
   },
 
   // Transform API cuisine to frontend cuisine format
-  cuisine(apiCuisine: ApiCuisine) {
+  cuisine(apiCuisine: ApiCuisine, language: string = 'en') {
     return {
       id: apiCuisine.id,
-      name: apiCuisine.name,
+      name: apiCuisine.name, // Note: Cuisine schema doesn't have multilingual fields yet
       description: apiCuisine.description || '',
       type: apiCuisine.type,
       regionIds: Array.isArray(apiCuisine.regionIds) ? apiCuisine.regionIds : [],
@@ -336,10 +348,10 @@ export const transformApiData = {
   },
 
   // Transform API heritage to frontend heritage format
-  heritage(apiHeritage: ApiHeritage) {
+  heritage(apiHeritage: ApiHeritage, language: string = 'en') {
     return {
       id: apiHeritage.id,
-      name: apiHeritage.name,
+      name: apiHeritage.name, // Note: Heritage schema doesn't have multilingual fields yet
       description: apiHeritage.description || '',
       type: apiHeritage.type,
       regionIds: Array.isArray(apiHeritage.regionIds) ? apiHeritage.regionIds : [],
@@ -350,10 +362,10 @@ export const transformApiData = {
   },
 
   // Transform API clothing to frontend clothing format
-  clothing(apiClothing: ApiClothing) {
+  clothing(apiClothing: ApiClothing, language: string = 'en') {
     return {
       id: apiClothing.id,
-      name: apiClothing.name,
+      name: apiClothing.name, // Note: Clothing schema doesn't have multilingual fields yet
       description: apiClothing.description || '',
       gender: apiClothing.gender as any,
       regionIds: Array.isArray(apiClothing.regionIds) ? apiClothing.regionIds : [],
@@ -365,24 +377,27 @@ export const transformApiData = {
   },
 
   // Transform API tour package to frontend tour package format
-  tourPackage(apiTourPackage: ApiTourPackage) {
+  tourPackage(apiTourPackage: ApiTourPackage, language: string = 'en') {
+    // Helper function to get localized field
+    const getLocalizedField = (baseField: string) => {
+      const field = `${baseField}_${language}` as keyof ApiTourPackage;
+      return (apiTourPackage[field] as string) || (apiTourPackage[`${baseField}_en` as keyof ApiTourPackage] as string) || '';
+    };
+
     return {
       id: apiTourPackage.id,
-      title: apiTourPackage.title_en,
-      description: apiTourPackage.description_en || '',
-      regionId: apiTourPackage.regions?.[0]?.regionId || '',
+      title: getLocalizedField('title'),
+      description: getLocalizedField('description'),
+      difficulty: getLocalizedField('difficulty'),
       duration: apiTourPackage.duration,
       price: apiTourPackage.price,
       currency: apiTourPackage.currency,
-      inclusions: Array.isArray(apiTourPackage.included) ? apiTourPackage.included : [],
-      exclusions: Array.isArray(apiTourPackage.excluded) ? apiTourPackage.excluded : [],
+      imageUrls: Array.isArray(apiTourPackage.imageUrls) ? apiTourPackage.imageUrls : [],
+      included: Array.isArray(apiTourPackage.included) ? apiTourPackage.included : [],
+      excluded: Array.isArray(apiTourPackage.excluded) ? apiTourPackage.excluded : [],
+      regions: apiTourPackage.regions || [],
       itinerary: apiTourPackage.itinerary || [],
-      images: Array.isArray(apiTourPackage.imageUrls) ? apiTourPackage.imageUrls : [],
-      maxParticipants: 12, // Default value since not in API
-      featured: false, // Default value since not in API
-      rating: 4.5, // Default value since not in API
-      reviewCount: 0, // Default value since not in API
-      type: apiTourPackage.difficulty_en || 'cultural',
+      reviews: apiTourPackage.reviews || [],
     };
   },
 };

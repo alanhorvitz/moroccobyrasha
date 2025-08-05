@@ -7,24 +7,26 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { apiService, transformApiData } from '@/lib/api';
 import { Attraction, Region } from '@/lib/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AttractionDetail() {
   const { id } = useParams<{ id: string }>();
+  const { language, t, isRTL } = useLanguage();
 
   // Fetch attractions and regions data
   const { data: apiAttractions, isLoading: attractionsLoading, error: attractionsError } = useQuery({
-    queryKey: ['attractions'],
+    queryKey: ['attractions', language],
     queryFn: apiService.getAttractions,
   });
 
   const { data: apiRegions, isLoading: regionsLoading, error: regionsError } = useQuery({
-    queryKey: ['regions'],
+    queryKey: ['regions', language],
     queryFn: apiService.getRegions,
   });
 
-  // Transform API data
-  const attractions = apiAttractions?.map(transformApiData.attraction) || [];
-  const regions = apiRegions?.map(transformApiData.region) || [];
+  // Transform API data with current language
+  const attractions = apiAttractions?.map(attraction => transformApiData.attraction(attraction, language)) || [];
+  const regions = apiRegions?.map(region => transformApiData.region(region, language)) || [];
 
   // Find the specific attraction and its region
   const attraction = attractions.find(a => a.id === id);
@@ -36,7 +38,7 @@ export default function AttractionDetail() {
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-lg text-slate-600">Loading attraction details...</p>
+          <p className="text-lg text-slate-600">{t('attractionDetail.loadingMessage')}</p>
         </div>
       </div>
     );
@@ -47,10 +49,10 @@ export default function AttractionDetail() {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-red-600">Error Loading Attraction</h1>
-          <p className="text-slate-600 mb-6">There was an error loading the attraction data.</p>
+          <h1 className="text-2xl font-bold mb-4 text-red-600">{t('attractionDetail.errorTitle')}</h1>
+          <p className="text-slate-600 mb-6">{t('attractionDetail.errorMessage')}</p>
           <Button asChild>
-            <Link to="/discover">Back to Discover</Link>
+            <Link to="/discover">{t('attractionDetail.backToDiscover')}</Link>
           </Button>
         </div>
       </div>
@@ -62,10 +64,10 @@ export default function AttractionDetail() {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Attraction Not Found</h1>
-          <p className="text-slate-600 mb-6">The attraction you're looking for doesn't exist.</p>
+          <h1 className="text-2xl font-bold mb-4">{t('attractionDetail.notFoundTitle')}</h1>
+          <p className="text-slate-600 mb-6">{t('attractionDetail.notFoundMessage')}</p>
           <Button asChild>
-            <Link to="/discover">Back to Discover</Link>
+            <Link to="/discover">{t('attractionDetail.backToDiscover')}</Link>
           </Button>
         </div>
       </div>
@@ -81,17 +83,17 @@ export default function AttractionDetail() {
           <div className="container mx-auto px-4">
             <Button asChild variant="outline" className="mb-6 bg-white/10 border-white text-white hover:bg-white/20">
               <Link to="/discover">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Discover
+                <ArrowLeft className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                {t('attractionDetail.backToDiscover')}
               </Link>
             </Button>
             <div className="flex items-center gap-3 mb-4">
               <Badge className="bg-emerald-600 hover:bg-emerald-700">{attraction.type}</Badge>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">{attraction.name}</h1>
-            <div className="flex items-center text-white/80">
-              <MapPin className="h-5 w-5 mr-2" />
-              <span>{region ? `${region.name}` : 'Morocco'}</span>
+            <div className={`flex items-center text-white/80 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <MapPin className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              <span>{region ? `${region.name}` : t('attractionDetail.morocco')}</span>
             </div>
           </div>
         </div>
@@ -105,7 +107,7 @@ export default function AttractionDetail() {
             <div className="lg:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>About {attraction.name}</CardTitle>
+                  <CardTitle>{t('attractionDetail.aboutTitle', { name: attraction.name })}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <p className="text-slate-600 leading-relaxed">{attraction.description}</p>
@@ -113,20 +115,20 @@ export default function AttractionDetail() {
                   <Separator />
                   
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">Key Information</h3>
+                    <h3 className="text-lg font-semibold mb-3">{t('attractionDetail.keyInformation')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-center">
-                        <MapPin className="h-5 w-5 mr-2 text-emerald-600" />
+                      <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <MapPin className={`h-5 w-5 text-emerald-600 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                         <div>
-                          <p className="font-medium">Location</p>
-                          <p className="text-sm text-slate-600">{region ? region.name : 'Morocco'}</p>
+                          <p className="font-medium">{t('attractionDetail.location')}</p>
+                          <p className="text-sm text-slate-600">{region ? region.name : t('attractionDetail.morocco')}</p>
                         </div>
                       </div>
                       
-                      <div className="flex items-center">
-                        <Star className="h-5 w-5 mr-2 text-emerald-600" />
+                      <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <Star className={`h-5 w-5 text-emerald-600 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                         <div>
-                          <p className="font-medium">Type</p>
+                          <p className="font-medium">{t('attractionDetail.type')}</p>
                           <p className="text-sm text-slate-600">{attraction.type}</p>
                         </div>
                       </div>
@@ -140,57 +142,57 @@ export default function AttractionDetail() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Quick Facts</CardTitle>
+                  <CardTitle>{t('attractionDetail.quickFacts')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Type:</span>
+                    <span className="text-slate-600">{t('attractionDetail.type')}:</span>
                     <span className="font-medium">{attraction.type}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Region:</span>
-                    <span className="font-medium">{region ? region.name : 'Morocco'}</span>
+                    <span className="text-slate-600">{t('attractionDetail.region')}:</span>
+                    <span className="font-medium">{region ? region.name : t('attractionDetail.morocco')}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Capital:</span>
-                    <span className="font-medium">{region ? region.capital : 'N/A'}</span>
+                    <span className="text-slate-600">{t('attractionDetail.capital')}:</span>
+                    <span className="font-medium">{region ? region.capital : t('attractionDetail.notAvailable')}</span>
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Visit Information</CardTitle>
+                  <CardTitle>{t('attractionDetail.visitInformation')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center">
-                    <Clock className="h-5 w-5 mr-2 text-emerald-600" />
+                  <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    <Clock className={`h-5 w-5 text-emerald-600 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                     <div>
-                      <p className="font-medium">Best Time to Visit</p>
-                      <p className="text-sm text-slate-600">Spring & Fall</p>
+                      <p className="font-medium">{t('attractionDetail.bestTimeToVisit')}</p>
+                      <p className="text-sm text-slate-600">{t('attractionDetail.springAndFall')}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-center">
-                    <Users className="h-5 w-5 mr-2 text-emerald-600" />
+                  <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    <Users className={`h-5 w-5 text-emerald-600 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                     <div>
-                      <p className="font-medium">Visitor Type</p>
-                      <p className="text-sm text-slate-600">All Ages</p>
+                      <p className="font-medium">{t('attractionDetail.visitorType')}</p>
+                      <p className="text-sm text-slate-600">{t('attractionDetail.allAges')}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-center">
-                    <Camera className="h-5 w-5 mr-2 text-emerald-600" />
+                  <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    <Camera className={`h-5 w-5 text-emerald-600 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                     <div>
-                      <p className="font-medium">Photo Opportunities</p>
-                      <p className="text-sm text-slate-600">Excellent</p>
+                      <p className="font-medium">{t('attractionDetail.photoOpportunities')}</p>
+                      <p className="text-sm text-slate-600">{t('attractionDetail.excellent')}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Button asChild className="w-full">
-                <Link to="/discover">Explore More Attractions</Link>
+                <Link to="/discover">{t('attractionDetail.exploreMoreAttractions')}</Link>
               </Button>
             </div>
           </div>

@@ -8,24 +8,26 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiService, transformApiData } from '@/lib/api';
 import { Region, Attraction } from '@/lib/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function RegionDetail() {
   const { id } = useParams<{ id: string }>();
+  const { language, t, isRTL } = useLanguage();
 
   // Fetch regions and attractions data
   const { data: apiRegions, isLoading: regionsLoading, error: regionsError } = useQuery({
-    queryKey: ['regions'],
+    queryKey: ['regions', language],
     queryFn: apiService.getRegions,
   });
 
   const { data: apiAttractions, isLoading: attractionsLoading, error: attractionsError } = useQuery({
-    queryKey: ['attractions'],
+    queryKey: ['attractions', language],
     queryFn: apiService.getAttractions,
   });
 
-  // Transform API data
-  const regions = apiRegions?.map(transformApiData.region) || [];
-  const attractions = apiAttractions?.map(transformApiData.attraction) || [];
+  // Transform API data with current language
+  const regions = apiRegions?.map(region => transformApiData.region(region, language)) || [];
+  const attractions = apiAttractions?.map(attraction => transformApiData.attraction(attraction, language)) || [];
 
   // Find the specific region and its attractions
   const region = regions.find(r => r.id === id);
@@ -37,7 +39,7 @@ export default function RegionDetail() {
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-lg text-slate-600">Loading region details...</p>
+          <p className="text-lg text-slate-600">{t('regionDetail.loadingMessage')}</p>
         </div>
       </div>
     );
@@ -48,10 +50,10 @@ export default function RegionDetail() {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-red-600">Error Loading Region</h1>
-          <p className="text-slate-600 mb-6">There was an error loading the region data.</p>
+          <h1 className="text-2xl font-bold mb-4 text-red-600">{t('regionDetail.errorTitle')}</h1>
+          <p className="text-slate-600 mb-6">{t('regionDetail.errorMessage')}</p>
           <Button asChild>
-            <Link to="/discover">Back to Discover</Link>
+            <Link to="/discover">{t('regionDetail.backToDiscover')}</Link>
           </Button>
         </div>
       </div>
@@ -63,10 +65,10 @@ export default function RegionDetail() {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Region Not Found</h1>
-          <p className="text-slate-600 mb-6">The region you're looking for doesn't exist.</p>
+          <h1 className="text-2xl font-bold mb-4">{t('regionDetail.notFoundTitle')}</h1>
+          <p className="text-slate-600 mb-6">{t('regionDetail.notFoundMessage')}</p>
           <Button asChild>
-            <Link to="/discover">Back to Discover</Link>
+            <Link to="/discover">{t('regionDetail.backToDiscover')}</Link>
           </Button>
         </div>
       </div>
@@ -82,15 +84,15 @@ export default function RegionDetail() {
           <div className="container mx-auto px-4">
             <Button asChild variant="outline" className="mb-6 bg-white/10 border-white text-white hover:bg-white/20">
               <Link to="/discover">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Discover
+                <ArrowLeft className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                {t('regionDetail.backToDiscover')}
               </Link>
             </Button>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">{region.name}</h1>
             <p className="text-xl text-white/90 max-w-2xl">{region.description}</p>
-            <div className="flex items-center mt-4 text-white/80">
-              <MapPin className="h-5 w-5 mr-2" />
-              <span>Capital: {region.capital}</span>
+            <div className={`flex items-center mt-4 text-white/80 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <MapPin className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              <span>{t('regionDetail.capital')}: {region.capital}</span>
             </div>
           </div>
         </div>
@@ -103,32 +105,32 @@ export default function RegionDetail() {
             <Card>
               <CardContent className="p-6 text-center">
                 <Users className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
-                <h3 className="font-semibold">Attractions</h3>
-                <p className="text-slate-600">{regionAttractions.length} places</p>
+                <h3 className="font-semibold">{t('regionDetail.attractions')}</h3>
+                <p className="text-slate-600">{t('regionDetail.placesCount', { count: regionAttractions.length })}</p>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-6 text-center">
                 <Thermometer className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
-                <h3 className="font-semibold">Climate</h3>
-                <p className="text-slate-600">Mediterranean</p>
+                <h3 className="font-semibold">{t('regionDetail.climate')}</h3>
+                <p className="text-slate-600">{region.climate || t('regionDetail.mediterranean')}</p>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-6 text-center">
                 <Calendar className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
-                <h3 className="font-semibold">Best Time to Visit</h3>
-                <p className="text-slate-600">Spring & Fall</p>
+                <h3 className="font-semibold">{t('regionDetail.bestTimeToVisit')}</h3>
+                <p className="text-slate-600">{region.bestTimeToVisit || t('regionDetail.springAndFall')}</p>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-6 text-center">
                 <Camera className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
-                <h3 className="font-semibold">Experience</h3>
-                <p className="text-slate-600">Cultural & Historical</p>
+                <h3 className="font-semibold">{t('regionDetail.experience')}</h3>
+                <p className="text-slate-600">{t('regionDetail.culturalAndHistorical')}</p>
               </CardContent>
             </Card>
           </div>
@@ -139,15 +141,15 @@ export default function RegionDetail() {
       <section className="py-12">
         <div className="container mx-auto px-4">
           <Tabs defaultValue="attractions" className="w-full">
-            <TabsList className="grid w-full md:w-96 grid-cols-2">
-              <TabsTrigger value="attractions">Attractions</TabsTrigger>
-              <TabsTrigger value="about">About</TabsTrigger>
+            <TabsList className={`grid w-full md:w-96 grid-cols-2 ${isRTL ? 'rtl' : 'ltr'}`}>
+              <TabsTrigger value="attractions">{t('regionDetail.tabs.attractions')}</TabsTrigger>
+              <TabsTrigger value="about">{t('regionDetail.tabs.about')}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="attractions" className="mt-8">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold mb-2">Attractions in {region.name}</h2>
-                <p className="text-slate-600">Discover the must-visit places in this region</p>
+                <h2 className="text-2xl font-bold mb-2">{t('regionDetail.attractionsInRegion', { name: region.name })}</h2>
+                <p className="text-slate-600">{t('regionDetail.attractionsDescription')}</p>
               </div>
               
               {regionAttractions.length > 0 ? (
@@ -155,7 +157,7 @@ export default function RegionDetail() {
                   {regionAttractions.map((attraction) => (
                     <Card key={attraction.id} className="overflow-hidden hover:shadow-md transition-shadow">
                       <div className="relative h-48 bg-slate-200">
-                        <div className="absolute top-4 left-4">
+                        <div className={`absolute top-4 ${isRTL ? 'right-4' : 'left-4'}`}>
                           <Badge className="bg-emerald-600 hover:bg-emerald-700">{attraction.type}</Badge>
                         </div>
                       </div>
@@ -170,7 +172,7 @@ export default function RegionDetail() {
                       </CardContent>
                       <CardFooter>
                         <Button asChild className="w-full">
-                          <Link to={`/attractions/${attraction.id}`}>View Details</Link>
+                          <Link to={`/attractions/${attraction.id}`}>{t('regionDetail.viewDetails')}</Link>
                         </Button>
                       </CardFooter>
                     </Card>
@@ -178,39 +180,39 @@ export default function RegionDetail() {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-lg text-slate-500">No attractions data available for this region yet.</p>
+                  <p className="text-lg text-slate-500">{t('regionDetail.noAttractionsMessage')}</p>
                 </div>
               )}
             </TabsContent>
             
             <TabsContent value="about" className="mt-8">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold mb-2">About {region.name}</h2>
-                <p className="text-slate-600">Learn more about this fascinating region</p>
+                <h2 className="text-2xl font-bold mb-2">{t('regionDetail.aboutRegion', { name: region.name })}</h2>
+                <p className="text-slate-600">{t('regionDetail.aboutDescription')}</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                  <h3 className="text-xl font-semibold mb-4">Overview</h3>
+                  <h3 className="text-xl font-semibold mb-4">{t('regionDetail.overview')}</h3>
                   <p className="text-slate-600 leading-relaxed">
                     {region.description}
                   </p>
                 </div>
                 
                 <div>
-                  <h3 className="text-xl font-semibold mb-4">Key Facts</h3>
+                  <h3 className="text-xl font-semibold mb-4">{t('regionDetail.keyFacts')}</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="font-medium">Capital:</span>
+                      <span className="font-medium">{t('regionDetail.capital')}:</span>
                       <span className="text-slate-600">{region.capital}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium">Attractions:</span>
+                      <span className="font-medium">{t('regionDetail.attractions')}:</span>
                       <span className="text-slate-600">{regionAttractions.length}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium">Region Type:</span>
-                      <span className="text-slate-600">Cultural</span>
+                      <span className="font-medium">{t('regionDetail.regionType')}:</span>
+                      <span className="text-slate-600">{t('regionDetail.cultural')}</span>
                     </div>
                   </div>
                 </div>

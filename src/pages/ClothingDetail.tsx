@@ -8,24 +8,26 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiService, transformApiData } from '@/lib/api';
 import { ClothingItem, Region } from '@/lib/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ClothingDetail() {
   const { id } = useParams<{ id: string }>();
+  const { language, t, isRTL } = useLanguage();
 
   // Fetch clothing and regions data
   const { data: apiClothing, isLoading: clothingLoading, error: clothingError } = useQuery({
-    queryKey: ['clothing'],
+    queryKey: ['clothing', language],
     queryFn: apiService.getClothing,
   });
 
   const { data: apiRegions, isLoading: regionsLoading, error: regionsError } = useQuery({
-    queryKey: ['regions'],
+    queryKey: ['regions', language],
     queryFn: apiService.getRegions,
   });
 
-  // Transform API data
-  const clothingItems = apiClothing?.map(transformApiData.clothing) || [];
-  const regions = apiRegions?.map(transformApiData.region) || [];
+  // Transform API data with current language
+  const clothingItems = apiClothing?.map(clothing => transformApiData.clothing(clothing, language)) || [];
+  const regions = apiRegions?.map(region => transformApiData.region(region, language)) || [];
 
   // Find the specific clothing item and its regions
   const clothing = clothingItems.find(c => c.id === id);
@@ -37,7 +39,7 @@ export default function ClothingDetail() {
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-lg text-slate-600">Loading clothing details...</p>
+          <p className="text-lg text-slate-600">{t('clothingDetail.loadingMessage')}</p>
         </div>
       </div>
     );
@@ -48,10 +50,10 @@ export default function ClothingDetail() {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-red-600">Error Loading Clothing</h1>
-          <p className="text-slate-600 mb-6">There was an error loading the clothing data.</p>
+          <h1 className="text-2xl font-bold mb-4 text-red-600">{t('clothingDetail.errorTitle')}</h1>
+          <p className="text-slate-600 mb-6">{t('clothingDetail.errorMessage')}</p>
           <Button asChild>
-            <Link to="/discover">Back to Discover</Link>
+            <Link to="/discover">{t('clothingDetail.backToDiscover')}</Link>
           </Button>
         </div>
       </div>
@@ -63,10 +65,10 @@ export default function ClothingDetail() {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Clothing Not Found</h1>
-          <p className="text-slate-600 mb-6">The clothing item you're looking for doesn't exist.</p>
+          <h1 className="text-2xl font-bold mb-4">{t('clothingDetail.notFoundTitle')}</h1>
+          <p className="text-slate-600 mb-6">{t('clothingDetail.notFoundMessage')}</p>
           <Button asChild>
-            <Link to="/discover">Back to Discover</Link>
+            <Link to="/discover">{t('clothingDetail.backToDiscover')}</Link>
           </Button>
         </div>
       </div>
@@ -82,19 +84,19 @@ export default function ClothingDetail() {
           <div className="container mx-auto px-4">
             <Button asChild variant="outline" className="mb-6 bg-white/10 border-white text-white hover:bg-white/20">
               <Link to="/discover">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Discover
+                <ArrowLeft className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                {t('clothingDetail.backToDiscover')}
               </Link>
             </Button>
             <div className="flex items-center gap-3 mb-4">
               <Badge className="bg-purple-600 hover:bg-purple-700 capitalize">
-                {clothing.gender}
+                {t(`clothingDetail.${clothing.gender}`)}
               </Badge>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">{clothing.name}</h1>
-            <div className="flex items-center text-white/80">
-              <MapPin className="h-5 w-5 mr-2" />
-              <span>{clothingRegions.map(r => r.name).join(', ') || 'Morocco'}</span>
+            <div className={`flex items-center text-white/80 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <MapPin className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              <span>{clothingRegions.map(r => r.name).join(', ') || t('clothingDetail.morocco')}</span>
             </div>
           </div>
         </div>
@@ -108,14 +110,14 @@ export default function ClothingDetail() {
             <div className="lg:col-span-2">
               <Tabs defaultValue="overview" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="materials">Materials</TabsTrigger>
+                  <TabsTrigger value="overview">{t('clothingDetail.overview')}</TabsTrigger>
+                  <TabsTrigger value="materials">{t('clothingDetail.materials')}</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="overview" className="mt-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>About {clothing.name}</CardTitle>
+                      <CardTitle>{t('clothingDetail.about', { name: clothing.name })}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <p className="text-slate-600 leading-relaxed">{clothing.description}</p>
@@ -123,21 +125,21 @@ export default function ClothingDetail() {
                       <Separator />
                       
                       <div>
-                        <h3 className="text-lg font-semibold mb-3">Key Information</h3>
+                        <h3 className="text-lg font-semibold mb-3">{t('clothingDetail.keyInformation')}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="flex items-center">
                             <MapPin className="h-5 w-5 mr-2 text-purple-600" />
                             <div>
-                              <p className="font-medium">Regions</p>
-                              <p className="text-sm text-slate-600">{clothingRegions.map(r => r.name).join(', ') || 'Morocco'}</p>
+                              <p className="font-medium">{t('clothingDetail.regions')}</p>
+                              <p className="text-sm text-slate-600">{clothingRegions.map(r => r.name).join(', ') || t('clothingDetail.morocco')}</p>
                             </div>
                           </div>
                           
                           <div className="flex items-center">
                             <Shirt className="h-5 w-5 mr-2 text-purple-600" />
                             <div>
-                              <p className="font-medium">Gender</p>
-                              <p className="text-sm text-slate-600 capitalize">{clothing.gender}</p>
+                              <p className="font-medium">{t('clothingDetail.gender')}</p>
+                              <p className="text-sm text-slate-600 capitalize">{t(`clothingDetail.${clothing.gender}`)}</p>
                             </div>
                           </div>
                         </div>
@@ -149,11 +151,11 @@ export default function ClothingDetail() {
                 <TabsContent value="materials" className="mt-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Materials & Occasions</CardTitle>
+                      <CardTitle>{t('clothingDetail.materialsOccasions')}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div>
-                        <h3 className="text-lg font-semibold mb-3">Materials Used</h3>
+                        <h3 className="text-lg font-semibold mb-3">{t('clothingDetail.materialsUsed')}</h3>
                         <div className="flex flex-wrap gap-2">
                           {clothing.materials.map((material, index) => (
                             <Badge key={index} variant="outline" className="capitalize">
@@ -166,7 +168,7 @@ export default function ClothingDetail() {
                       <Separator />
                       
                       <div>
-                        <h3 className="text-lg font-semibold mb-3">Occasions</h3>
+                        <h3 className="text-lg font-semibold mb-3">{t('clothingDetail.occasions')}</h3>
                         <div className="flex flex-wrap gap-2">
                           {clothing.occasions.map((occasion, index) => (
                             <Badge key={index} variant="secondary" className="capitalize">
@@ -185,30 +187,30 @@ export default function ClothingDetail() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Quick Facts</CardTitle>
+                  <CardTitle>{t('clothingDetail.quickFacts')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Gender:</span>
-                    <span className="font-medium capitalize">{clothing.gender}</span>
+                    <span className="text-slate-600">{t('clothingDetail.gender')}:</span>
+                    <span className="font-medium capitalize">{t(`clothingDetail.${clothing.gender}`)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Regions:</span>
+                    <span className="text-slate-600">{t('clothingDetail.regions')}:</span>
                     <span className="font-medium">{clothingRegions.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Materials:</span>
+                    <span className="text-slate-600">{t('clothingDetail.materials')}:</span>
                     <span className="font-medium">{clothing.materials.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Occasions:</span>
+                    <span className="text-slate-600">{t('clothingDetail.occasions')}:</span>
                     <span className="font-medium">{clothing.occasions.length}</span>
                   </div>
                 </CardContent>
               </Card>
 
               <Button asChild className="w-full">
-                <Link to="/discover">Explore More Clothing</Link>
+                <Link to="/discover">{t('clothingDetail.exploreMore')}</Link>
               </Button>
             </div>
           </div>

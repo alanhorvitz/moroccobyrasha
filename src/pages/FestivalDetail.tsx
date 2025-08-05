@@ -8,24 +8,26 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiService, transformApiData } from '@/lib/api';
 import { FestivalEvent, Region } from '@/lib/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function FestivalDetail() {
   const { id } = useParams<{ id: string }>();
+  const { language, t, isRTL } = useLanguage();
 
   // Fetch festivals and regions data
   const { data: apiFestivals, isLoading: festivalsLoading, error: festivalsError } = useQuery({
-    queryKey: ['festivals'],
+    queryKey: ['festivals', language],
     queryFn: apiService.getFestivals,
   });
 
   const { data: apiRegions, isLoading: regionsLoading, error: regionsError } = useQuery({
-    queryKey: ['regions'],
+    queryKey: ['regions', language],
     queryFn: apiService.getRegions,
   });
 
-  // Transform API data
-  const festivals = apiFestivals?.map(transformApiData.festival) || [];
-  const regions = apiRegions?.map(transformApiData.region) || [];
+  // Transform API data with current language
+  const festivals = apiFestivals?.map(festival => transformApiData.festival(festival, language)) || [];
+  const regions = apiRegions?.map(region => transformApiData.region(region, language)) || [];
 
   // Find the specific festival and its region
   const festival = festivals.find(f => f.id === id);
@@ -37,7 +39,7 @@ export default function FestivalDetail() {
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-lg text-slate-600">Loading festival details...</p>
+          <p className="text-lg text-slate-600">{t('festivalDetail.loadingMessage')}</p>
         </div>
       </div>
     );
@@ -48,10 +50,10 @@ export default function FestivalDetail() {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-red-600">Error Loading Festival</h1>
-          <p className="text-slate-600 mb-6">There was an error loading the festival data.</p>
+          <h1 className="text-2xl font-bold mb-4 text-red-600">{t('festivalDetail.errorTitle')}</h1>
+          <p className="text-slate-600 mb-6">{t('festivalDetail.errorMessage')}</p>
           <Button asChild>
-            <Link to="/discover">Back to Discover</Link>
+            <Link to="/discover">{t('festivalDetail.backToDiscover')}</Link>
           </Button>
         </div>
       </div>
@@ -63,10 +65,10 @@ export default function FestivalDetail() {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Festival Not Found</h1>
-          <p className="text-slate-600 mb-6">The festival you're looking for doesn't exist.</p>
+          <h1 className="text-2xl font-bold mb-4">{t('festivalDetail.notFoundTitle')}</h1>
+          <p className="text-slate-600 mb-6">{t('festivalDetail.notFoundMessage')}</p>
           <Button asChild>
-            <Link to="/discover">Back to Discover</Link>
+            <Link to="/discover">{t('festivalDetail.backToDiscover')}</Link>
           </Button>
         </div>
       </div>
@@ -82,8 +84,8 @@ export default function FestivalDetail() {
           <div className="container mx-auto px-4">
             <Button asChild variant="outline" className="mb-6 bg-white/10 border-white text-white hover:bg-white/20">
               <Link to="/discover">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Discover
+                <ArrowLeft className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                {t('festivalDetail.backToDiscover')}
               </Link>
             </Button>
             <div className="flex items-center gap-3 mb-4">
@@ -92,13 +94,13 @@ export default function FestivalDetail() {
               </Badge>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">{festival.name}</h1>
-            <div className="flex items-center gap-6 text-white/80">
-              <div className="flex items-center">
-                <MapPin className="h-5 w-5 mr-2" />
+            <div className={`flex items-center gap-6 text-white/80 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <MapPin className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                 <span>{festival.location} {region && `(${region.name})`}</span>
               </div>
-              <div className="flex items-center">
-                <Calendar className="h-5 w-5 mr-2" />
+              <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <Calendar className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                 <span>{festival.timeOfYear}</span>
               </div>
             </div>
@@ -114,14 +116,14 @@ export default function FestivalDetail() {
             <div className="lg:col-span-2">
               <Tabs defaultValue="overview" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="history">History</TabsTrigger>
+                  <TabsTrigger value="overview">{t('festivalDetail.tabs.overview')}</TabsTrigger>
+                  <TabsTrigger value="history">{t('festivalDetail.tabs.history')}</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="overview" className="mt-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>About {festival.name}</CardTitle>
+                      <CardTitle>{t('festivalDetail.aboutTitle', { festivalName: festival.name })}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <p className="text-slate-600 leading-relaxed">{festival.description}</p>
@@ -129,12 +131,12 @@ export default function FestivalDetail() {
                       <Separator />
                       
                       <div>
-                        <h3 className="text-lg font-semibold mb-3">Key Information</h3>
+                        <h3 className="text-lg font-semibold mb-3">{t('festivalDetail.keyInformation')}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="flex items-center">
                             <MapPin className="h-5 w-5 mr-2 text-pink-600" />
                             <div>
-                              <p className="font-medium">Location</p>
+                              <p className="font-medium">{t('festivalDetail.location')}</p>
                               <p className="text-sm text-slate-600">{festival.location}</p>
                             </div>
                           </div>
@@ -142,7 +144,7 @@ export default function FestivalDetail() {
                           <div className="flex items-center">
                             <Music className="h-5 w-5 mr-2 text-pink-600" />
                             <div>
-                              <p className="font-medium">Type</p>
+                              <p className="font-medium">{t('festivalDetail.type')}</p>
                               <p className="text-sm text-slate-600">
                                 {festival.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                               </p>
@@ -152,7 +154,7 @@ export default function FestivalDetail() {
                           <div className="flex items-center">
                             <Calendar className="h-5 w-5 mr-2 text-pink-600" />
                             <div>
-                              <p className="font-medium">Time of Year</p>
+                              <p className="font-medium">{t('festivalDetail.timeOfYear')}</p>
                               <p className="text-sm text-slate-600">{festival.timeOfYear}</p>
                             </div>
                           </div>
@@ -160,8 +162,8 @@ export default function FestivalDetail() {
                           <div className="flex items-center">
                             <Clock className="h-5 w-5 mr-2 text-pink-600" />
                             <div>
-                              <p className="font-medium">Duration</p>
-                              <p className="text-sm text-slate-600">{festival.duration} {festival.duration > 1 ? 'days' : 'day'}</p>
+                              <p className="font-medium">{t('festivalDetail.duration')}</p>
+                              <p className="text-sm text-slate-600">{festival.duration} {festival.duration > 1 ? t('festivalDetail.days') : t('festivalDetail.day')}</p>
                             </div>
                           </div>
                         </div>
@@ -173,13 +175,13 @@ export default function FestivalDetail() {
                 <TabsContent value="history" className="mt-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Historical Significance</CardTitle>
+                      <CardTitle>{t('festivalDetail.historicalSignificanceTitle')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       {festival.historicalSignificance ? (
                         <p className="text-slate-600 leading-relaxed">{festival.historicalSignificance}</p>
                       ) : (
-                        <p className="text-slate-600">Historical information will be available soon.</p>
+                        <p className="text-slate-600">{t('festivalDetail.historicalSignificanceMessage')}</p>
                       )}
                     </CardContent>
                   </Card>
@@ -191,39 +193,39 @@ export default function FestivalDetail() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Quick Facts</CardTitle>
+                  <CardTitle>{t('festivalDetail.quickFactsTitle')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Type:</span>
+                    <span className="text-slate-600">{t('festivalDetail.type')}:</span>
                     <span className="font-medium">
                       {festival.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Location:</span>
+                    <span className="text-slate-600">{t('festivalDetail.location')}:</span>
                     <span className="font-medium">{festival.location}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Time of Year:</span>
+                    <span className="text-slate-600">{t('festivalDetail.timeOfYear')}:</span>
                     <span className="font-medium">{festival.timeOfYear}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Duration:</span>
-                    <span className="font-medium">{festival.duration} {festival.duration > 1 ? 'days' : 'day'}</span>
+                    <span className="text-slate-600">{t('festivalDetail.duration')}:</span>
+                    <span className="font-medium">{festival.duration} {festival.duration > 1 ? t('festivalDetail.days') : t('festivalDetail.day')}</span>
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Festival Information</CardTitle>
+                  <CardTitle>{t('festivalDetail.festivalInformationTitle')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center">
                     <Calendar className="h-5 w-5 mr-2 text-pink-600" />
                     <div>
-                      <p className="font-medium">Best Time to Visit</p>
+                      <p className="font-medium">{t('festivalDetail.bestTimeToVisit')}</p>
                       <p className="text-sm text-slate-600">{festival.timeOfYear}</p>
                     </div>
                   </div>
@@ -231,23 +233,23 @@ export default function FestivalDetail() {
                   <div className="flex items-center">
                     <Users className="h-5 w-5 mr-2 text-pink-600" />
                     <div>
-                      <p className="font-medium">Visitor Type</p>
-                      <p className="text-sm text-slate-600">All Ages</p>
+                      <p className="font-medium">{t('festivalDetail.visitorType')}</p>
+                      <p className="text-sm text-slate-600">{t('festivalDetail.allAges')}</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center">
                     <Camera className="h-5 w-5 mr-2 text-pink-600" />
                     <div>
-                      <p className="font-medium">Photo Opportunities</p>
-                      <p className="text-sm text-slate-600">Excellent</p>
+                      <p className="font-medium">{t('festivalDetail.photoOpportunities')}</p>
+                      <p className="text-sm text-slate-600">{t('festivalDetail.excellent')}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Button asChild className="w-full">
-                <Link to="/discover">Explore More Festivals</Link>
+                <Link to="/discover">{t('festivalDetail.exploreMoreFestivals')}</Link>
               </Button>
             </div>
           </div>

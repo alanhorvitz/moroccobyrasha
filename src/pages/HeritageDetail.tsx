@@ -8,24 +8,26 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiService, transformApiData } from '@/lib/api';
 import { HeritageItem, Region } from '@/lib/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function HeritageDetail() {
   const { id } = useParams<{ id: string }>();
+  const { language, t, isRTL } = useLanguage();
 
   // Fetch heritage and regions data
   const { data: apiHeritages, isLoading: heritagesLoading, error: heritagesError } = useQuery({
-    queryKey: ['heritages'],
+    queryKey: ['heritages', language],
     queryFn: apiService.getHeritages,
   });
 
   const { data: apiRegions, isLoading: regionsLoading, error: regionsError } = useQuery({
-    queryKey: ['regions'],
+    queryKey: ['regions', language],
     queryFn: apiService.getRegions,
   });
 
-  // Transform API data
-  const heritages = apiHeritages?.map(transformApiData.heritage) || [];
-  const regions = apiRegions?.map(transformApiData.region) || [];
+  // Transform API data with current language
+  const heritages = apiHeritages?.map(heritage => transformApiData.heritage(heritage, language)) || [];
+  const regions = apiRegions?.map(region => transformApiData.region(region, language)) || [];
 
   // Find the specific heritage item and its regions
   const heritage = heritages.find(h => h.id === id);
@@ -37,7 +39,7 @@ export default function HeritageDetail() {
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-lg text-slate-600">Loading heritage details...</p>
+          <p className="text-lg text-slate-600">{t('heritageDetail.loadingMessage')}</p>
         </div>
       </div>
     );
@@ -48,10 +50,10 @@ export default function HeritageDetail() {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-red-600">Error Loading Heritage</h1>
-          <p className="text-slate-600 mb-6">There was an error loading the heritage data.</p>
+          <h1 className="text-2xl font-bold mb-4 text-red-600">{t('heritageDetail.errorTitle')}</h1>
+          <p className="text-slate-600 mb-6">{t('heritageDetail.errorMessage')}</p>
           <Button asChild>
-            <Link to="/discover">Back to Discover</Link>
+            <Link to="/discover">{t('heritageDetail.backToDiscover')}</Link>
           </Button>
         </div>
       </div>
@@ -63,10 +65,10 @@ export default function HeritageDetail() {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Heritage Not Found</h1>
-          <p className="text-slate-600 mb-6">The heritage item you're looking for doesn't exist.</p>
+          <h1 className="text-2xl font-bold mb-4">{t('heritageDetail.notFoundTitle')}</h1>
+          <p className="text-slate-600 mb-6">{t('heritageDetail.notFoundMessage')}</p>
           <Button asChild>
-            <Link to="/discover">Back to Discover</Link>
+            <Link to="/discover">{t('heritageDetail.backToDiscover')}</Link>
           </Button>
         </div>
       </div>
@@ -82,8 +84,8 @@ export default function HeritageDetail() {
           <div className="container mx-auto px-4">
             <Button asChild variant="outline" className="mb-6 bg-white/10 border-white text-white hover:bg-white/20">
               <Link to="/discover">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Discover
+                <ArrowLeft className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                {t('heritageDetail.backToDiscover')}
               </Link>
             </Button>
             <div className="flex items-center gap-3 mb-4">
@@ -92,9 +94,9 @@ export default function HeritageDetail() {
               </Badge>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">{heritage.name}</h1>
-            <div className="flex items-center text-white/80">
-              <MapPin className="h-5 w-5 mr-2" />
-              <span>{heritageRegions.map(r => r.name).join(', ') || 'Morocco'}</span>
+            <div className={`flex items-center text-white/80 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <MapPin className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              <span>{heritageRegions.map(r => r.name).join(', ') || t('heritageDetail.morocco')}</span>
             </div>
           </div>
         </div>
@@ -108,14 +110,14 @@ export default function HeritageDetail() {
             <div className="lg:col-span-2">
               <Tabs defaultValue="overview" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="significance">Significance</TabsTrigger>
+                  <TabsTrigger value="overview">{t('heritageDetail.tabs.overview')}</TabsTrigger>
+                  <TabsTrigger value="significance">{t('heritageDetail.tabs.significance')}</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="overview" className="mt-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>About {heritage.name}</CardTitle>
+                      <CardTitle>{t('heritageDetail.aboutHeritage', { name: heritage.name })}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <p className="text-slate-600 leading-relaxed">{heritage.description}</p>
@@ -123,20 +125,20 @@ export default function HeritageDetail() {
                       <Separator />
                       
                       <div>
-                        <h3 className="text-lg font-semibold mb-3">Key Information</h3>
+                        <h3 className="text-lg font-semibold mb-3">{t('heritageDetail.keyInformation')}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="flex items-center">
                             <MapPin className="h-5 w-5 mr-2 text-amber-600" />
                             <div>
-                              <p className="font-medium">Regions</p>
-                              <p className="text-sm text-slate-600">{heritageRegions.map(r => r.name).join(', ') || 'Morocco'}</p>
+                              <p className="font-medium">{t('heritageDetail.regions')}</p>
+                              <p className="text-sm text-slate-600">{heritageRegions.map(r => r.name).join(', ') || t('heritageDetail.morocco')}</p>
                             </div>
                           </div>
                           
                           <div className="flex items-center">
                             <Award className="h-5 w-5 mr-2 text-amber-600" />
                             <div>
-                              <p className="font-medium">Type</p>
+                              <p className="font-medium">{t('heritageDetail.type')}</p>
                               <p className="text-sm text-slate-600">
                                 {heritage.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                               </p>
@@ -151,7 +153,7 @@ export default function HeritageDetail() {
                 <TabsContent value="significance" className="mt-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Cultural Significance</CardTitle>
+                      <CardTitle>{t('heritageDetail.culturalSignificance')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-slate-600 leading-relaxed">{heritage.importance}</p>
@@ -165,17 +167,17 @@ export default function HeritageDetail() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Quick Facts</CardTitle>
+                  <CardTitle>{t('heritageDetail.quickFacts')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Type:</span>
+                    <span className="text-slate-600">{t('heritageDetail.type')}:</span>
                     <span className="font-medium">
                       {heritage.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Regions:</span>
+                    <span className="text-slate-600">{t('heritageDetail.regions')}:</span>
                     <span className="font-medium">{heritageRegions.length}</span>
                   </div>
                 </CardContent>
@@ -183,37 +185,37 @@ export default function HeritageDetail() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Visit Information</CardTitle>
+                  <CardTitle>{t('heritageDetail.visitInformation')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center">
                     <Clock className="h-5 w-5 mr-2 text-amber-600" />
                     <div>
-                      <p className="font-medium">Best Time to Visit</p>
-                      <p className="text-sm text-slate-600">Year-round</p>
+                      <p className="font-medium">{t('heritageDetail.bestTimeToVisit')}</p>
+                      <p className="text-sm text-slate-600">{t('heritageDetail.yearRound')}</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center">
                     <Users className="h-5 w-5 mr-2 text-amber-600" />
                     <div>
-                      <p className="font-medium">Visitor Type</p>
-                      <p className="text-sm text-slate-600">Cultural Enthusiasts</p>
+                      <p className="font-medium">{t('heritageDetail.visitorType')}</p>
+                      <p className="text-sm text-slate-600">{t('heritageDetail.culturalEnthusiasts')}</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center">
                     <Camera className="h-5 w-5 mr-2 text-amber-600" />
                     <div>
-                      <p className="font-medium">Photo Opportunities</p>
-                      <p className="text-sm text-slate-600">Excellent</p>
+                      <p className="font-medium">{t('heritageDetail.photoOpportunities')}</p>
+                      <p className="text-sm text-slate-600">{t('heritageDetail.excellent')}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Button asChild className="w-full">
-                <Link to="/discover">Explore More Heritage</Link>
+                <Link to="/discover">{t('heritageDetail.exploreMoreHeritage')}</Link>
               </Button>
             </div>
           </div>

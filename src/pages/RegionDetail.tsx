@@ -1,34 +1,64 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Thermometer, Users, Camera, Calendar } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Thermometer, Users, Camera, Calendar, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-import { moroccanRegions as regions } from '@/lib/data/regions';
-import { touristAttractions as attractions } from '@/lib/data/attractions';
-import { tourPackages } from '@/lib/data/tour-packages';
-import { Region, Attraction, TourPackage } from '@/lib/types';
+import { apiService, transformApiData } from '@/lib/api';
+import { Region, Attraction } from '@/lib/types';
 
 export default function RegionDetail() {
   const { id } = useParams<{ id: string }>();
-  const [region, setRegion] = useState<Region | null>(null);
-  const [regionAttractions, setRegionAttractions] = useState<Attraction[]>([]);
-  const [regionTours, setRegionTours] = useState<TourPackage[]>([]);
 
-  useEffect(() => {
-    if (id) {
-      const foundRegion = regions.find(r => r.id === id);
-      setRegion(foundRegion || null);
-      
-      if (foundRegion) {
-        setRegionAttractions(attractions.filter(a => a.regionId === id));
-        setRegionTours(tourPackages.filter(t => t.regionId === id));
-      }
-    }
-  }, [id]);
+  // Fetch regions and attractions data
+  const { data: apiRegions, isLoading: regionsLoading, error: regionsError } = useQuery({
+    queryKey: ['regions'],
+    queryFn: apiService.getRegions,
+  });
 
+  const { data: apiAttractions, isLoading: attractionsLoading, error: attractionsError } = useQuery({
+    queryKey: ['attractions'],
+    queryFn: apiService.getAttractions,
+  });
+
+  // Transform API data
+  const regions = apiRegions?.map(transformApiData.region) || [];
+  const attractions = apiAttractions?.map(transformApiData.attraction) || [];
+
+  // Find the specific region and its attractions
+  const region = regions.find(r => r.id === id);
+  const regionAttractions = attractions.filter(a => a.regionId === id);
+
+  // Loading state
+  if (regionsLoading || attractionsLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-lg text-slate-600">Loading region details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (regionsError || attractionsError) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4 text-red-600">Error Loading Region</h1>
+          <p className="text-slate-600 mb-6">There was an error loading the region data.</p>
+          <Button asChild>
+            <Link to="/discover">Back to Discover</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Region not found
   if (!region) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -73,8 +103,8 @@ export default function RegionDetail() {
             <Card>
               <CardContent className="p-6 text-center">
                 <Users className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
-                <h3 className="font-semibold">Population</h3>
-                <p className="text-slate-600">{region.population}</p>
+                <h3 className="font-semibold">Attractions</h3>
+                <p className="text-slate-600">{regionAttractions.length} places</p>
               </CardContent>
             </Card>
             
@@ -82,7 +112,7 @@ export default function RegionDetail() {
               <CardContent className="p-6 text-center">
                 <Thermometer className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
                 <h3 className="font-semibold">Climate</h3>
-                <p className="text-slate-600">{region.climate}</p>
+                <p className="text-slate-600">Mediterranean</p>
               </CardContent>
             </Card>
             
@@ -90,15 +120,15 @@ export default function RegionDetail() {
               <CardContent className="p-6 text-center">
                 <Calendar className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
                 <h3 className="font-semibold">Best Time to Visit</h3>
-                <p className="text-slate-600">{region.bestTimeToVisit}</p>
+                <p className="text-slate-600">Spring & Fall</p>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-6 text-center">
                 <Camera className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
-                <h3 className="font-semibold">Top Attractions</h3>
-                <p className="text-slate-600">{region.attractions.length} places</p>
+                <h3 className="font-semibold">Experience</h3>
+                <p className="text-slate-600">Cultural & Historical</p>
               </CardContent>
             </Card>
           </div>
@@ -111,7 +141,7 @@ export default function RegionDetail() {
           <Tabs defaultValue="attractions" className="w-full">
             <TabsList className="grid w-full md:w-96 grid-cols-2">
               <TabsTrigger value="attractions">Attractions</TabsTrigger>
-              <TabsTrigger value="tours">Tours</TabsTrigger>
+              <TabsTrigger value="about">About</TabsTrigger>
             </TabsList>
             
             <TabsContent value="attractions" className="mt-8">
@@ -126,13 +156,13 @@ export default function RegionDetail() {
                     <Card key={attraction.id} className="overflow-hidden hover:shadow-md transition-shadow">
                       <div className="relative h-48 bg-slate-200">
                         <div className="absolute top-4 left-4">
-                          <Badge className="bg-emerald-600 hover:bg-emerald-700">{attraction.category}</Badge>
+                          <Badge className="bg-emerald-600 hover:bg-emerald-700">{attraction.type}</Badge>
                         </div>
                       </div>
                       <CardHeader>
                         <CardTitle>{attraction.name}</CardTitle>
                         <CardDescription>
-                          Location: {attraction.location.lat}, {attraction.location.lng}
+                          {region.name}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
@@ -153,48 +183,38 @@ export default function RegionDetail() {
               )}
             </TabsContent>
             
-            <TabsContent value="tours" className="mt-8">
+            <TabsContent value="about" className="mt-8">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold mb-2">Tours in {region.name}</h2>
-                <p className="text-slate-600">Explore curated tour packages for this region</p>
+                <h2 className="text-2xl font-bold mb-2">About {region.name}</h2>
+                <p className="text-slate-600">Learn more about this fascinating region</p>
               </div>
               
-              {regionTours.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {regionTours.map((tour) => (
-                    <Card key={tour.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                      <div className="relative h-48 bg-slate-200">
-                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                          <div className="flex justify-between items-center text-white">
-                            <span className="font-medium">{tour.duration} days</span>
-                            <span className="font-bold">${tour.price}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <CardHeader>
-                        <CardTitle>{tour.title}</CardTitle>
-                        <CardDescription>{tour.type}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-slate-600 line-clamp-3">{tour.description}</p>
-                      </CardContent>
-                      <CardFooter className="flex justify-between">
-                        <div className="flex items-center text-sm text-slate-500">
-                          <Users className="h-4 w-4 mr-1" />
-                          <span>Max {tour.maxParticipants}</span>
-                        </div>
-                        <Button asChild>
-                          <Link to={`/tours/${tour.id}`}>View Tour</Link>
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <h3 className="text-xl font-semibold mb-4">Overview</h3>
+                  <p className="text-slate-600 leading-relaxed">
+                    {region.description}
+                  </p>
                 </div>
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-lg text-slate-500">No tours available for this region yet.</p>
+                
+                <div>
+                  <h3 className="text-xl font-semibold mb-4">Key Facts</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Capital:</span>
+                      <span className="text-slate-600">{region.capital}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Attractions:</span>
+                      <span className="text-slate-600">{regionAttractions.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Region Type:</span>
+                      <span className="text-slate-600">Cultural</span>
+                    </div>
+                  </div>
                 </div>
-              )}
+              </div>
             </TabsContent>
           </Tabs>
         </div>

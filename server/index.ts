@@ -14,7 +14,12 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -376,6 +381,135 @@ app.post('/api/reviews', async (req, res) => {
   }
 });
 
+// Festivals API routes
+app.get('/api/festivals', async (req, res) => {
+  try {
+    const festivals = await prisma.festival.findMany({
+      include: {
+        region: true,
+      },
+    });
+    res.json(festivals);
+  } catch (error) {
+    console.error('Error fetching festivals:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/festivals', async (req, res) => {
+  try {
+    const { 
+      name, description, type, location, regionId, timeOfYear, duration, 
+      images, videoUrl, established, historicalSignificance 
+    } = req.body;
+    
+    const festival = await prisma.festival.create({
+      data: {
+        name, description, type, location, regionId, timeOfYear, duration,
+        images, videoUrl, established, historicalSignificance,
+      },
+      include: {
+        region: true,
+      },
+    });
+    res.status(201).json(festival);
+  } catch (error) {
+    console.error('Error creating festival:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Cuisine API routes
+app.get('/api/cuisines', async (req, res) => {
+  try {
+    const cuisines = await prisma.cuisine.findMany();
+    res.json(cuisines);
+  } catch (error) {
+    console.error('Error fetching cuisines:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/cuisines', async (req, res) => {
+  try {
+    const { 
+      name, description, type, regionIds, ingredients, spiceLevel, 
+      images, videoUrl, popularVariants 
+    } = req.body;
+    
+    const cuisine = await prisma.cuisine.create({
+      data: {
+        name, description, type, regionIds, ingredients, spiceLevel,
+        images, videoUrl, popularVariants,
+      },
+    });
+    res.status(201).json(cuisine);
+  } catch (error) {
+    console.error('Error creating cuisine:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Heritage API routes
+app.get('/api/heritages', async (req, res) => {
+  try {
+    const heritages = await prisma.heritage.findMany();
+    res.json(heritages);
+  } catch (error) {
+    console.error('Error fetching heritages:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/heritages', async (req, res) => {
+  try {
+    const { 
+      name, description, type, regionIds, images, videoUrl, importance 
+    } = req.body;
+    
+    const heritage = await prisma.heritage.create({
+      data: {
+        name, description, type, regionIds, images, videoUrl, importance,
+      },
+    });
+    res.status(201).json(heritage);
+  } catch (error) {
+    console.error('Error creating heritage:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Clothing API routes
+app.get('/api/clothing', async (req, res) => {
+  try {
+    const clothing = await prisma.clothing.findMany();
+    res.json(clothing);
+  } catch (error) {
+    console.error('Error fetching clothing:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/clothing', async (req, res) => {
+  try {
+    const { 
+      name, description, gender, regionIds, materials, occasions, 
+      images, historicalNotes 
+    } = req.body;
+    
+    const clothing = await prisma.clothing.create({
+      data: {
+        name, description, gender, regionIds, materials, occasions,
+        images, historicalNotes,
+      },
+    });
+    res.status(201).json(clothing);
+  } catch (error) {
+    console.error('Error creating clothing:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
@@ -399,6 +533,10 @@ app.listen(PORT, () => {
   console.log(`📝 Content: http://localhost:${PORT}/api/content`);
   console.log(`🚗 Transport: http://localhost:${PORT}/api/transport`);
   console.log(`⭐ Reviews: http://localhost:${PORT}/api/reviews`);
+  console.log(`🎉 Festivals: http://localhost:${PORT}/api/festivals`);
+  console.log(`🍽️  Cuisines: http://localhost:${PORT}/api/cuisines`);
+  console.log(`🏺 Heritage: http://localhost:${PORT}/api/heritages`);
+  console.log(`👕 Clothing: http://localhost:${PORT}/api/clothing`);
 });
 
 // Graceful shutdown

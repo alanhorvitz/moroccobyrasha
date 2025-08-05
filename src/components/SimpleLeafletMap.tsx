@@ -22,7 +22,6 @@ const DefaultIcon = L.icon({
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
 });
-
 L.Marker.prototype.options.icon = DefaultIcon;
 
 interface Region {
@@ -45,27 +44,24 @@ interface SimpleLeafletMapProps {
   regions?: Region[];
   attractions?: Attraction[];
   height?: string;
+  active?: boolean;
 }
 
-export function SimpleLeafletMap({ 
-  regions = [], 
-  attractions = [], 
-  height = "600px" 
-}: SimpleLeafletMapProps) {
+export function SimpleLeafletMap({ regions = [], attractions = [], height = "600px", active = true }: SimpleLeafletMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const markerLayerRef = useRef<L.LayerGroup | null>(null);
 
+  // Only initialize the map ONCE
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    // Initialize map
     const map = L.map(mapContainerRef.current, {
-      center: [31.7917, -7.0926], // Morocco center
+      center: [31.7917, -7.0926],
       zoom: 6,
       zoomControl: true,
       scrollWheelZoom: true,
     });
-
     mapRef.current = map;
 
     // Add CartoDB Positron tiles (shows unified Morocco territory)
@@ -75,9 +71,8 @@ export function SimpleLeafletMap({
       maxZoom: 19,
       crossOrigin: true
     });
-    
     tileLayer.addTo(map);
-    
+
     // Add error handling for tile loading
     tileLayer.on('tileerror', function(error) {
       console.log('Tile loading error:', error);
@@ -89,11 +84,28 @@ export function SimpleLeafletMap({
       });
       fallbackLayer.addTo(map);
     });
-    
+
     // Add a fallback background color
     if (mapContainerRef.current) {
       mapContainerRef.current.style.backgroundColor = '#f8fafc';
     }
+
+    // Create a marker layer group
+    markerLayerRef.current = L.layerGroup().addTo(map);
+
+    return () => {
+      mapRef.current?.remove();
+      mapRef.current = null;
+      markerLayerRef.current = null;
+    };
+  }, []);
+
+  // Add/Remove Markers when data changes
+  useEffect(() => {
+    if (!mapRef.current || !markerLayerRef.current) return;
+    const map = mapRef.current;
+    const markerLayer = markerLayerRef.current;
+    markerLayer.clearLayers();
 
     // Custom icons
     const regionIcon = L.icon({
@@ -107,7 +119,6 @@ export function SimpleLeafletMap({
       iconAnchor: [16, 32],
       popupAnchor: [0, -32],
     });
-
     const attractionIcon = L.icon({
       iconUrl: `data:image/svg+xml;base64,${btoa(`
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
@@ -122,60 +133,59 @@ export function SimpleLeafletMap({
 
     // Add region markers
     const bounds = L.latLngBounds([]);
-    
     regions.forEach((region) => {
-      const marker = L.marker([region.coordinates.lat, region.coordinates.lng], {
-        icon: regionIcon
-      }).addTo(map);
-      
-      marker.bindPopup(`
-        <div style="padding: 8px; min-width: 200px;">
-          <h3 style="margin: 0 0 4px 0; font-weight: bold; font-size: 14px;">${region.name}</h3>
-          <p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">Capital: ${region.capital}</p>
-          <p style="margin: 0 0 8px 0; font-size: 12px; color: #666; line-height: 1.3;">${region.description.substring(0, 100)}...</p>
-          <a href="/regions/${region.id}" style="display: inline-block; padding: 4px 8px; background: #10b981; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">View Details</a>
-        </div>
-      `);
-      
-      bounds.extend([region.coordinates.lat, region.coordinates.lng]);
+      if (region.coordinates && region.coordinates.lat && region.coordinates.lng) {
+        const marker = L.marker([region.coordinates.lat, region.coordinates.lng], {
+          icon: regionIcon
+        }).addTo(markerLayer);
+        marker.bindPopup(`
+          <div style="padding: 8px; min-width: 200px;">
+            <h3 style="margin: 0 0 4px 0; font-weight: bold; font-size: 14px;">${region.name}</h3>
+            <p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">Capital: ${region.capital}</p>
+            <p style="margin: 0 0 8px 0; font-size: 12px; color: #666; line-height: 1.3;">${region.description.substring(0, 100)}...</p>
+            <a href="/regions/${region.id}" style="display: inline-block; padding: 4px 8px; background: #10b981; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">View Details</a>
+          </div>
+        `);
+        bounds.extend([region.coordinates.lat, region.coordinates.lng]);
+      }
     });
 
     // Add attraction markers
     attractions.forEach((attraction) => {
-      const marker = L.marker([attraction.location.lat, attraction.location.lng], {
-        icon: attractionIcon
-      }).addTo(map);
-      
-      marker.bindPopup(`
-        <div style="padding: 8px; min-width: 200px;">
-          <h3 style="margin: 0 0 4px 0; font-weight: bold; font-size: 14px;">${attraction.name}</h3>
-          <p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">Type: ${attraction.type}</p>
-          <p style="margin: 0 0 8px 0; font-size: 12px; color: #666; line-height: 1.3;">${attraction.description.substring(0, 100)}...</p>
-          <a href="/attractions/${attraction.id}" style="display: inline-block; padding: 4px 8px; background: #ef4444; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">View Details</a>
-        </div>
-      `);
-      
-      bounds.extend([attraction.location.lat, attraction.location.lng]);
+      if (attraction.location && attraction.location.lat && attraction.location.lng) {
+        const marker = L.marker([attraction.location.lat, attraction.location.lng], {
+          icon: attractionIcon
+        }).addTo(markerLayer);
+        marker.bindPopup(`
+          <div style="padding: 8px; min-width: 200px;">
+            <h3 style="margin: 0 0 4px 0; font-weight: bold; font-size: 14px;">${attraction.name}</h3>
+            <p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">Type: ${attraction.type}</p>
+            <p style="margin: 0 0 8px 0; font-size: 12px; color: #666; line-height: 1.3;">${attraction.description.substring(0, 100)}...</p>
+            <a href="/attractions/${attraction.id}" style="display: inline-block; padding: 4px 8px; background: #ef4444; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">View Details</a>
+          </div>
+        `);
+        bounds.extend([attraction.location.lat, attraction.location.lng]);
+      }
     });
 
     // Fit map to show all markers
     if (bounds.isValid()) {
       map.fitBounds(bounds, { padding: [20, 20] });
     }
-
-    // Cleanup function
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-    };
   }, [regions, attractions]);
+
+  // Invalidate size when tab becomes active
+  useEffect(() => {
+    if (active && mapRef.current) {
+      setTimeout(() => {
+        mapRef.current?.invalidateSize();
+      }, 100);
+    }
+  }, [active]);
 
   return (
     <div className="relative" style={{ height }}>
       <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} className="rounded-lg overflow-hidden" />
-      
       {/* Map Legend */}
       <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg z-[1000]">
         <div className="text-xs text-slate-600 space-y-2">

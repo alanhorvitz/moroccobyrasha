@@ -24,6 +24,10 @@ import RegionDetail from './pages/RegionDetail';
 import AttractionDetail from './pages/AttractionDetail';
 import TourPackageDetail from './pages/TourPackageDetail';
 import ContentDetail from './pages/ContentDetail';
+import HeritageDetail from './pages/HeritageDetail';
+import ClothingDetail from './pages/ClothingDetail';
+import CuisineDetail from './pages/CuisineDetail';
+import FestivalDetail from './pages/FestivalDetail';
 
 // Marketplace pages
 import MarketplacePage from './pages/MarketplacePage';
@@ -69,6 +73,10 @@ const App = () => (
               <Route path="/attractions/:id" element={<Layout><AttractionDetail /></Layout>} />
               <Route path="/tours/:id" element={<Layout><TourPackageDetail /></Layout>} />
               <Route path="/content/:id" element={<Layout><ContentDetail /></Layout>} />
+              <Route path="/heritage/:id" element={<Layout><HeritageDetail /></Layout>} />
+              <Route path="/clothing/:id" element={<Layout><ClothingDetail /></Layout>} />
+              <Route path="/cuisine/:id" element={<Layout><CuisineDetail /></Layout>} />
+              <Route path="/festivals/:id" element={<Layout><FestivalDetail /></Layout>} />
               
               {/* Protected Dashboard Routes */}
               <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />

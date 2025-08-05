@@ -1,32 +1,63 @@
-import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Star, Users, Camera, Calendar } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Star, Users, Camera, Calendar, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-
-import { touristAttractions as attractions } from '@/lib/data/attractions';
-import { moroccanRegions as regions } from '@/lib/data/regions';
+import { apiService, transformApiData } from '@/lib/api';
 import { Attraction, Region } from '@/lib/types';
 
 export default function AttractionDetail() {
   const { id } = useParams<{ id: string }>();
-  const [attraction, setAttraction] = useState<Attraction | null>(null);
-  const [region, setRegion] = useState<Region | null>(null);
 
-  useEffect(() => {
-    if (id) {
-      const foundAttraction = attractions.find(a => a.id === id);
-      setAttraction(foundAttraction || null);
-      
-      if (foundAttraction) {
-        const foundRegion = regions.find(r => r.id === foundAttraction.regionId);
-        setRegion(foundRegion || null);
-      }
-    }
-  }, [id]);
+  // Fetch attractions and regions data
+  const { data: apiAttractions, isLoading: attractionsLoading, error: attractionsError } = useQuery({
+    queryKey: ['attractions'],
+    queryFn: apiService.getAttractions,
+  });
 
+  const { data: apiRegions, isLoading: regionsLoading, error: regionsError } = useQuery({
+    queryKey: ['regions'],
+    queryFn: apiService.getRegions,
+  });
+
+  // Transform API data
+  const attractions = apiAttractions?.map(transformApiData.attraction) || [];
+  const regions = apiRegions?.map(transformApiData.region) || [];
+
+  // Find the specific attraction and its region
+  const attraction = attractions.find(a => a.id === id);
+  const region = attraction ? regions.find(r => r.id === attraction.regionId) : null;
+
+  // Loading state
+  if (attractionsLoading || regionsLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-lg text-slate-600">Loading attraction details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (attractionsError || regionsError) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4 text-red-600">Error Loading Attraction</h1>
+          <p className="text-slate-600 mb-6">There was an error loading the attraction data.</p>
+          <Button asChild>
+            <Link to="/discover">Back to Discover</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Attraction not found
   if (!attraction) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -55,15 +86,12 @@ export default function AttractionDetail() {
               </Link>
             </Button>
             <div className="flex items-center gap-3 mb-4">
-              <Badge className="bg-emerald-600 hover:bg-emerald-700">{attraction.category}</Badge>
-              {attraction.featured && (
-                <Badge variant="outline" className="bg-white/80 border-0">Featured</Badge>
-              )}
+              <Badge className="bg-emerald-600 hover:bg-emerald-700">{attraction.type}</Badge>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">{attraction.name}</h1>
             <div className="flex items-center text-white/80">
               <MapPin className="h-5 w-5 mr-2" />
-              <span>{region ? `${attraction.location.lat}, ${attraction.location.lng}, ${region.name}` : `${attraction.location.lat}, ${attraction.location.lng}`}</span>
+              <span>{region ? `${region.name}` : 'Morocco'}</span>
             </div>
           </div>
         </div>
@@ -91,134 +119,79 @@ export default function AttractionDetail() {
                         <MapPin className="h-5 w-5 mr-2 text-emerald-600" />
                         <div>
                           <p className="font-medium">Location</p>
-                          <p className="text-sm text-slate-600">{attraction.location.lat}, {attraction.location.lng}</p>
+                          <p className="text-sm text-slate-600">{region ? region.name : 'Morocco'}</p>
                         </div>
                       </div>
                       
                       <div className="flex items-center">
                         <Star className="h-5 w-5 mr-2 text-emerald-600" />
                         <div>
-                          <p className="font-medium">Category</p>
-                          <p className="text-sm text-slate-600">{attraction.category}</p>
+                          <p className="font-medium">Type</p>
+                          <p className="text-sm text-slate-600">{attraction.type}</p>
                         </div>
                       </div>
-                      
-                      {attraction.visitingHours && (
-                        <div className="flex items-center">
-                          <Clock className="h-5 w-5 mr-2 text-emerald-600" />
-                          <div>
-                            <p className="font-medium">Visiting Hours</p>
-                            <p className="text-sm text-slate-600">{attraction.visitingHours}</p>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {attraction.entryFee && (
-                        <div className="flex items-center">
-                          <Users className="h-5 w-5 mr-2 text-emerald-600" />
-                          <div>
-                            <p className="font-medium">Entry Fee</p>
-                            <p className="text-sm text-slate-600">{attraction.entryFee}</p>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
-                  
-                  {attraction.highlights && attraction.highlights.length > 0 && (
-                    <>
-                      <Separator />
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3">Highlights</h3>
-                        <ul className="space-y-2">
-                          {attraction.highlights.map((highlight, index) => (
-                            <li key={index} className="flex items-start">
-                              <div className="w-2 h-2 bg-emerald-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                              <span className="text-slate-600">{highlight}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </>
-                  )}
                 </CardContent>
               </Card>
             </div>
-            
+
             {/* Sidebar */}
             <div className="space-y-6">
-              {/* Region Info */}
-              {region && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Explore {region.name}</CardTitle>
-                    <CardDescription>Discover more about this region</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-slate-600 line-clamp-3 mb-4">{region.description}</p>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Capital:</span>
-                        <span className="font-medium">{region.capital}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Climate:</span>
-                        <span className="font-medium">{region.climate}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Best Time:</span>
-                        <span className="font-medium">{region.bestTimeToVisit}</span>
-                      </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Facts</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Type:</span>
+                    <span className="font-medium">{attraction.type}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Region:</span>
+                    <span className="font-medium">{region ? region.name : 'Morocco'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Capital:</span>
+                    <span className="font-medium">{region ? region.capital : 'N/A'}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Visit Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center">
+                    <Clock className="h-5 w-5 mr-2 text-emerald-600" />
+                    <div>
+                      <p className="font-medium">Best Time to Visit</p>
+                      <p className="text-sm text-slate-600">Spring & Fall</p>
                     </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button asChild variant="outline" className="w-full">
-                      <Link to={`/regions/${region.id}`}>Explore Region</Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              )}
-              
-              {/* Quick Actions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Plan Your Visit</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button asChild className="w-full">
-                    <Link to="/tourism">Find Tours</Link>
-                  </Button>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link to="/services">Book Guide</Link>
-                  </Button>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link to="/gallery">View Photos</Link>
-                  </Button>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Users className="h-5 w-5 mr-2 text-emerald-600" />
+                    <div>
+                      <p className="font-medium">Visitor Type</p>
+                      <p className="text-sm text-slate-600">All Ages</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Camera className="h-5 w-5 mr-2 text-emerald-600" />
+                    <div>
+                      <p className="font-medium">Photo Opportunities</p>
+                      <p className="text-sm text-slate-600">Excellent</p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
-              
-              {/* Travel Tips */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Travel Tips</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm text-slate-600">
-                    <li className="flex items-start">
-                      <Camera className="h-4 w-4 mt-0.5 mr-2 text-emerald-600 flex-shrink-0" />
-                      <span>Best photography hours are early morning and late afternoon</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Users className="h-4 w-4 mt-0.5 mr-2 text-emerald-600 flex-shrink-0" />
-                      <span>Consider hiring a local guide for deeper cultural insights</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Calendar className="h-4 w-4 mt-0.5 mr-2 text-emerald-600 flex-shrink-0" />
-                      <span>Check local weather and seasonal considerations</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
+
+              <Button asChild className="w-full">
+                <Link to="/discover">Explore More Attractions</Link>
+              </Button>
             </div>
           </div>
         </div>

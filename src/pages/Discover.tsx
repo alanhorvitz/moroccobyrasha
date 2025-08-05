@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, Filter, Tag, Utensils, Calendar, Shirt, Map } from 'lucide-react';
+import { Search, MapPin, Filter, Tag, Utensils, Calendar, Shirt, Map, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,25 +14,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { SimpleLeafletMap } from '@/components/SimpleLeafletMap';
-
-import { moroccanRegions as regions } from '@/lib/data/regions';
-import { touristAttractions as attractions } from '@/lib/data/attractions';
-import { heritageItems } from '@/lib/data/heritage';
-import { clothingItems } from '@/lib/data/clothing';
-import { cuisineItems } from '@/lib/data/cuisine';
-import { festivalEvents } from '@/lib/data/festivals';
+import { apiService, transformApiData } from '@/lib/api';
 import { Region, Attraction, HeritageItem, ClothingItem, CuisineItem, FestivalEvent } from '@/lib/types';
 
 export default function DiscoverPage() {
   const [activeTab, setActiveTab] = useState("regions");
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredRegions, setFilteredRegions] = useState(regions);
-  const [filteredAttractions, setFilteredAttractions] = useState(attractions);
-  const [filteredHeritage, setFilteredHeritage] = useState(heritageItems);
-  const [filteredClothing, setFilteredClothing] = useState(clothingItems);
-  const [filteredCuisine, setFilteredCuisine] = useState(cuisineItems);
-  const [filteredFestivals, setFilteredFestivals] = useState(festivalEvents);
-
+  
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedHeritageType, setSelectedHeritageType] = useState<string | null>(null);
@@ -39,8 +28,143 @@ export default function DiscoverPage() {
   const [selectedCuisineType, setSelectedCuisineType] = useState<string | null>(null);
   const [selectedFestivalType, setSelectedFestivalType] = useState<string | null>(null);
   
+  // Fetch data from API using React Query
+  const { data: apiRegions, isLoading: regionsLoading, error: regionsError } = useQuery({
+    queryKey: ['regions'],
+    queryFn: apiService.getRegions,
+  });
+
+  const { data: apiAttractions, isLoading: attractionsLoading, error: attractionsError } = useQuery({
+    queryKey: ['attractions'],
+    queryFn: apiService.getAttractions,
+  });
+
+  const { data: apiHeritages, isLoading: heritagesLoading, error: heritagesError } = useQuery({
+    queryKey: ['heritages'],
+    queryFn: apiService.getHeritages,
+  });
+
+  const { data: apiClothing, isLoading: clothingLoading, error: clothingError } = useQuery({
+    queryKey: ['clothing'],
+    queryFn: apiService.getClothing,
+  });
+
+  const { data: apiCuisines, isLoading: cuisinesLoading, error: cuisinesError } = useQuery({
+    queryKey: ['cuisines'],
+    queryFn: apiService.getCuisines,
+  });
+
+  const { data: apiFestivals, isLoading: festivalsLoading, error: festivalsError } = useQuery({
+    queryKey: ['festivals'],
+    queryFn: apiService.getFestivals,
+  });
+
+  // Transform API data to frontend format
+  const regions = apiRegions?.map(transformApiData.region) || [];
+  const attractions = apiAttractions?.map(transformApiData.attraction) || [];
+  const heritageItems = apiHeritages?.map(transformApiData.heritage) || [];
+  const clothingItems = apiClothing?.map(transformApiData.clothing) || [];
+  const cuisineItems = apiCuisines?.map(transformApiData.cuisine) || [];
+  const festivalEvents = apiFestivals?.map(transformApiData.festival) || [];
+
+  // Use useMemo to compute filtered data instead of useState + useEffect
+  const filteredRegions = useMemo(() => {
+    if (!searchTerm) return regions;
+    return regions.filter(region => 
+      region.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      region.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      region.capital.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [regions, searchTerm]);
+
+  const filteredAttractions = useMemo(() => {
+    let filtered = attractions;
+    
+    if (searchTerm) {
+      filtered = filtered.filter(attraction => 
+        attraction.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        attraction.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    if (selectedCategory) {
+      filtered = filtered.filter(attraction => attraction.type === selectedCategory);
+    }
+    
+    return filtered;
+  }, [attractions, searchTerm, selectedCategory]);
+
+  const filteredHeritage = useMemo(() => {
+    let filtered = heritageItems;
+    
+    if (searchTerm) {
+      filtered = filtered.filter(item => 
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        item.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    if (selectedHeritageType) {
+      filtered = filtered.filter(item => item.type === selectedHeritageType);
+    }
+    
+    return filtered;
+  }, [heritageItems, searchTerm, selectedHeritageType]);
+
+  const filteredClothing = useMemo(() => {
+    let filtered = clothingItems;
+    
+    if (searchTerm) {
+      filtered = filtered.filter(item => 
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        item.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    if (selectedClothingGender) {
+      filtered = filtered.filter(item => item.gender === selectedClothingGender);
+    }
+    
+    return filtered;
+  }, [clothingItems, searchTerm, selectedClothingGender]);
+
+  const filteredCuisine = useMemo(() => {
+    let filtered = cuisineItems;
+    
+    if (searchTerm) {
+      filtered = filtered.filter(item => 
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        item.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    if (selectedCuisineType) {
+      filtered = filtered.filter(item => item.type === selectedCuisineType);
+    }
+    
+    return filtered;
+  }, [cuisineItems, searchTerm, selectedCuisineType]);
+
+  const filteredFestivals = useMemo(() => {
+    let filtered = festivalEvents;
+    
+    if (searchTerm) {
+      filtered = filtered.filter(event => 
+        event.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.location.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    if (selectedFestivalType) {
+      filtered = filtered.filter(event => event.type === selectedFestivalType);
+    }
+    
+    return filtered;
+  }, [festivalEvents, searchTerm, selectedFestivalType]);
+  
   // Unique categories for filtering
-  const attractionCategories = [...new Set(attractions.map(attraction => attraction.category))];
+  const attractionCategories = [...new Set(attractions.map(attraction => attraction.type))];
   const heritageTypes = [...new Set(heritageItems.map(item => item.type))];
   const clothingGenders = [...new Set(clothingItems.map(item => item.gender))];
   const cuisineTypes = [...new Set(cuisineItems.map(item => item.type))];
@@ -48,133 +172,28 @@ export default function DiscoverPage() {
   
   // Handle search input
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const term = e.target.value.toLowerCase();
-    setSearchTerm(term);
-    
-    switch (activeTab) {
-      case "regions":
-        setFilteredRegions(
-          regions.filter(region => 
-            region.name.toLowerCase().includes(term) || 
-            region.description.toLowerCase().includes(term) ||
-            region.capital.toLowerCase().includes(term)
-          )
-        );
-        break;
-      case "attractions":
-        filterAttractions(term, selectedCategory);
-        break;
-      case "heritage":
-        filterHeritage(term, selectedHeritageType);
-        break;
-      case "clothing":
-        filterClothing(term, selectedClothingGender);
-        break;
-      case "cuisine":
-        filterCuisine(term, selectedCuisineType);
-        break;
-      case "festivals":
-        filterFestivals(term, selectedFestivalType);
-        break;
-    }
+    setSearchTerm(e.target.value);
   };
   
   // Handle category filters
   const handleCategoryFilter = (category: string | null) => {
     setSelectedCategory(category);
-    filterAttractions(searchTerm, category);
   };
 
   const handleHeritageTypeFilter = (type: string | null) => {
     setSelectedHeritageType(type);
-    filterHeritage(searchTerm, type);
   };
 
   const handleClothingGenderFilter = (gender: string | null) => {
     setSelectedClothingGender(gender);
-    filterClothing(searchTerm, gender);
   };
 
   const handleCuisineTypeFilter = (type: string | null) => {
     setSelectedCuisineType(type);
-    filterCuisine(searchTerm, type);
   };
 
   const handleFestivalTypeFilter = (type: string | null) => {
     setSelectedFestivalType(type);
-    filterFestivals(searchTerm, type);
-  };
-  
-  // Filter functions
-  const filterAttractions = (term: string, category: string | null) => {
-    setFilteredAttractions(
-      attractions.filter(attraction => {
-        const matchesSearch = 
-          attraction.name.toLowerCase().includes(term) || 
-          attraction.description.toLowerCase().includes(term);
-        
-        const matchesCategory = !category || attraction.category === category;
-        
-        return matchesSearch && matchesCategory;
-      })
-    );
-  };
-
-  const filterHeritage = (term: string, type: string | null) => {
-    setFilteredHeritage(
-      heritageItems.filter(item => {
-        const matchesSearch = 
-          item.name.toLowerCase().includes(term) || 
-          item.description.toLowerCase().includes(term);
-        
-        const matchesType = !type || item.type === type;
-        
-        return matchesSearch && matchesType;
-      })
-    );
-  };
-
-  const filterClothing = (term: string, gender: string | null) => {
-    setFilteredClothing(
-      clothingItems.filter(item => {
-        const matchesSearch = 
-          item.name.toLowerCase().includes(term) || 
-          item.description.toLowerCase().includes(term);
-        
-        const matchesGender = !gender || item.gender === gender;
-        
-        return matchesSearch && matchesGender;
-      })
-    );
-  };
-
-  const filterCuisine = (term: string, type: string | null) => {
-    setFilteredCuisine(
-      cuisineItems.filter(item => {
-        const matchesSearch = 
-          item.name.toLowerCase().includes(term) || 
-          item.description.toLowerCase().includes(term);
-        
-        const matchesType = !type || item.type === type;
-        
-        return matchesSearch && matchesType;
-      })
-    );
-  };
-
-  const filterFestivals = (term: string, type: string | null) => {
-    setFilteredFestivals(
-      festivalEvents.filter(event => {
-        const matchesSearch = 
-          event.name.toLowerCase().includes(term) || 
-          event.description.toLowerCase().includes(term) ||
-          event.location.toLowerCase().includes(term);
-        
-        const matchesType = !type || event.type === type;
-        
-        return matchesSearch && matchesType;
-      })
-    );
   };
   
   // Handle tab change
@@ -191,13 +210,14 @@ export default function DiscoverPage() {
     setSelectedClothingGender(null);
     setSelectedCuisineType(null);
     setSelectedFestivalType(null);
-    setFilteredRegions(regions);
-    setFilteredAttractions(attractions);
-    setFilteredHeritage(heritageItems);
-    setFilteredClothing(clothingItems);
-    setFilteredCuisine(cuisineItems);
-    setFilteredFestivals(festivalEvents);
   };
+
+  // Loading states
+  const isLoading = regionsLoading || attractionsLoading || heritagesLoading || 
+                   clothingLoading || cuisinesLoading || festivalsLoading;
+
+  const hasError = regionsError || attractionsError || heritagesError || 
+                  clothingError || cuisinesError || festivalsError;
 
   // Get filter dropdown based on active tab
   const getFilterDropdown = () => {
@@ -312,6 +332,35 @@ export default function DiscoverPage() {
     }
   };
 
+  // Loading component
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-lg text-slate-600">Loading Morocco's treasures...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error component
+  if (hasError) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-2xl font-bold mb-4 text-red-600">Oops! Something went wrong</h1>
+          <p className="text-lg text-slate-600 mb-6">
+            We're having trouble loading the data. Please try refreshing the page.
+          </p>
+          <Button onClick={() => window.location.reload()}>
+            Refresh Page
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-4xl mx-auto text-center mb-12">
@@ -355,7 +404,7 @@ export default function DiscoverPage() {
           {filteredRegions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredRegions.map((region) => (
-                <RegionCard key={region.id} region={region} />
+                <RegionCard key={region.id} region={region} attractions={attractions} />
               ))}
             </div>
           ) : (
@@ -377,22 +426,38 @@ export default function DiscoverPage() {
               Click on markers to learn more about each location.
             </p>
             
-            <div className="h-[600px] rounded-lg overflow-hidden border">
-              <SimpleLeafletMap 
-                regions={regions}
-                attractions={attractions}
-                height="600px"
-              />
-            </div>
+            {isLoading ? (
+              <div className="h-[600px] rounded-lg border flex items-center justify-center">
+                <div className="text-center">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                  <p className="text-slate-600">Loading map data...</p>
+                </div>
+              </div>
+            ) : regions.length === 0 && attractions.length === 0 ? (
+              <div className="h-[600px] rounded-lg border flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-slate-600">No map data available</p>
+                </div>
+              </div>
+            ) : (
+              <div className="h-[600px] rounded-lg overflow-hidden border">
+                <SimpleLeafletMap 
+                  regions={regions}
+                  attractions={attractions}
+                  height="600px"
+                  active={activeTab === 'map'}
+                />
+              </div>
+            )}
             
             <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-emerald-600 rounded-full mr-2"></div>
-                <span className="text-sm">Regions</span>
+                <span className="text-sm">Regions ({regions.length})</span>
               </div>
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-blue-600 rounded-full mr-2"></div>
-                <span className="text-sm">Attractions</span>
+                <span className="text-sm">Attractions ({attractions.length})</span>
               </div>
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-purple-600 rounded-full mr-2"></div>
@@ -411,7 +476,7 @@ export default function DiscoverPage() {
           {filteredAttractions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredAttractions.map((attraction) => (
-                <AttractionCard key={attraction.id} attraction={attraction} />
+                <AttractionCard key={attraction.id} attraction={attraction} regions={regions} />
               ))}
             </div>
           ) : (
@@ -426,7 +491,7 @@ export default function DiscoverPage() {
           {filteredHeritage.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredHeritage.map((heritage) => (
-                <HeritageCard key={heritage.id} heritage={heritage} />
+                <HeritageCard key={heritage.id} heritage={heritage} regions={regions} />
               ))}
             </div>
           ) : (
@@ -471,7 +536,7 @@ export default function DiscoverPage() {
           {filteredFestivals.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredFestivals.map((festival) => (
-                <FestivalCard key={festival.id} festival={festival} />
+                <FestivalCard key={festival.id} festival={festival} regions={regions} />
               ))}
             </div>
           ) : (
@@ -486,7 +551,7 @@ export default function DiscoverPage() {
 }
 
 // Region Card Component
-const RegionCard = ({ region }: { region: Region }) => {
+const RegionCard = ({ region, attractions }: { region: Region; attractions: Attraction[] }) => {
   const regionAttractionsCount = attractions.filter(a => a.regionId === region.id).length;
   
   return (
@@ -516,7 +581,7 @@ const RegionCard = ({ region }: { region: Region }) => {
 };
 
 // Attraction Card Component
-const AttractionCard = ({ attraction }: { attraction: Attraction }) => {
+const AttractionCard = ({ attraction, regions }: { attraction: Attraction; regions: Region[] }) => {
   const region = regions.find(r => r.id === attraction.regionId);
   
   return (
@@ -547,7 +612,7 @@ const AttractionCard = ({ attraction }: { attraction: Attraction }) => {
 };
 
 // Heritage Card Component
-const HeritageCard = ({ heritage }: { heritage: HeritageItem }) => {
+const HeritageCard = ({ heritage, regions }: { heritage: HeritageItem; regions: Region[] }) => {
   return (
     <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
       <div className="flex flex-col md:flex-row h-full">
@@ -578,7 +643,7 @@ const HeritageCard = ({ heritage }: { heritage: HeritageItem }) => {
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" className="w-full">
-              <Link to={`#heritage-${heritage.id}`}>
+              <Link to={`/heritage/${heritage.id}`}>
                 Learn More
               </Link>
             </Button>
@@ -626,7 +691,7 @@ const ClothingCard = ({ clothing }: { clothing: ClothingItem }) => {
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" className="w-full">
-              <Link to={`#clothing-${clothing.id}`}>
+              <Link to={`/clothing/${clothing.id}`}>
                 View Details
               </Link>
             </Button>
@@ -685,7 +750,7 @@ const CuisineCard = ({ cuisine }: { cuisine: CuisineItem }) => {
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" className="w-full">
-              <Link to={`#cuisine-${cuisine.id}`}>
+              <Link to={`/cuisine/${cuisine.id}`}>
                 See Recipe
               </Link>
             </Button>
@@ -697,7 +762,7 @@ const CuisineCard = ({ cuisine }: { cuisine: CuisineItem }) => {
 };
 
 // Festival Card Component
-const FestivalCard = ({ festival }: { festival: FestivalEvent }) => {
+const FestivalCard = ({ festival, regions }: { festival: FestivalEvent; regions: Region[] }) => {
   const region = festival.regionId !== 'all' 
     ? regions.find(r => r.id === festival.regionId) 
     : null;
@@ -736,7 +801,7 @@ const FestivalCard = ({ festival }: { festival: FestivalEvent }) => {
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" className="w-full">
-              <Link to={`#festival-${festival.id}`}>
+              <Link to={`/festivals/${festival.id}`}>
                 View Festival
               </Link>
             </Button>

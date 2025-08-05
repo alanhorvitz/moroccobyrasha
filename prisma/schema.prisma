@@ -50,6 +50,7 @@ model Region {
   contentItems       ContentItem[]
   guides             GuideRegion[]
   transportServices  TransportServiceRegion[]
+  festivals         Festival[]
 
   @@map("regions")
 }
@@ -460,4 +461,76 @@ model SearchQuery {
   updatedAt DateTime @updatedAt
 
   @@map("search_queries")
+}
+
+// New models for missing data entities
+
+model Festival {
+  id                  String   @id @default(cuid())
+  name                String   @db.VarChar(255)
+  description         String?  @db.Text
+  type                String   @db.VarChar(100) // music-festival, film-festival, cultural-festival, etc.
+  location            String   @db.VarChar(255)
+  regionId            String?
+  timeOfYear          String   @db.VarChar(100)
+  duration            Int      @default(1) // in days
+  images              Json
+  videoUrl            String?  @db.VarChar(500)
+  established         String?  @db.VarChar(100)
+  historicalSignificance String? @db.Text
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  region Region? @relation(fields: [regionId], references: [id], onDelete: SetNull)
+
+  @@map("festivals")
+}
+
+model Cuisine {
+  id              String   @id @default(cuid())
+  name            String   @db.VarChar(255)
+  description     String?  @db.Text
+  type            String   @db.VarChar(100) // main-dish, appetizer, dessert, beverage, etc.
+  regionIds       Json     // Array of region IDs
+  ingredients     Json     // Array of ingredients
+  spiceLevel      String   @db.VarChar(50) // none, mild, medium, hot
+  images          Json
+  videoUrl        String?  @db.VarChar(500)
+  popularVariants Json     // Array of variant names
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("cuisines")
+}
+
+model Heritage {
+  id          String   @id @default(cuid())
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  type        String   @db.VarChar(100) // cultural-performance, music-dance, craft, art, etc.
+  regionIds   Json     // Array of region IDs
+  images      Json
+  videoUrl    String?  @db.VarChar(500)
+  importance  String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("heritages")
+}
+
+model Clothing {
+  id             String   @id @default(cuid())
+  name           String   @db.VarChar(255)
+  description    String?  @db.Text
+  gender         String   @db.VarChar(50) // male, female, unisex
+  regionIds      Json     // Array of region IDs
+  materials      Json     // Array of materials
+  occasions      Json     // Array of occasions
+  images         Json
+  historicalNotes String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("clothing")
 }

@@ -1,33 +1,64 @@
-import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Users, Calendar, Star, DollarSign } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Users, Calendar, Star, DollarSign, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-import { tourPackages } from '@/lib/data/tour-packages';
-import { moroccanRegions as regions } from '@/lib/data/regions';
+import { apiService, transformApiData } from '@/lib/api';
 import { TourPackage, Region } from '@/lib/types';
 
 export default function TourPackageDetail() {
   const { id } = useParams<{ id: string }>();
-  const [tour, setTour] = useState<TourPackage | null>(null);
-  const [region, setRegion] = useState<Region | null>(null);
 
-  useEffect(() => {
-    if (id) {
-      const foundTour = tourPackages.find(t => t.id === id);
-      setTour(foundTour || null);
-      
-      if (foundTour) {
-        const foundRegion = regions.find(r => r.id === foundTour.regionId);
-        setRegion(foundRegion || null);
-      }
-    }
-  }, [id]);
+  // Fetch tour packages and regions data
+  const { data: apiTourPackages, isLoading: tourPackagesLoading, error: tourPackagesError } = useQuery({
+    queryKey: ['tour-packages'],
+    queryFn: apiService.getTourPackages,
+  });
 
+  const { data: apiRegions, isLoading: regionsLoading, error: regionsError } = useQuery({
+    queryKey: ['regions'],
+    queryFn: apiService.getRegions,
+  });
+
+  // Transform API data
+  const tourPackages = apiTourPackages?.map(transformApiData.tourPackage) || [];
+  const regions = apiRegions?.map(transformApiData.region) || [];
+
+  // Find the specific tour package and its region
+  const tour = tourPackages.find(t => t.id === id);
+  const region = tour ? regions.find(r => r.id === tour.regionId) : null;
+
+  // Loading state
+  if (tourPackagesLoading || regionsLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-lg text-slate-600">Loading tour package details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (tourPackagesError || regionsError) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4 text-red-600">Error Loading Tour Package</h1>
+          <p className="text-slate-600 mb-6">There was an error loading the tour package data.</p>
+          <Button asChild>
+            <Link to="/tourism">Back to Tourism</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Tour package not found
   if (!tour) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -57,9 +88,6 @@ export default function TourPackageDetail() {
             </Button>
             <div className="flex items-center gap-3 mb-4">
               <Badge className="bg-emerald-600 hover:bg-emerald-700">{tour.type}</Badge>
-              {tour.featured && (
-                <Badge variant="outline" className="bg-white/80 border-0">Featured</Badge>
-              )}
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">{tour.title}</h1>
             <div className="flex items-center gap-6 text-white/80">
@@ -101,22 +129,28 @@ export default function TourPackageDetail() {
                     <CardContent className="space-y-6">
                       <p className="text-slate-600 leading-relaxed">{tour.description}</p>
                       
-                      {tour.highlights && tour.highlights.length > 0 && (
-                        <>
-                          <Separator />
-                          <div>
-                            <h3 className="text-lg font-semibold mb-3">Tour Highlights</h3>
-                            <ul className="space-y-2">
-                              {tour.highlights.map((highlight: string, index: number) => (
-                                <li key={index} className="flex items-start">
-                                  <div className="w-2 h-2 bg-emerald-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                                  <span className="text-slate-600">{highlight}</span>
-                                </li>
-                              ))}
-                            </ul>
+                      <Separator />
+                      
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Key Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="flex items-center">
+                            <MapPin className="h-5 w-5 mr-2 text-emerald-600" />
+                            <div>
+                              <p className="font-medium">Region</p>
+                              <p className="text-sm text-slate-600">{region ? region.name : 'Morocco'}</p>
+                            </div>
                           </div>
-                        </>
-                      )}
+                          
+                          <div className="flex items-center">
+                            <Star className="h-5 w-5 mr-2 text-emerald-600" />
+                            <div>
+                              <p className="font-medium">Type</p>
+                              <p className="text-sm text-slate-600">{tour.type}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -124,35 +158,10 @@ export default function TourPackageDetail() {
                 <TabsContent value="itinerary" className="mt-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Daily Itinerary</CardTitle>
+                      <CardTitle>Tour Itinerary</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {tour.itinerary && tour.itinerary.length > 0 ? (
-                        <div className="space-y-6">
-                          {tour.itinerary.map((day: { title: string; description: string; activities?: string[] }, index: number) => (
-                            <div key={index} className="border-l-4 border-emerald-600 pl-6 pb-6">
-                              <div className="flex items-center mb-2">
-                                <div className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm font-semibold -ml-10 mr-4">
-                                  {index + 1}
-                                </div>
-                                <h3 className="text-lg font-semibold">{day.title}</h3>
-                              </div>
-                              <p className="text-slate-600">{day.description}</p>
-                              {day.activities && day.activities.length > 0 && (
-                                <ul className="mt-2 space-y-1">
-                                  {day.activities.map((activity: string, actIndex: number) => (
-                                    <li key={actIndex} className="text-sm text-slate-500 ml-4">
-                                      • {activity}
-                                    </li>
-                                  ))}
-                                </ul>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-slate-500">Detailed itinerary will be provided upon booking.</p>
-                      )}
+                      <p className="text-slate-600">Detailed itinerary will be provided upon booking.</p>
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -163,49 +172,29 @@ export default function TourPackageDetail() {
                       <CardTitle>Tour Details</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <h3 className="font-semibold mb-3">What's Included</h3>
-                          <ul className="space-y-2">
-                            {tour.included && tour.included.length > 0 ? (
-                              tour.included.map((item: string, index: number) => (
-                                <li key={index} className="flex items-start">
-                                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                                  <span className="text-slate-600 text-sm">{item}</span>
-                                </li>
-                              ))
-                            ) : (
-                              <li className="text-slate-500 text-sm">Details available upon inquiry</li>
-                            )}
-                          </ul>
-                        </div>
-                        
-                        <div>
-                          <h3 className="font-semibold mb-3">What's Not Included</h3>
-                          <ul className="space-y-2">
-                            {tour.excluded && tour.excluded.length > 0 ? (
-                              tour.excluded.map((item: string, index: number) => (
-                                <li key={index} className="flex items-start">
-                                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                                  <span className="text-slate-600 text-sm">{item}</span>
-                                </li>
-                              ))
-                            ) : (
-                              <li className="text-slate-500 text-sm">Details available upon inquiry</li>
-                            )}
-                          </ul>
-                        </div>
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">What's Included</h3>
+                        <ul className="space-y-2">
+                          {tour.inclusions.map((item, index) => (
+                            <li key={index} className="flex items-start">
+                              <div className="w-2 h-2 bg-emerald-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                              <span className="text-slate-600">{item}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                       
                       <Separator />
                       
                       <div>
-                        <h3 className="font-semibold mb-3">Important Notes</h3>
-                        <ul className="space-y-2 text-sm text-slate-600">
-                          <li>• Minimum 2 people required for tour confirmation</li>
-                          <li>• Prices may vary during peak seasons</li>
-                          <li>• Tours are subject to weather conditions</li>
-                          <li>• Cancellation policy applies - contact for details</li>
+                        <h3 className="text-lg font-semibold mb-3">What's Not Included</h3>
+                        <ul className="space-y-2">
+                          {tour.exclusions.map((item, index) => (
+                            <li key={index} className="flex items-start">
+                              <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                              <span className="text-slate-600">{item}</span>
+                            </li>
+                          ))}
                         </ul>
                       </div>
                     </CardContent>
@@ -213,81 +202,50 @@ export default function TourPackageDetail() {
                 </TabsContent>
               </Tabs>
             </div>
-            
+
             {/* Sidebar */}
             <div className="space-y-6">
-              {/* Booking Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Book This Tour</span>
-                    <span className="text-2xl font-bold text-emerald-600">${tour.price}</span>
-                  </CardTitle>
-                  <CardDescription>Per person</CardDescription>
+                  <CardTitle>Quick Facts</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">Duration:</span>
-                      <span className="font-medium">{tour.duration} days</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">Max Group:</span>
-                      <span className="font-medium">{tour.maxParticipants} people</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">Tour Type:</span>
-                      <span className="font-medium">{tour.type}</span>
-                    </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Duration:</span>
+                    <span className="font-medium">{tour.duration} days</span>
                   </div>
-                  <Separator />
-                  <Button className="w-full">Book Now</Button>
-                  <Button variant="outline" className="w-full">Request Quote</Button>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Price:</span>
+                    <span className="font-medium">${tour.price}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Type:</span>
+                    <span className="font-medium">{tour.type}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Max Group:</span>
+                    <span className="font-medium">{tour.maxParticipants} people</span>
+                  </div>
                 </CardContent>
               </Card>
-              
-              {/* Region Info */}
-              {region && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>About {region.name}</CardTitle>
-                    <CardDescription>Explore this region</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-slate-600 line-clamp-3 mb-4">{region.description}</p>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Capital:</span>
-                        <span className="font-medium">{region.capital}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Climate:</span>
-                        <span className="font-medium">{region.climate}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button asChild variant="outline" className="w-full">
-                      <Link to={`/regions/${region.id}`}>Explore Region</Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              )}
-              
-              {/* Contact Card */}
+
               <Card>
                 <CardHeader>
-                  <CardTitle>Need Help?</CardTitle>
+                  <CardTitle>Book This Tour</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button asChild variant="outline" className="w-full">
-                    <Link to="/services">Find Guide</Link>
+                <CardContent className="space-y-4">
+                  <Button className="w-full">
+                    Contact Guide
                   </Button>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link to="/services">Transport Services</Link>
+                  <Button variant="outline" className="w-full">
+                    View Similar Tours
                   </Button>
                 </CardContent>
               </Card>
+
+              <Button asChild className="w-full">
+                <Link to="/tourism">Explore More Tours</Link>
+              </Button>
             </div>
           </div>
         </div>

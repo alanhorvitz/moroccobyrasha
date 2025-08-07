@@ -612,4 +612,189 @@ export class EnhancedAuthAPI {
   static async verifyEmail(token: string): Promise<ApiResponse<null>> {
     return { success: true, message: 'Email verified successfully' };
   }
+
+  // Region CRUD operations
+  static async getRegions(): Promise<ApiResponse<any[]>> {
+    try {
+      // Get regions from localStorage (mock database)
+      const regions = JSON.parse(localStorage.getItem('mockRegions') || '[]');
+      
+      // If no regions exist, create some default ones
+      if (regions.length === 0) {
+        const defaultRegions = [
+          {
+            id: 'region_1',
+            name_en: 'Marrakech',
+            name_ar: 'مراكش',
+            name_fr: 'Marrakech',
+            name_it: 'Marrakech',
+            name_es: 'Marrakech',
+            description_en: 'The Red City, known for its vibrant souks and historic medina',
+            description_ar: 'المدينة الحمراء، معروفة بأسواقها النابضة بالحياة والمدينة القديمة',
+            description_fr: 'La Ville Rouge, connue pour ses souks animés et sa médina historique',
+            capital: 'Marrakech',
+            population: '928,850',
+            latitude: 31.6295,
+            longitude: -7.9811,
+            climate_en: 'Semi-arid climate with hot summers',
+            bestTimeToVisit_en: 'March to May and September to November',
+            keyFacts_en: 'UNESCO World Heritage site, famous for Jemaa el-Fnaa square',
+            createdAt: new Date(),
+            updatedAt: new Date()
+          },
+          {
+            id: 'region_2',
+            name_en: 'Fes',
+            name_ar: 'فاس',
+            name_fr: 'Fès',
+            name_it: 'Fez',
+            name_es: 'Fez',
+            description_en: 'The cultural and spiritual capital of Morocco',
+            description_ar: 'العاصمة الثقافية والروحية للمغرب',
+            description_fr: 'La capitale culturelle et spirituelle du Maroc',
+            capital: 'Fes',
+            population: '1,112,072',
+            latitude: 34.0181,
+            longitude: -5.0078,
+            climate_en: 'Mediterranean climate with mild winters',
+            bestTimeToVisit_en: 'April to June and September to November',
+            keyFacts_en: 'Home to the world\'s oldest university, Al Quaraouiyine',
+            createdAt: new Date(),
+            updatedAt: new Date()
+          },
+          {
+            id: 'region_3',
+            name_en: 'Casablanca',
+            name_ar: 'الدار البيضاء',
+            name_fr: 'Casablanca',
+            name_it: 'Casablanca',
+            name_es: 'Casablanca',
+            description_en: 'Morocco\'s largest city and economic hub',
+            description_ar: 'أكبر مدينة في المغرب والمركز الاقتصادي',
+            description_fr: 'La plus grande ville du Maroc et centre économique',
+            capital: 'Casablanca',
+            population: '3,359,818',
+            latitude: 33.5731,
+            longitude: -7.5898,
+            climate_en: 'Mediterranean climate with moderate temperatures',
+            bestTimeToVisit_en: 'March to May and September to November',
+            keyFacts_en: 'Home to the Hassan II Mosque, the largest mosque in Africa',
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        ];
+        
+        localStorage.setItem('mockRegions', JSON.stringify(defaultRegions));
+        return {
+          success: true,
+          data: defaultRegions
+        };
+      }
+      
+      return {
+        success: true,
+        data: regions
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to fetch regions',
+        data: []
+      };
+    }
+  }
+
+  static async createRegion(regionData: any): Promise<ApiResponse<any>> {
+    try {
+      // Mock implementation - simulate database creation
+      const newRegion = {
+        id: `region_${Date.now()}`,
+        ...regionData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // Store in localStorage for persistence (mock database)
+      const existingRegions = JSON.parse(localStorage.getItem('mockRegions') || '[]');
+      existingRegions.push(newRegion);
+      localStorage.setItem('mockRegions', JSON.stringify(existingRegions));
+      
+      return {
+        success: true,
+        message: 'Region created successfully',
+        data: newRegion
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to create region',
+      };
+    }
+  }
+
+  static async updateRegion(id: string, regionData: any): Promise<ApiResponse<any>> {
+    try {
+      // Get existing regions
+      const regions = JSON.parse(localStorage.getItem('mockRegions') || '[]');
+      const regionIndex = regions.findIndex((r: any) => r.id === id);
+      
+      if (regionIndex === -1) {
+        return {
+          success: false,
+          message: 'Region not found',
+        };
+      }
+      
+      // Update the region
+      const updatedRegion = {
+        ...regions[regionIndex],
+        ...regionData,
+        id, // Ensure ID doesn't change
+        updatedAt: new Date()
+      };
+      
+      regions[regionIndex] = updatedRegion;
+      localStorage.setItem('mockRegions', JSON.stringify(regions));
+      
+      return {
+        success: true,
+        message: 'Region updated successfully',
+        data: updatedRegion
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to update region',
+      };
+    }
+  }
+
+  static async deleteRegion(id: string): Promise<ApiResponse<null>> {
+    try {
+      // Get existing regions
+      const regions = JSON.parse(localStorage.getItem('mockRegions') || '[]');
+      const regionIndex = regions.findIndex((r: any) => r.id === id);
+      
+      if (regionIndex === -1) {
+        return {
+          success: false,
+          message: 'Region not found',
+        };
+      }
+      
+      // Remove the region
+      regions.splice(regionIndex, 1);
+      localStorage.setItem('mockRegions', JSON.stringify(regions));
+      
+      return {
+        success: true,
+        message: 'Region deleted successfully',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to delete region',
+      };
+    }
+  }
 }

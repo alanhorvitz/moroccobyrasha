@@ -357,6 +357,7 @@ export const it = {
     title: 'Scopri il Marocco',
     subtitle: 'Esplora le diverse regioni, il patrimonio, la cucina e la cultura che rendono il Marocco una destinazione indimenticabile.',
     searchPlaceholder: 'Cerca {category}...',
+    mapSearchDisabled: 'Ricerca disabilitata per la vista mappa',
     loadingMessage: 'Caricamento dei tesori del Marocco...',
     errorTitle: 'Ops! Qualcosa è andato storto',
     errorMessage: 'Abbiamo problemi a caricare i dati. Prova a ricaricare la pagina.',

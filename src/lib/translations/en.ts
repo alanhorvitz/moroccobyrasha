@@ -357,6 +357,7 @@ export const en = {
     title: 'Discover Morocco',
     subtitle: 'Explore the diverse regions, heritage, cuisine, and culture that make Morocco an unforgettable destination.',
     searchPlaceholder: 'Search {category}...',
+    mapSearchDisabled: 'Search disabled for map view',
     loadingMessage: 'Loading Morocco\'s treasures...',
     errorTitle: 'Oops! Something went wrong',
     errorMessage: 'We\'re having trouble loading the data. Please try refreshing the page.',

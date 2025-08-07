@@ -378,14 +378,15 @@ export default function DiscoverPage() {
           <div className="relative flex-grow">
             <Search className={`absolute top-1/2 transform -translate-y-1/2 text-slate-400 ${isRTL ? 'right-3' : 'left-3'}`} />
             <Input
-              placeholder={t('discover.searchPlaceholder', { category: activeTab })}
-              className={isRTL ? 'pr-10' : 'pl-10'}
+              placeholder={activeTab === 'map' ? t('discover.mapSearchDisabled') : t('discover.searchPlaceholder', { category: activeTab })}
+              className={`${isRTL ? 'pr-10' : 'pl-10'} ${activeTab === 'map' ? 'opacity-50 cursor-not-allowed' : ''}`}
               value={searchTerm}
               onChange={handleSearch}
+              disabled={activeTab === 'map'}
             />
           </div>
           
-          {getFilterDropdown()}
+          {activeTab !== 'map' && getFilterDropdown()}
         </div>
       </div>
       

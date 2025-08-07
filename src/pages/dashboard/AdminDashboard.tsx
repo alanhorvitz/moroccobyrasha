@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthAPI } from '@/lib/auth/api';
 import { EnhancedAuthAPI } from '@/lib/auth/enhanced-api';
@@ -8,7 +8,8 @@ import { AuditLogger } from '@/lib/admin/audit-logger';
 import AuditLogViewer from '@/components/admin/AuditLogViewer';
 import {
   LayoutDashboard, Users, FileText, User, Clock, Filter, RefreshCcw, Search, ChevronLeft, ChevronRight,
-  Check, X, Trash2, UserCheck, UserX, MoreHorizontal, MapPin, Landmark, Calendar, Utensils, Star, Shirt, Eye, Plus, Pencil
+  Check, X, Trash2, UserCheck, UserX, MoreHorizontal, MapPin, Landmark, Calendar, Utensils, Star, Shirt, Eye, Plus, Pencil,
+  Mail, Shield, Settings, MessageSquare, Bell, Phone, Globe, Activity, CalendarDays, AlertCircle, Info
 } from 'lucide-react';
 import {
   Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle
@@ -90,6 +91,8 @@ const AdminDashboard: React.FC = () => {
   });
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [showUserModal, setShowUserModal] = useState(false);
 
   const [regions, setRegions] = useState([]);
   const [showRegionModal, setShowRegionModal] = useState(false);
@@ -196,13 +199,43 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleAddAttraction = () => {
-    setAttractionForm({ name_en: '', category_en: '', regionId: '' });
+    setAttractionForm({
+      name_en: '', name_ar: '', name_fr: '', name_it: '', name_es: '',
+      description_en: '', description_ar: '', description_fr: '', description_it: '', description_es: '',
+      category_en: '', category_ar: '', category_fr: '', category_it: '', category_es: '',
+      regionId: '', latitude: '', longitude: '', imageUrls: [], rating: '', tags: [], entryFee: '', currency: 'MAD', openingHours: ''
+    });
     setEditingAttraction(null);
     setShowAttractionForm(true);
   };
 
   const handleEditAttraction = (attraction) => {
-    setAttractionForm({ name_en: attraction.name_en, category_en: attraction.category_en, regionId: attraction.regionId });
+    setAttractionForm({
+      name_en: attraction.name_en || attraction.name,
+      name_ar: attraction.name_ar || '',
+      name_fr: attraction.name_fr || '',
+      name_it: attraction.name_it || '',
+      name_es: attraction.name_es || '',
+      description_en: attraction.description_en || '',
+      description_ar: attraction.description_ar || '',
+      description_fr: attraction.description_fr || '',
+      description_it: attraction.description_it || '',
+      description_es: attraction.description_es || '',
+      category_en: attraction.category_en || attraction.category || '',
+      category_ar: attraction.category_ar || '',
+      category_fr: attraction.category_fr || '',
+      category_it: attraction.category_it || '',
+      category_es: attraction.category_es || '',
+      regionId: attraction.regionId || '',
+      latitude: attraction.latitude || '',
+      longitude: attraction.longitude || '',
+      imageUrls: attraction.imageUrls || [],
+      rating: attraction.rating || '',
+      tags: attraction.tags || [],
+      entryFee: attraction.entryFee || '',
+      currency: attraction.currency || 'MAD',
+      openingHours: attraction.openingHours || ''
+    });
     setEditingAttraction(attraction);
     setShowAttractionForm(true);
   };
@@ -273,24 +306,36 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleAddFestival = () => {
-    setFestivalForm({ name: '', description: '', type: '', location: '', regionId: '', timeOfYear: '', duration: '', images: [], videoUrl: '', established: '', historicalSignificance: '' });
+    setFestivalForm({
+      name_en: '', name_ar: '', name_fr: '', name_it: '', name_es: '',
+      description_en: '', description_ar: '', description_fr: '', description_it: '', description_es: '',
+      type: '', location: '', regionId: '', timeOfYear: '', duration: '', images: [], videoUrl: '', established: '', historicalSignificance: ''
+    });
     setEditingFestival(null);
     setShowFestivalForm(true);
   };
 
   const handleEditFestival = (festival) => {
     setFestivalForm({
-      name: festival.name,
-      description: festival.description,
-      type: festival.type,
-      location: festival.location,
-      regionId: festival.regionId,
-      timeOfYear: festival.timeOfYear,
-      duration: festival.duration,
-      images: festival.images,
-      videoUrl: festival.videoUrl,
-      established: festival.established,
-      historicalSignificance: festival.historicalSignificance
+      name_en: festival.name_en || festival.name,
+      name_ar: festival.name_ar || '',
+      name_fr: festival.name_fr || '',
+      name_it: festival.name_it || '',
+      name_es: festival.name_es || '',
+      description_en: festival.description_en || festival.description || '',
+      description_ar: festival.description_ar || '',
+      description_fr: festival.description_fr || '',
+      description_it: festival.description_it || '',
+      description_es: festival.description_es || '',
+      type: festival.type || '',
+      location: festival.location || '',
+      regionId: festival.regionId || '',
+      timeOfYear: festival.timeOfYear || '',
+      duration: festival.duration || '',
+      images: festival.images || [],
+      videoUrl: festival.videoUrl || '',
+      established: festival.established || '',
+      historicalSignificance: festival.historicalSignificance || ''
     });
     setEditingFestival(festival);
     setShowFestivalForm(true);
@@ -362,22 +407,34 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleAddCuisine = () => {
-    setCuisineForm({ name: '', description: '', type: '', regionIds: [], ingredients: [], spiceLevel: '', images: [], videoUrl: '', popularVariants: [] });
+    setCuisineForm({
+      name_en: '', name_ar: '', name_fr: '', name_it: '', name_es: '',
+      description_en: '', description_ar: '', description_fr: '', description_it: '', description_es: '',
+      type: '', regionIds: [], ingredients: [], spiceLevel: '', images: [], videoUrl: '', popularVariants: []
+    });
     setEditingCuisine(null);
     setShowCuisineForm(true);
   };
 
   const handleEditCuisine = (cuisine) => {
     setCuisineForm({
-      name: cuisine.name,
-      description: cuisine.description,
-      type: cuisine.type,
-      regionIds: cuisine.regionIds,
-      ingredients: cuisine.ingredients,
-      spiceLevel: cuisine.spiceLevel,
-      images: cuisine.images,
-      videoUrl: cuisine.videoUrl,
-      popularVariants: cuisine.popularVariants
+      name_en: cuisine.name_en || cuisine.name,
+      name_ar: cuisine.name_ar || '',
+      name_fr: cuisine.name_fr || '',
+      name_it: cuisine.name_it || '',
+      name_es: cuisine.name_es || '',
+      description_en: cuisine.description_en || cuisine.description || '',
+      description_ar: cuisine.description_ar || '',
+      description_fr: cuisine.description_fr || '',
+      description_it: cuisine.description_it || '',
+      description_es: cuisine.description_es || '',
+      type: cuisine.type || '',
+      regionIds: cuisine.regionIds || [],
+      ingredients: cuisine.ingredients || [],
+      spiceLevel: cuisine.spiceLevel || '',
+      images: cuisine.images || [],
+      videoUrl: cuisine.videoUrl || '',
+      popularVariants: cuisine.popularVariants || []
     });
     setEditingCuisine(cuisine);
     setShowCuisineForm(true);
@@ -449,20 +506,32 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleAddHeritage = () => {
-    setHeritageForm({ name: '', description: '', type: '', regionIds: [], images: [], videoUrl: '', importance: '' });
+    setHeritageForm({
+      name_en: '', name_ar: '', name_fr: '', name_it: '', name_es: '',
+      description_en: '', description_ar: '', description_fr: '', description_it: '', description_es: '',
+      type: '', regionIds: [], images: [], videoUrl: '', importance: ''
+    });
     setEditingHeritage(null);
     setShowHeritageForm(true);
   };
 
   const handleEditHeritage = (item) => {
     setHeritageForm({
-      name: item.name,
-      description: item.description,
-      type: item.type,
-      regionIds: item.regionIds,
-      images: item.images,
-      videoUrl: item.videoUrl,
-      importance: item.importance
+      name_en: item.name_en || item.name,
+      name_ar: item.name_ar || '',
+      name_fr: item.name_fr || '',
+      name_it: item.name_it || '',
+      name_es: item.name_es || '',
+      description_en: item.description_en || item.description || '',
+      description_ar: item.description_ar || '',
+      description_fr: item.description_fr || '',
+      description_it: item.description_it || '',
+      description_es: item.description_es || '',
+      type: item.type || '',
+      regionIds: item.regionIds || [],
+      images: item.images || [],
+      videoUrl: item.videoUrl || '',
+      importance: item.importance || ''
     });
     setEditingHeritage(item);
     setShowHeritageForm(true);
@@ -534,21 +603,33 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleAddClothing = () => {
-    setClothingForm({ name: '', description: '', gender: '', regionIds: [], materials: [], occasions: [], images: [], historicalNotes: '' });
+    setClothingForm({
+      name_en: '', name_ar: '', name_fr: '', name_it: '', name_es: '',
+      description_en: '', description_ar: '', description_fr: '', description_it: '', description_es: '',
+      gender: '', regionIds: [], materials: [], occasions: [], images: [], historicalNotes: ''
+    });
     setEditingClothing(null);
     setShowClothingForm(true);
   };
 
   const handleEditClothing = (item) => {
     setClothingForm({
-      name: item.name,
-      description: item.description,
-      gender: item.gender,
-      regionIds: item.regionIds,
-      materials: item.materials,
-      occasions: item.occasions,
-      images: item.images,
-      historicalNotes: item.historicalNotes
+      name_en: item.name_en || item.name,
+      name_ar: item.name_ar || '',
+      name_fr: item.name_fr || '',
+      name_it: item.name_it || '',
+      name_es: item.name_es || '',
+      description_en: item.description_en || item.description || '',
+      description_ar: item.description_ar || '',
+      description_fr: item.description_fr || '',
+      description_it: item.description_it || '',
+      description_es: item.description_es || '',
+      gender: item.gender || '',
+      regionIds: item.regionIds || [],
+      materials: item.materials || [],
+      occasions: item.occasions || [],
+      images: item.images || [],
+      historicalNotes: item.historicalNotes || ''
     });
     setEditingClothing(item);
     setShowClothingForm(true);
@@ -602,8 +683,11 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Fetch attractions when modal opens or after CRUD
+  // Fetch data when modal opens or after CRUD
   useEffect(() => {
+    if (showManagementModal && selectedEntity === 'regions') {
+      fetchRegions();
+    }
     if (showManagementModal && selectedEntity === 'attractions') {
       fetchAttractions();
     }
@@ -652,10 +736,20 @@ const AdminDashboard: React.FC = () => {
     fetchRegions();
   }, [user, navigate]);
 
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSearchParams(prev => ({ ...prev, page: 1 }));
+      fetchUsers();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchParams.search, searchParams.role, searchParams.status]);
+
   const fetchUsers = async () => {
     try {
       setLoading(prev => ({ ...prev, users: true }));
-      const response = await AuthAPI.getUsers({
+      const response = await EnhancedAuthAPI.getUsers({
         page: searchParams.page,
         limit: searchParams.limit,
         search: searchParams.search || undefined,
@@ -682,6 +776,15 @@ const AdminDashboard: React.FC = () => {
     fetchUsers();
   };
 
+  const handleSearchChange = (value: string) => {
+    setSearchParams(prev => ({ ...prev, search: value }));
+  };
+
+  const handleViewUserProfile = (user: UserProfile) => {
+    setSelectedUser(user);
+    setShowUserModal(true);
+  };
+
   const handleFilter = (key: string, value: string) => {
     setSearchParams((prev) => ({
       ...prev,
@@ -703,13 +806,12 @@ const AdminDashboard: React.FC = () => {
       page: 1,
       limit: 10
     });
-    fetchUsers();
   };
 
   const handleUpdateUserStatus = async (userId: string, status: string) => {
     setActionInProgress(userId);
     try {
-      const response = await AuthAPI.updateUserStatus(userId, status);
+      const response = await EnhancedAuthAPI.updateUserStatus(userId, status);
       if (response.success) {
         // Update the local user list with the new status
         if (users) {
@@ -733,7 +835,7 @@ const AdminDashboard: React.FC = () => {
   const handleDeleteUser = async (userId: string) => {
     setActionInProgress(userId);
     try {
-      const response = await AuthAPI.deleteUser(userId);
+      const response = await EnhancedAuthAPI.deleteUser(userId);
       if (response.success) {
         // Remove the user from the local list
         if (users) {
@@ -760,10 +862,9 @@ const AdminDashboard: React.FC = () => {
   const fetchRegions = async () => {
     setLoadingRegions(true);
     try {
-      const response = await apiService.getRegions();
-      if (Array.isArray(response)) {
-        const transformed = response.map(region => transformApiData.region(region, language));
-        setRegions(transformed);
+      const response = await EnhancedAuthAPI.getRegions();
+      if (response.success && response.data) {
+        setRegions(response.data);
       } else {
         setError('Failed to load regions');
       }
@@ -777,38 +878,38 @@ const AdminDashboard: React.FC = () => {
   const handleEditRegion = (region) => {
     setEditingRegion(region);
     setRegionForm({
-      name_en: region.name_en,
-      name_ar: region.name_ar,
-      name_fr: region.name_fr,
-      name_it: region.name_it,
-      name_es: region.name_es,
-      description_en: region.description_en,
-      description_ar: region.description_ar,
-      description_fr: region.description_fr,
-      description_it: region.description_it,
-      description_es: region.description_es,
-      climate_en: region.climate_en,
-      climate_ar: region.climate_ar,
-      climate_fr: region.climate_fr,
-      climate_it: region.climate_it,
-      climate_es: region.climate_es,
-      bestTimeToVisit_en: region.bestTimeToVisit_en,
-      bestTimeToVisit_ar: region.bestTimeToVisit_ar,
-      bestTimeToVisit_fr: region.bestTimeToVisit_fr,
-      bestTimeToVisit_it: region.bestTimeToVisit_it,
-      bestTimeToVisit_es: region.bestTimeToVisit_es,
-      keyFacts_en: region.keyFacts_en,
-      keyFacts_ar: region.keyFacts_ar,
-      keyFacts_fr: region.keyFacts_fr,
-      keyFacts_it: region.keyFacts_it,
-      keyFacts_es: region.keyFacts_es,
-      capital: region.capital,
-      population: region.population,
-      latitude: region.latitude,
-      longitude: region.longitude,
-      images: region.images
+      name_en: region.name_en || region.name || '',
+      name_ar: region.name_ar || '',
+      name_fr: region.name_fr || '',
+      name_it: region.name_it || '',
+      name_es: region.name_es || '',
+      description_en: region.description_en || region.description || '',
+      description_ar: region.description_ar || '',
+      description_fr: region.description_fr || '',
+      description_it: region.description_it || '',
+      description_es: region.description_es || '',
+      climate_en: region.climate_en || region.climate || '',
+      climate_ar: region.climate_ar || '',
+      climate_fr: region.climate_fr || '',
+      climate_it: region.climate_it || '',
+      climate_es: region.climate_es || '',
+      bestTimeToVisit_en: region.bestTimeToVisit_en || region.bestTimeToVisit || '',
+      bestTimeToVisit_ar: region.bestTimeToVisit_ar || '',
+      bestTimeToVisit_fr: region.bestTimeToVisit_fr || '',
+      bestTimeToVisit_it: region.bestTimeToVisit_it || '',
+      bestTimeToVisit_es: region.bestTimeToVisit_es || '',
+      keyFacts_en: region.keyFacts_en || region.keyFacts || '',
+      keyFacts_ar: region.keyFacts_ar || '',
+      keyFacts_fr: region.keyFacts_fr || '',
+      keyFacts_it: region.keyFacts_it || '',
+      keyFacts_es: region.keyFacts_es || '',
+      capital: region.capital || '',
+      population: region.population || '',
+      latitude: region.latitude || '',
+      longitude: region.longitude || '',
+      images: region.images || []
     });
-    setShowRegionModal(true);
+    setShowRegionForm(true);
   };
 
   const handleAddRegion = () => {
@@ -905,12 +1006,15 @@ const AdminDashboard: React.FC = () => {
     e.preventDefault();
     setActionInProgress(editingRegion ? editingRegion.id : 'new');
     try {
+      let response;
       if (editingRegion) {
-        await EnhancedAuthAPI.updateRegion(editingRegion.id, regionForm);
+        response = await EnhancedAuthAPI.updateRegion(editingRegion.id, regionForm);
       } else {
-        await EnhancedAuthAPI.createRegion(regionForm);
+        response = await EnhancedAuthAPI.createRegion(regionForm);
       }
-      setShowRegionModal(false);
+      
+      if (response.success) {
+        setShowRegionForm(false);
       setEditingRegion(null);
       setRegionForm({
         name_en: '',
@@ -945,9 +1049,25 @@ const AdminDashboard: React.FC = () => {
         images: []
       });
       fetchRegions();
-      toast({ title: 'Success', description: 'Region added successfully!', variant: 'default' });
+        toast({ 
+          title: 'Success', 
+          description: `Region ${editingRegion ? 'updated' : 'created'} successfully!`, 
+          variant: 'default' 
+        });
+      } else {
+        toast({ 
+          title: 'Error', 
+          description: response.message || 'Failed to save region', 
+          variant: 'destructive' 
+        });
+      }
     } catch (err) {
-      setError('An error occurred while saving region');
+      console.error('Region save error:', err);
+      toast({ 
+        title: 'Error', 
+        description: 'An error occurred while saving region', 
+        variant: 'destructive' 
+      });
     } finally {
       setActionInProgress(null);
     }
@@ -1181,18 +1301,17 @@ const AdminDashboard: React.FC = () => {
             <CardContent>
               {/* Search & Filters */}
               <div className="space-y-4 mb-6">
-                <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <div className="relative flex-grow">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                     <Input
                       placeholder="Search by name or email..."
                       className="pl-9"
                       value={searchParams.search}
-                      onChange={(e) => setSearchParams(prev => ({ ...prev, search: e.target.value }))}
+                      onChange={(e) => handleSearchChange(e.target.value)}
                     />
                   </div>
-                  <Button type="submit">Search</Button>
-                </form>
+                </div>
 
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="flex items-center gap-2">
@@ -1304,7 +1423,7 @@ const AdminDashboard: React.FC = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => navigate(`/dashboard/users/${user.id}`)}>
+                                <DropdownMenuItem onClick={() => handleViewUserProfile(user)}>
                                   <User className="h-4 w-4 mr-2" />
                                   View Profile
                                 </DropdownMenuItem>
@@ -1499,275 +1618,794 @@ const AdminDashboard: React.FC = () => {
 
       {/* Management Modal */}
       <Dialog open={showManagementModal} onOpenChange={setShowManagementModal}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Discover Management</DialogTitle>
-            <DialogDescription>
-              Manage all Discover entities in one place. Select an entity to view and manage its data.
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="text-2xl font-bold flex items-center gap-3">
+              <LayoutDashboard className="w-6 h-6 text-emerald-600" />
+              Content Management
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Manage all platform content and entities in one centralized location
             </DialogDescription>
           </DialogHeader>
+          
           {!selectedEntity ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded hover:bg-slate-50 transition cursor-pointer" onClick={() => setSelectedEntity('regions')}>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div 
+                  className="group relative p-6 border-2 border-gray-200 rounded-xl hover:border-emerald-300 hover:shadow-lg cursor-pointer bg-gradient-to-br from-white to-gray-50"
+                  onClick={() => setSelectedEntity('regions')}
+                >
+                  <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-emerald-600" />
-                  <span className="font-medium text-lg">Regions</span>
+                      <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:bg-emerald-200">
+                        <MapPin className="w-6 h-6 text-emerald-600" />
                 </div>
-                <div className="flex gap-2">
-                  <Eye className="w-4 h-4 text-gray-500" title="View" />
-                  <Plus className="w-4 h-4 text-emerald-500" title="Add" />
-                  <Pencil className="w-4 h-4 text-blue-500" title="Edit" />
-                  <Trash2 className="w-4 h-4 text-red-500" title="Delete" />
+                      <div>
+                        <h3 className="font-semibold text-lg text-gray-900">Regions</h3>
+                        <p className="text-sm text-gray-500">Manage geographical regions</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between p-4 border rounded hover:bg-slate-50 transition cursor-pointer" onClick={() => setSelectedEntity('attractions')}>
-                <div className="flex items-center gap-3">
-                  <Landmark className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium text-lg">Attractions</span>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center text-sm text-gray-600">
+                    <span>Geographical areas and cities</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1" />
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Eye className="w-4 h-4 text-gray-500" title="View" />
-                  <Plus className="w-4 h-4 text-emerald-500" title="Add" />
-                  <Pencil className="w-4 h-4 text-blue-500" title="Edit" />
-                  <Trash2 className="w-4 h-4 text-red-500" title="Delete" />
+
+                <div 
+                  className="group relative p-6 border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-lg cursor-pointer bg-gradient-to-br from-white to-gray-50"
+                  onClick={() => setSelectedEntity('attractions')}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200">
+                        <Landmark className="w-6 h-6 text-blue-600" />
+                </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-gray-900">Attractions</h3>
+                        <p className="text-sm text-gray-500">Tourist destinations</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between p-4 border rounded hover:bg-slate-50 transition cursor-pointer" onClick={() => setSelectedEntity('festivals')}>
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 text-pink-600" />
-                  <span className="font-medium text-lg">Festivals</span>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center text-sm text-gray-600">
+                    <span>Places of interest</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1" />
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Eye className="w-4 h-4 text-gray-500" title="View" />
-                  <Plus className="w-4 h-4 text-emerald-500" title="Add" />
-                  <Pencil className="w-4 h-4 text-blue-500" title="Edit" />
-                  <Trash2 className="w-4 h-4 text-red-500" title="Delete" />
+
+                <div 
+                  className="group relative p-6 border-2 border-gray-200 rounded-xl hover:border-pink-300 hover:shadow-lg cursor-pointer bg-gradient-to-br from-white to-gray-50"
+                  onClick={() => setSelectedEntity('festivals')}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center group-hover:bg-pink-200">
+                        <Calendar className="w-6 h-6 text-pink-600" />
+                </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-gray-900">Festivals</h3>
+                        <p className="text-sm text-gray-500">Cultural events</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between p-4 border rounded hover:bg-slate-50 transition cursor-pointer" onClick={() => setSelectedEntity('cuisines')}>
-                <div className="flex items-center gap-3">
-                  <Utensils className="w-5 h-5 text-orange-600" />
-                  <span className="font-medium text-lg">Cuisines</span>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center text-sm text-gray-600">
+                    <span>Cultural celebrations</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1" />
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Eye className="w-4 h-4 text-gray-500" title="View" />
-                  <Plus className="w-4 h-4 text-emerald-500" title="Add" />
-                  <Pencil className="w-4 h-4 text-blue-500" title="Edit" />
-                  <Trash2 className="w-4 h-4 text-red-500" title="Delete" />
+
+                <div 
+                  className="group relative p-6 border-2 border-gray-200 rounded-xl hover:border-orange-300 hover:shadow-lg cursor-pointer bg-gradient-to-br from-white to-gray-50"
+                  onClick={() => setSelectedEntity('cuisines')}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200">
+                        <Utensils className="w-6 h-6 text-orange-600" />
+                </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-gray-900">Cuisines</h3>
+                        <p className="text-sm text-gray-500">Local food culture</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between p-4 border rounded hover:bg-slate-50 transition cursor-pointer" onClick={() => setSelectedEntity('heritage')}>
-                <div className="flex items-center gap-3">
-                  <Star className="w-5 h-5 text-yellow-600" />
-                  <span className="font-medium text-lg">Heritage</span>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center text-sm text-gray-600">
+                    <span>Traditional dishes</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1" />
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Eye className="w-4 h-4 text-gray-500" title="View" />
-                  <Plus className="w-4 h-4 text-emerald-500" title="Add" />
-                  <Pencil className="w-4 h-4 text-blue-500" title="Edit" />
-                  <Trash2 className="w-4 h-4 text-red-500" title="Delete" />
+
+                <div 
+                  className="group relative p-6 border-2 border-gray-200 rounded-xl hover:border-yellow-300 hover:shadow-lg cursor-pointer bg-gradient-to-br from-white to-gray-50"
+                  onClick={() => setSelectedEntity('heritage')}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center group-hover:bg-yellow-200">
+                        <Star className="w-6 h-6 text-yellow-600" />
+                </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-gray-900">Heritage</h3>
+                        <p className="text-sm text-gray-500">Cultural heritage</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between p-4 border rounded hover:bg-slate-50 transition cursor-pointer" onClick={() => setSelectedEntity('clothing')}>
-                <div className="flex items-center gap-3">
-                  <Shirt className="w-5 h-5 text-purple-600" />
-                  <span className="font-medium text-lg">Clothing</span>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center text-sm text-gray-600">
+                    <span>Historical sites</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1" />
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Eye className="w-4 h-4 text-gray-500" title="View" />
-                  <Plus className="w-4 h-4 text-emerald-500" title="Add" />
-                  <Pencil className="w-4 h-4 text-blue-500" title="Edit" />
-                  <Trash2 className="w-4 h-4 text-red-500" title="Delete" />
+
+                <div 
+                  className="group relative p-6 border-2 border-gray-200 rounded-xl hover:border-purple-300 hover:shadow-lg cursor-pointer bg-gradient-to-br from-white to-gray-50"
+                  onClick={() => setSelectedEntity('clothing')}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200">
+                        <Shirt className="w-6 h-6 text-purple-600" />
+                </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-gray-900">Clothing</h3>
+                        <p className="text-sm text-gray-500">Traditional attire</p>
                 </div>
               </div>
-              {/* Add other entities here after Regions */}
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center text-sm text-gray-600">
+                    <span>Traditional clothing</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1" />
+                  </div>
+                </div>
+              </div>
             </div>
           ) : selectedEntity === 'regions' ? (
-            <div>
-              <Button variant="outline" size="sm" onClick={() => setSelectedEntity(null)} className="mb-4">Back to Entities</Button>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Regions</h3>
-                <Button size="sm" className="flex items-center gap-2" onClick={handleAddRegion}><Plus className="w-4 h-4" /> Add New</Button>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedEntity(null)}
+                    className="hover:bg-gray-100"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    Back to Entities
+                  </Button>
               </div>
+                <Button 
+                  size="sm" 
+                  className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700"
+                  onClick={handleAddRegion}
+                >
+                  <Plus className="w-4 h-4" /> 
+                  Add New Region
+                </Button>
+              </div>
+
               {loadingRegions ? (
-                <div className="text-center py-8">Loading...</div>
+                <div className="flex items-center justify-center py-12">
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600"></div>
+                    <span className="text-gray-600">Loading regions...</span>
+                  </div>
+                </div>
               ) : (
-                <div className="overflow-x-auto rounded shadow bg-white mb-4">
+                <div className="bg-white rounded-lg border shadow-sm">
+                  <div className="p-6 border-b">
+                    <h4 className="font-medium text-gray-900">Regions List</h4>
+                    <p className="text-sm text-gray-500 mt-1">Manage geographical regions and their information</p>
+                  </div>
+                  <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Capital</TableHead>
-                    <TableHead>Population</TableHead>
-                    <TableHead>Actions</TableHead>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="font-semibold">Name</TableHead>
+                          <TableHead className="font-semibold">Capital</TableHead>
+                          <TableHead className="font-semibold">Population</TableHead>
+                          <TableHead className="font-semibold text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                       {regions.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center text-gray-400">No data yet</TableCell>
+                            <TableCell colSpan={4} className="text-center py-12">
+                              <div className="flex flex-col items-center gap-3">
+                                <MapPin className="w-8 h-8 text-gray-300" />
+                                <div>
+                                  <p className="text-gray-500 font-medium">No regions found</p>
+                                  <p className="text-sm text-gray-400">Get started by adding your first region</p>
+                                </div>
+                                <Button 
+                                  size="sm" 
+                                  onClick={handleAddRegion}
+                                  className="mt-2"
+                                >
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Add Region
+                                </Button>
+                              </div>
+                            </TableCell>
                         </TableRow>
                       ) : regions.map(region => (
-                    <TableRow key={region.id}>
-                      <TableCell>{region.name}</TableCell>
-                      <TableCell>{region.capital}</TableCell>
-                      <TableCell>{region.population}</TableCell>
-                      <TableCell>
-                            <Button size="sm" variant="outline" onClick={() => handleEditRegion(region)}><Pencil className="w-4 h-4" /></Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteRegion(region.id)} className="ml-2"><Trash2 className="w-4 h-4" /></Button>
+                          <TableRow key={region.id} className="hover:bg-gray-50">
+                            <TableCell className="font-medium">{region.name_en || region.name}</TableCell>
+                            <TableCell>{region.capital || 'N/A'}</TableCell>
+                            <TableCell>{region.population || 'N/A'}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => handleEditRegion(region)}
+                                  className="hover:bg-blue-50 hover:border-blue-200"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive" 
+                                  onClick={() => {
+                                    if (window.confirm(`Are you sure you want to delete ${region.name_en || region.name}?`)) {
+                                      handleDeleteRegion(region.id);
+                                    }
+                                  }}
+                                  className="hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+                  </div>
                 </div>
               )}
+
               {/* Add/Edit Form Modal */}
               {showRegionForm && (
                 <Dialog open={showRegionForm} onOpenChange={setShowRegionForm}>
-                  <DialogContent className="max-w-6xl">
-                    <DialogHeader>
-                      <DialogTitle>{editingRegion ? 'Edit Region' : 'Add Region'}</DialogTitle>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader className="border-b pb-4">
+                      <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-emerald-600" />
+                        {editingRegion ? 'Edit Region' : 'Add New Region'}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {editingRegion ? 'Update region information' : 'Create a new region with multilingual support'}
+                      </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleRegionFormSubmit} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        <div className="space-y-2">
-                          {/* Multilingual Names */}
-                          <Input name="name_en" value={regionForm.name_en} onChange={handleRegionFormChange} placeholder="Name (EN)" required />
-                          <Input name="name_ar" value={regionForm.name_ar || ''} onChange={handleRegionFormChange} placeholder="Name (AR)" />
-                          <Input name="name_fr" value={regionForm.name_fr || ''} onChange={handleRegionFormChange} placeholder="Name (FR)" />
-                          <Input name="name_it" value={regionForm.name_it || ''} onChange={handleRegionFormChange} placeholder="Name (IT)" />
-                          <Input name="name_es" value={regionForm.name_es || ''} onChange={handleRegionFormChange} placeholder="Name (ES)" />
+                    
+                    <form onSubmit={handleRegionFormSubmit} className="space-y-6 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* Basic Information */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Basic Information</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (English) *</label>
+                              <Input 
+                                name="name_en" 
+                                value={regionForm.name_en} 
+                                onChange={handleRegionFormChange} 
+                                placeholder="Region name in English" 
+                                required 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          {/* Multilingual Descriptions */}
-                          <Input name="description_en" value={regionForm.description_en || ''} onChange={handleRegionFormChange} placeholder="Description (EN)" />
-                          <Input name="description_ar" value={regionForm.description_ar || ''} onChange={handleRegionFormChange} placeholder="Description (AR)" />
-                          <Input name="description_fr" value={regionForm.description_fr || ''} onChange={handleRegionFormChange} placeholder="Description (FR)" />
-                          <Input name="description_it" value={regionForm.description_it || ''} onChange={handleRegionFormChange} placeholder="Description (IT)" />
-                          <Input name="description_es" value={regionForm.description_es || ''} onChange={handleRegionFormChange} placeholder="Description (ES)" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (Arabic)</label>
+                              <Input 
+                                name="name_ar" 
+                                value={regionForm.name_ar || ''} 
+                                onChange={handleRegionFormChange} 
+                                placeholder="اسم المنطقة" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          {/* Climate & Best Time to Visit */}
-                          <Input name="climate_en" value={regionForm.climate_en || ''} onChange={handleRegionFormChange} placeholder="Climate (EN)" />
-                          <Input name="climate_ar" value={regionForm.climate_ar || ''} onChange={handleRegionFormChange} placeholder="Climate (AR)" />
-                          <Input name="climate_fr" value={regionForm.climate_fr || ''} onChange={handleRegionFormChange} placeholder="Climate (FR)" />
-                          <Input name="climate_it" value={regionForm.climate_it || ''} onChange={handleRegionFormChange} placeholder="Climate (IT)" />
-                          <Input name="climate_es" value={regionForm.climate_es || ''} onChange={handleRegionFormChange} placeholder="Climate (ES)" />
-                          <Input name="bestTimeToVisit_en" value={regionForm.bestTimeToVisit_en || ''} onChange={handleRegionFormChange} placeholder="Best Time to Visit (EN)" />
-                          <Input name="bestTimeToVisit_ar" value={regionForm.bestTimeToVisit_ar || ''} onChange={handleRegionFormChange} placeholder="Best Time to Visit (AR)" />
-                          <Input name="bestTimeToVisit_fr" value={regionForm.bestTimeToVisit_fr || ''} onChange={handleRegionFormChange} placeholder="Best Time to Visit (FR)" />
-                          <Input name="bestTimeToVisit_it" value={regionForm.bestTimeToVisit_it || ''} onChange={handleRegionFormChange} placeholder="Best Time to Visit (IT)" />
-                          <Input name="bestTimeToVisit_es" value={regionForm.bestTimeToVisit_es || ''} onChange={handleRegionFormChange} placeholder="Best Time to Visit (ES)" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (French)</label>
+                              <Input 
+                                name="name_fr" 
+                                value={regionForm.name_fr || ''} 
+                                onChange={handleRegionFormChange} 
+                                placeholder="Nom de la région" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          {/* Key Facts, Capital, Population, Lat/Lng, Images */}
-                          <Input name="keyFacts_en" value={regionForm.keyFacts_en || ''} onChange={handleRegionFormChange} placeholder="Key Facts (EN)" />
-                          <Input name="keyFacts_ar" value={regionForm.keyFacts_ar || ''} onChange={handleRegionFormChange} placeholder="Key Facts (AR)" />
-                          <Input name="keyFacts_fr" value={regionForm.keyFacts_fr || ''} onChange={handleRegionFormChange} placeholder="Key Facts (FR)" />
-                          <Input name="keyFacts_it" value={regionForm.keyFacts_it || ''} onChange={handleRegionFormChange} placeholder="Key Facts (IT)" />
-                          <Input name="keyFacts_es" value={regionForm.keyFacts_es || ''} onChange={handleRegionFormChange} placeholder="Key Facts (ES)" />
-                          <Input name="capital" value={regionForm.capital || ''} onChange={handleRegionFormChange} placeholder="Capital" />
-                          <Input name="population" value={regionForm.population || ''} onChange={handleRegionFormChange} placeholder="Population" />
-                          <Input name="latitude" value={regionForm.latitude || ''} onChange={handleRegionFormChange} placeholder="Latitude" type="number" />
-                          <Input name="longitude" value={regionForm.longitude || ''} onChange={handleRegionFormChange} placeholder="Longitude" type="number" />
-                          <input type="file" name="images" multiple accept="image/*" onChange={handleRegionFormChange} />
-                          {/* TODO: Show previews and handle upload logic */}
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Capital</label>
+                              <Input 
+                                name="capital" 
+                                value={regionForm.capital || ''} 
+                                onChange={handleRegionFormChange} 
+                                placeholder="Capital city" 
+                                className="w-full"
+                              />
+                        </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Population</label>
+                              <Input 
+                                name="population" 
+                                value={regionForm.population || ''} 
+                                onChange={handleRegionFormChange} 
+                                placeholder="Population count" 
+                                type="number"
+                                className="w-full"
+                              />
+                      </div>
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Description</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (English)</label>
+                              <textarea 
+                                name="description_en" 
+                                value={regionForm.description_en || ''} 
+                                onChange={handleRegionFormChange} 
+                                placeholder="Region description in English" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (Arabic)</label>
+                              <textarea 
+                                name="description_ar" 
+                                value={regionForm.description_ar || ''} 
+                                onChange={handleRegionFormChange} 
+                                placeholder="وصف المنطقة" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (French)</label>
+                              <textarea 
+                                name="description_fr" 
+                                value={regionForm.description_fr || ''} 
+                                onChange={handleRegionFormChange} 
+                                placeholder="Description de la région" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Climate & Location */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Climate & Location</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Climate (English)</label>
+                              <Input 
+                                name="climate_en" 
+                                value={regionForm.climate_en || ''} 
+                                onChange={handleRegionFormChange} 
+                                placeholder="Climate description" 
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Best Time to Visit</label>
+                              <Input 
+                                name="bestTimeToVisit_en" 
+                                value={regionForm.bestTimeToVisit_en || ''} 
+                                onChange={handleRegionFormChange} 
+                                placeholder="Best time to visit" 
+                                className="w-full"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">Latitude</label>
+                                <Input 
+                                  name="latitude" 
+                                  value={regionForm.latitude || ''} 
+                                  onChange={handleRegionFormChange} 
+                                  placeholder="Latitude" 
+                                  type="number" 
+                                  step="any"
+                                  className="w-full"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">Longitude</label>
+                                <Input 
+                                  name="longitude" 
+                                  value={regionForm.longitude || ''} 
+                                  onChange={handleRegionFormChange} 
+                                  placeholder="Longitude" 
+                                  type="number" 
+                                  step="any"
+                                  className="w-full"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Key Facts</label>
+                              <textarea 
+                                name="keyFacts_en" 
+                                value={regionForm.keyFacts_en || ''} 
+                                onChange={handleRegionFormChange} 
+                                placeholder="Key facts about the region" 
+                                className="w-full h-16 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <DialogFooter>
-                        <Button type="submit">{editingRegion ? 'Update' : 'Create'}</Button>
-                        <Button type="button" variant="outline" onClick={() => setShowRegionForm(false)}>Cancel</Button>
-                      </DialogFooter>
+
+                      <div className="border-t pt-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="file" 
+                              name="images" 
+                              multiple 
+                              accept="image/*" 
+                              onChange={handleRegionFormChange}
+                              className="text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              onClick={() => setShowRegionForm(false)}
+                              className="hover:bg-gray-50"
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              type="submit"
+                              disabled={actionInProgress === (editingRegion ? editingRegion.id : 'new')}
+                              className="bg-emerald-600 hover:bg-emerald-700"
+                            >
+                              {actionInProgress === (editingRegion ? editingRegion.id : 'new') ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                  {editingRegion ? 'Updating...' : 'Creating...'}
+                                </>
+                              ) : (
+                                editingRegion ? 'Update Region' : 'Create Region'
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
                     </form>
                   </DialogContent>
                 </Dialog>
               )}
             </div>
           ) : selectedEntity === 'attractions' ? (
-            <div>
-              <Button variant="outline" size="sm" onClick={() => setSelectedEntity(null)} className="mb-4">Back to Entities</Button>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Attractions</h3>
-                <Button size="sm" className="flex items-center gap-2" onClick={handleAddAttraction}><Plus className="w-4 h-4" /> Add New</Button>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedEntity(null)}
+                    className="hover:bg-gray-100"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    Back to Entities
+                  </Button>
               </div>
+                <Button 
+                  size="sm" 
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                  onClick={handleAddAttraction}
+                >
+                  <Plus className="w-4 h-4" /> 
+                  Add New Attraction
+                </Button>
+              </div>
+
               {loadingAttractions ? (
-                <div className="text-center py-8">Loading...</div>
+                <div className="flex items-center justify-center py-12">
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    <span className="text-gray-600">Loading attractions...</span>
+                  </div>
+                </div>
               ) : (
-                <div className="overflow-x-auto rounded shadow bg-white mb-4">
+                <div className="bg-white rounded-lg border shadow-sm">
+                  <div className="p-6 border-b">
+                    <h4 className="font-medium text-gray-900">Attractions List</h4>
+                    <p className="text-sm text-gray-500 mt-1">Manage tourist destinations and attractions</p>
+                  </div>
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Region ID</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="font-semibold">Name</TableHead>
+                          <TableHead className="font-semibold">Category</TableHead>
+                          <TableHead className="font-semibold">Region</TableHead>
+                          <TableHead className="font-semibold text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {attractions.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center text-gray-400">No data yet</TableCell>
+                            <TableCell colSpan={4} className="text-center py-12">
+                              <div className="flex flex-col items-center gap-3">
+                                <Landmark className="w-8 h-8 text-gray-300" />
+                                <div>
+                                  <p className="text-gray-500 font-medium">No attractions found</p>
+                                  <p className="text-sm text-gray-400">Get started by adding your first attraction</p>
+                                </div>
+                                <Button 
+                                  size="sm" 
+                                  onClick={handleAddAttraction}
+                                  className="mt-2"
+                                >
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Add Attraction
+                                </Button>
+                              </div>
+                            </TableCell>
                         </TableRow>
                       ) : attractions.map(attraction => (
-                        <TableRow key={attraction.id}>
-                          <TableCell>{attraction.name}</TableCell>
-                          <TableCell>{attraction.type}</TableCell>
-                          <TableCell>{attraction.regionId}</TableCell>
-                          <TableCell>
-                            <Button size="sm" variant="outline" onClick={() => handleEditAttraction(attraction)}><Pencil className="w-4 h-4" /></Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteAttraction(attraction.id)} className="ml-2"><Trash2 className="w-4 h-4" /></Button>
+                          <TableRow key={attraction.id} className="hover:bg-gray-50">
+                            <TableCell className="font-medium">{attraction.name_en || attraction.name}</TableCell>
+                            <TableCell>{attraction.category_en || attraction.category || attraction.type}</TableCell>
+                            <TableCell>{attraction.regionId || 'N/A'}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => handleEditAttraction(attraction)}
+                                  className="hover:bg-blue-50 hover:border-blue-200"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive" 
+                                  onClick={() => {
+                                    if (window.confirm(`Are you sure you want to delete ${attraction.name_en || attraction.name}?`)) {
+                                      handleDeleteAttraction(attraction.id);
+                                    }
+                                  }}
+                                  className="hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 </div>
               )}
+
               {/* Add/Edit Form Modal */}
               {showAttractionForm && (
                 <Dialog open={showAttractionForm} onOpenChange={setShowAttractionForm}>
-                  <DialogContent className="max-w-6xl">
-                    <DialogHeader>
-                      <DialogTitle>{editingAttraction ? 'Edit Attraction' : 'Add Attraction'}</DialogTitle>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader className="border-b pb-4">
+                      <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                        <Landmark className="w-5 h-5 text-blue-600" />
+                        {editingAttraction ? 'Edit Attraction' : 'Add New Attraction'}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {editingAttraction ? 'Update attraction information' : 'Create a new attraction with multilingual support'}
+                      </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleAttractionFormSubmit} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        <div className="space-y-2">
-                          {/* Multilingual Names */}
-                          <Input name="name_en" value={attractionForm.name_en} onChange={handleAttractionFormChange} placeholder="Name (EN)" required />
-                          <Input name="name_ar" value={attractionForm.name_ar || ''} onChange={handleAttractionFormChange} placeholder="Name (AR)" />
-                          <Input name="name_fr" value={attractionForm.name_fr || ''} onChange={handleAttractionFormChange} placeholder="Name (FR)" />
-                          <Input name="name_it" value={attractionForm.name_it || ''} onChange={handleAttractionFormChange} placeholder="Name (IT)" />
-                          <Input name="name_es" value={attractionForm.name_es || ''} onChange={handleAttractionFormChange} placeholder="Name (ES)" />
+                    
+                    <form onSubmit={handleAttractionFormSubmit} className="space-y-6 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* Basic Information */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Basic Information</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (English) *</label>
+                              <Input 
+                                name="name_en" 
+                                value={attractionForm.name_en} 
+                                onChange={handleAttractionFormChange} 
+                                placeholder="Attraction name in English" 
+                                required 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          {/* Multilingual Descriptions */}
-                          <Input name="description_en" value={attractionForm.description_en || ''} onChange={handleAttractionFormChange} placeholder="Description (EN)" />
-                          <Input name="description_ar" value={attractionForm.description_ar || ''} onChange={handleAttractionFormChange} placeholder="Description (AR)" />
-                          <Input name="description_fr" value={attractionForm.description_fr || ''} onChange={handleAttractionFormChange} placeholder="Description (FR)" />
-                          <Input name="description_it" value={attractionForm.description_it || ''} onChange={handleAttractionFormChange} placeholder="Description (IT)" />
-                          <Input name="description_es" value={attractionForm.description_es || ''} onChange={handleAttractionFormChange} placeholder="Description (ES)" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (Arabic)</label>
+                              <Input 
+                                name="name_ar" 
+                                value={attractionForm.name_ar || ''} 
+                                onChange={handleAttractionFormChange} 
+                                placeholder="اسم المعلم السياحي" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          {/* Multilingual Categories */}
-                          <Input name="category_en" value={attractionForm.category_en || ''} onChange={handleAttractionFormChange} placeholder="Category (EN)" />
-                          <Input name="category_ar" value={attractionForm.category_ar || ''} onChange={handleAttractionFormChange} placeholder="Category (AR)" />
-                          <Input name="category_fr" value={attractionForm.category_fr || ''} onChange={handleAttractionFormChange} placeholder="Category (FR)" />
-                          <Input name="category_it" value={attractionForm.category_it || ''} onChange={handleAttractionFormChange} placeholder="Category (IT)" />
-                          <Input name="category_es" value={attractionForm.category_es || ''} onChange={handleAttractionFormChange} placeholder="Category (ES)" />
-                          <Input name="regionId" value={attractionForm.regionId || ''} onChange={handleAttractionFormChange} placeholder="Region ID" />
-                          <Input name="latitude" value={attractionForm.latitude || ''} onChange={handleAttractionFormChange} placeholder="Latitude" type="number" />
-                          <Input name="longitude" value={attractionForm.longitude || ''} onChange={handleAttractionFormChange} placeholder="Longitude" type="number" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (French)</label>
+                              <Input 
+                                name="name_fr" 
+                                value={attractionForm.name_fr || ''} 
+                                onChange={handleAttractionFormChange} 
+                                placeholder="Nom de l'attraction" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          {/* Images, Rating, Tags, Entry Fee, Currency, Opening Hours */}
-                          <input type="file" name="imageUrls" multiple accept="image/*" onChange={handleAttractionFormChange} />
-                          <Input name="rating" value={attractionForm.rating || ''} onChange={handleAttractionFormChange} placeholder="Rating" type="number" />
-                          <Input name="tags" value={Array.isArray(attractionForm.tags) ? attractionForm.tags.join(',') : ''} onChange={e => setAttractionForm({ ...attractionForm, tags: e.target.value.split(',') })} placeholder="Tags (comma separated)" />
-                          <Input name="entryFee" value={attractionForm.entryFee || ''} onChange={handleAttractionFormChange} placeholder="Entry Fee" type="number" />
-                          <Input name="currency" value={attractionForm.currency || ''} onChange={handleAttractionFormChange} placeholder="Currency" />
-                          <Input name="openingHours" value={attractionForm.openingHours || ''} onChange={handleAttractionFormChange} placeholder="Opening Hours (JSON)" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Category (English)</label>
+                              <Input 
+                                name="category_en" 
+                                value={attractionForm.category_en || ''} 
+                                onChange={handleAttractionFormChange} 
+                                placeholder="Category (e.g., Historical, Natural)" 
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Region ID</label>
+                              <Input 
+                                name="regionId" 
+                                value={attractionForm.regionId || ''} 
+                                onChange={handleAttractionFormChange} 
+                                placeholder="Region ID" 
+                                className="w-full"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Description</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (English)</label>
+                              <textarea 
+                                name="description_en" 
+                                value={attractionForm.description_en || ''} 
+                                onChange={handleAttractionFormChange} 
+                                placeholder="Attraction description in English" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (Arabic)</label>
+                              <textarea 
+                                name="description_ar" 
+                                value={attractionForm.description_ar || ''} 
+                                onChange={handleAttractionFormChange} 
+                                placeholder="وصف المعلم السياحي" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (French)</label>
+                              <textarea 
+                                name="description_fr" 
+                                value={attractionForm.description_fr || ''} 
+                                onChange={handleAttractionFormChange} 
+                                placeholder="Description de l'attraction" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Location & Details */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Location & Details</h4>
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">Latitude</label>
+                                <Input 
+                                  name="latitude" 
+                                  value={attractionForm.latitude || ''} 
+                                  onChange={handleAttractionFormChange} 
+                                  placeholder="Latitude" 
+                                  type="number" 
+                                  step="any"
+                                  className="w-full"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">Longitude</label>
+                                <Input 
+                                  name="longitude" 
+                                  value={attractionForm.longitude || ''} 
+                                  onChange={handleAttractionFormChange} 
+                                  placeholder="Longitude" 
+                                  type="number" 
+                                  step="any"
+                                  className="w-full"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Rating</label>
+                              <Input 
+                                name="rating" 
+                                value={attractionForm.rating || ''} 
+                                onChange={handleAttractionFormChange} 
+                                placeholder="Rating (1-5)" 
+                                type="number" 
+                                min="1" 
+                                max="5" 
+                                step="0.1"
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Entry Fee</label>
+                              <Input 
+                                name="entryFee" 
+                                value={attractionForm.entryFee || ''} 
+                                onChange={handleAttractionFormChange} 
+                                placeholder="Entry fee amount" 
+                                type="number" 
+                                step="0.01"
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Currency</label>
+                              <Input 
+                                name="currency" 
+                                value={attractionForm.currency || 'MAD'} 
+                                onChange={handleAttractionFormChange} 
+                                placeholder="Currency code" 
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Tags</label>
+                              <Input 
+                                name="tags" 
+                                value={Array.isArray(attractionForm.tags) ? attractionForm.tags.join(', ') : ''} 
+                                onChange={e => setAttractionForm({ ...attractionForm, tags: e.target.value.split(',').map(tag => tag.trim()) })} 
+                                placeholder="Tags (comma separated)" 
+                                className="w-full"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <DialogFooter>
@@ -1780,86 +2418,280 @@ const AdminDashboard: React.FC = () => {
               )}
             </div>
           ) : selectedEntity === 'festivals' ? (
-            <div>
-              <Button variant="outline" size="sm" onClick={() => setSelectedEntity(null)} className="mb-4">Back to Entities</Button>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Festivals</h3>
-                <Button size="sm" className="flex items-center gap-2" onClick={handleAddFestival}><Plus className="w-4 h-4" /> Add New</Button>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedEntity(null)}
+                    className="hover:bg-gray-100"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    Back to Entities
+                  </Button>
               </div>
+                <Button 
+                  size="sm" 
+                  className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700"
+                  onClick={handleAddFestival}
+                >
+                  <Plus className="w-4 h-4" /> 
+                  Add New Festival
+                </Button>
+              </div>
+
               {loadingFestivals ? (
-                <div className="text-center py-8">Loading...</div>
+                <div className="flex items-center justify-center py-12">
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-pink-600"></div>
+                    <span className="text-gray-600">Loading festivals...</span>
+                  </div>
+                </div>
               ) : (
-                <div className="overflow-x-auto rounded shadow bg-white mb-4">
+                <div className="bg-white rounded-lg border shadow-sm">
+                  <div className="p-6 border-b">
+                    <h4 className="font-medium text-gray-900">Festivals List</h4>
+                    <p className="text-sm text-gray-500 mt-1">Manage cultural festivals and events</p>
+                  </div>
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Region ID</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="font-semibold">Name</TableHead>
+                          <TableHead className="font-semibold">Type</TableHead>
+                          <TableHead className="font-semibold">Location</TableHead>
+                          <TableHead className="font-semibold">Time of Year</TableHead>
+                          <TableHead className="font-semibold text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {festivals.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center text-gray-400">No data yet</TableCell>
+                            <TableCell colSpan={5} className="text-center py-12">
+                              <div className="flex flex-col items-center gap-3">
+                                <Calendar className="w-8 h-8 text-gray-300" />
+                                <div>
+                                  <p className="text-gray-500 font-medium">No festivals found</p>
+                                  <p className="text-sm text-gray-400">Get started by adding your first festival</p>
+                                </div>
+                                <Button 
+                                  size="sm" 
+                                  onClick={handleAddFestival}
+                                  className="mt-2"
+                                >
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Add Festival
+                                </Button>
+                              </div>
+                            </TableCell>
                         </TableRow>
                       ) : festivals.map(festival => (
-                        <TableRow key={festival.id}>
-                          <TableCell>{festival.name}</TableCell>
-                          <TableCell>{festival.type}</TableCell>
-                          <TableCell>{festival.regionId}</TableCell>
-                          <TableCell>
-                            <Button size="sm" variant="outline" onClick={() => handleEditFestival(festival)}><Pencil className="w-4 h-4" /></Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteFestival(festival.id)} className="ml-2"><Trash2 className="w-4 h-4" /></Button>
+                          <TableRow key={festival.id} className="hover:bg-gray-50">
+                            <TableCell className="font-medium">{festival.name_en || festival.name}</TableCell>
+                            <TableCell>{festival.type || 'N/A'}</TableCell>
+                            <TableCell>{festival.location || 'N/A'}</TableCell>
+                            <TableCell>{festival.timeOfYear || 'N/A'}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => handleEditFestival(festival)}
+                                  className="hover:bg-pink-50 hover:border-pink-200"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive" 
+                                  onClick={() => {
+                                    if (window.confirm(`Are you sure you want to delete ${festival.name_en || festival.name}?`)) {
+                                      handleDeleteFestival(festival.id);
+                                    }
+                                  }}
+                                  className="hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 </div>
               )}
+
               {/* Add/Edit Form Modal */}
               {showFestivalForm && (
                 <Dialog open={showFestivalForm} onOpenChange={setShowFestivalForm}>
-                  <DialogContent className="max-w-6xl">
-                    <DialogHeader>
-                      <DialogTitle>{editingFestival ? 'Edit Festival' : 'Add Festival'}</DialogTitle>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader className="border-b pb-4">
+                      <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-pink-600" />
+                        {editingFestival ? 'Edit Festival' : 'Add New Festival'}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {editingFestival ? 'Update festival information' : 'Create a new festival with multilingual support'}
+                      </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleFestivalFormSubmit} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        <div className="space-y-2">
-                          {/* Multilingual Names */}
-                          <Input name="name_en" value={festivalForm.name_en} onChange={handleFestivalFormChange} placeholder="Name (EN)" required />
-                          <Input name="name_ar" value={festivalForm.name_ar || ''} onChange={handleFestivalFormChange} placeholder="Name (AR)" />
-                          <Input name="name_fr" value={festivalForm.name_fr || ''} onChange={handleFestivalFormChange} placeholder="Name (FR)" />
-                          <Input name="name_it" value={festivalForm.name_it || ''} onChange={handleFestivalFormChange} placeholder="Name (IT)" />
-                          <Input name="name_es" value={festivalForm.name_es || ''} onChange={handleFestivalFormChange} placeholder="Name (ES)" />
+                    
+                    <form onSubmit={handleFestivalFormSubmit} className="space-y-6 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* Basic Information */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Basic Information</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (English) *</label>
+                              <Input 
+                                name="name_en" 
+                                value={festivalForm.name_en} 
+                                onChange={handleFestivalFormChange} 
+                                placeholder="Festival name in English" 
+                                required 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          {/* Multilingual Descriptions */}
-                          <Input name="description_en" value={festivalForm.description_en || ''} onChange={handleFestivalFormChange} placeholder="Description (EN)" />
-                          <Input name="description_ar" value={festivalForm.description_ar || ''} onChange={handleFestivalFormChange} placeholder="Description (AR)" />
-                          <Input name="description_fr" value={festivalForm.description_fr || ''} onChange={handleFestivalFormChange} placeholder="Description (FR)" />
-                          <Input name="description_it" value={festivalForm.description_it || ''} onChange={handleFestivalFormChange} placeholder="Description (IT)" />
-                          <Input name="description_es" value={festivalForm.description_es || ''} onChange={handleFestivalFormChange} placeholder="Description (ES)" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (Arabic)</label>
+                              <Input 
+                                name="name_ar" 
+                                value={festivalForm.name_ar || ''} 
+                                onChange={handleFestivalFormChange} 
+                                placeholder="اسم المهرجان" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          <Input name="type" value={festivalForm.type || ''} onChange={handleFestivalFormChange} placeholder="Type" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (French)</label>
+                              <Input 
+                                name="name_fr" 
+                                value={festivalForm.name_fr || ''} 
+                                onChange={handleFestivalFormChange} 
+                                placeholder="Nom du festival" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          <Input name="location" value={festivalForm.location || ''} onChange={handleFestivalFormChange} placeholder="Location" />
-                          <Input name="regionId" value={festivalForm.regionId || ''} onChange={handleFestivalFormChange} placeholder="Region ID" />
-                          <Input name="timeOfYear" value={festivalForm.timeOfYear || ''} onChange={handleFestivalFormChange} placeholder="Time of Year" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Type</label>
+                              <Input 
+                                name="type" 
+                                value={festivalForm.type || ''} 
+                                onChange={handleFestivalFormChange} 
+                                placeholder="Festival type" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          <Input name="duration" value={festivalForm.duration || ''} onChange={handleFestivalFormChange} placeholder="Duration (days)" type="number" />
-                          <input type="file" name="images" multiple accept="image/*" onChange={handleFestivalFormChange} />
-                          <Input name="videoUrl" value={festivalForm.videoUrl || ''} onChange={handleFestivalFormChange} placeholder="Video URL" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Location</label>
+                              <Input 
+                                name="location" 
+                                value={festivalForm.location || ''} 
+                                onChange={handleFestivalFormChange} 
+                                placeholder="Festival location" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          <Input name="established" value={festivalForm.established || ''} onChange={handleFestivalFormChange} placeholder="Established" />
-                          <Input name="historicalSignificance" value={festivalForm.historicalSignificance || ''} onChange={handleFestivalFormChange} placeholder="Historical Significance" />
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Description</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (English)</label>
+                              <textarea 
+                                name="description_en" 
+                                value={festivalForm.description_en || ''} 
+                                onChange={handleFestivalFormChange} 
+                                placeholder="Festival description in English" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (Arabic)</label>
+                              <textarea 
+                                name="description_ar" 
+                                value={festivalForm.description_ar || ''} 
+                                onChange={handleFestivalFormChange} 
+                                placeholder="وصف المهرجان" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (French)</label>
+                              <textarea 
+                                name="description_fr" 
+                                value={festivalForm.description_fr || ''} 
+                                onChange={handleFestivalFormChange} 
+                                placeholder="Description du festival" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Timing & Details */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Timing & Details</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Time of Year</label>
+                              <Input 
+                                name="timeOfYear" 
+                                value={festivalForm.timeOfYear || ''} 
+                                onChange={handleFestivalFormChange} 
+                                placeholder="When the festival occurs" 
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Duration (days)</label>
+                              <Input 
+                                name="duration" 
+                                value={festivalForm.duration || ''} 
+                                onChange={handleFestivalFormChange} 
+                                placeholder="Festival duration" 
+                                type="number" 
+                                min="1"
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Established</label>
+                              <Input 
+                                name="established" 
+                                value={festivalForm.established || ''} 
+                                onChange={handleFestivalFormChange} 
+                                placeholder="When the festival was established" 
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Historical Significance</label>
+                              <textarea 
+                                name="historicalSignificance" 
+                                value={festivalForm.historicalSignificance || ''} 
+                                onChange={handleFestivalFormChange} 
+                                placeholder="Historical significance of the festival" 
+                                className="w-full h-16 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Video URL</label>
+                              <Input 
+                                name="videoUrl" 
+                                value={festivalForm.videoUrl || ''} 
+                                onChange={handleFestivalFormChange} 
+                                placeholder="Video URL" 
+                                className="w-full"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <DialogFooter>
@@ -1872,267 +2704,1218 @@ const AdminDashboard: React.FC = () => {
               )}
             </div>
           ) : selectedEntity === 'cuisines' ? (
-            <div>
-              <Button variant="outline" size="sm" onClick={() => setSelectedEntity(null)} className="mb-4">Back to Entities</Button>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Cuisines</h3>
-                <Button size="sm" className="flex items-center gap-2" onClick={handleAddCuisine}><Plus className="w-4 h-4" /> Add New</Button>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedEntity(null)}
+                    className="hover:bg-gray-100"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    Back to Entities
+                  </Button>
               </div>
+                <Button 
+                  size="sm" 
+                  className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700"
+                  onClick={handleAddCuisine}
+                >
+                  <Plus className="w-4 h-4" /> 
+                  Add New Cuisine
+                </Button>
+              </div>
+
               {loadingCuisines ? (
-                <div className="text-center py-8">Loading...</div>
+                <div className="flex items-center justify-center py-12">
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600"></div>
+                    <span className="text-gray-600">Loading cuisines...</span>
+                  </div>
+                </div>
               ) : (
-                <div className="overflow-x-auto rounded shadow bg-white mb-4">
+                <div className="bg-white rounded-lg border shadow-sm">
+                  <div className="p-6 border-b">
+                    <h4 className="font-medium text-gray-900">Cuisines List</h4>
+                    <p className="text-sm text-gray-500 mt-1">Manage local food culture and traditional dishes</p>
+                  </div>
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Region IDs</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="font-semibold">Name</TableHead>
+                          <TableHead className="font-semibold">Type</TableHead>
+                          <TableHead className="font-semibold">Spice Level</TableHead>
+                          <TableHead className="font-semibold">Regions</TableHead>
+                          <TableHead className="font-semibold text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {cuisines.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center text-gray-400">No data yet</TableCell>
+                            <TableCell colSpan={5} className="text-center py-12">
+                              <div className="flex flex-col items-center gap-3">
+                                <Utensils className="w-8 h-8 text-gray-300" />
+                                <div>
+                                  <p className="text-gray-500 font-medium">No cuisines found</p>
+                                  <p className="text-sm text-gray-400">Get started by adding your first cuisine</p>
+                                </div>
+                                <Button 
+                                  size="sm" 
+                                  onClick={handleAddCuisine}
+                                  className="mt-2"
+                                >
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Add Cuisine
+                                </Button>
+                              </div>
+                            </TableCell>
                         </TableRow>
                       ) : cuisines.map(cuisine => (
-                        <TableRow key={cuisine.id}>
-                          <TableCell>{cuisine.name}</TableCell>
-                          <TableCell>{cuisine.type}</TableCell>
-                          <TableCell>{Array.isArray(cuisine.regionIds) ? cuisine.regionIds.join(', ') : ''}</TableCell>
-                          <TableCell>
-                            <Button size="sm" variant="outline" onClick={() => handleEditCuisine(cuisine)}><Pencil className="w-4 h-4" /></Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteCuisine(cuisine.id)} className="ml-2"><Trash2 className="w-4 h-4" /></Button>
+                          <TableRow key={cuisine.id} className="hover:bg-gray-50">
+                            <TableCell className="font-medium">{cuisine.name_en || cuisine.name}</TableCell>
+                            <TableCell>{cuisine.type || 'N/A'}</TableCell>
+                            <TableCell>{cuisine.spiceLevel || 'N/A'}</TableCell>
+                            <TableCell>{Array.isArray(cuisine.regionIds) ? cuisine.regionIds.join(', ') : 'N/A'}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => handleEditCuisine(cuisine)}
+                                  className="hover:bg-orange-50 hover:border-orange-200"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive" 
+                                  onClick={() => {
+                                    if (window.confirm(`Are you sure you want to delete ${cuisine.name_en || cuisine.name}?`)) {
+                                      handleDeleteCuisine(cuisine.id);
+                                    }
+                                  }}
+                                  className="hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 </div>
               )}
+
               {/* Add/Edit Form Modal */}
               {showCuisineForm && (
                 <Dialog open={showCuisineForm} onOpenChange={setShowCuisineForm}>
-                  <DialogContent className="max-w-6xl">
-                    <DialogHeader>
-                      <DialogTitle>{editingCuisine ? 'Edit Cuisine' : 'Add Cuisine'}</DialogTitle>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader className="border-b pb-4">
+                      <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                        <Utensils className="w-5 h-5 text-orange-600" />
+                        {editingCuisine ? 'Edit Cuisine' : 'Add New Cuisine'}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {editingCuisine ? 'Update cuisine information' : 'Create a new cuisine with multilingual support'}
+                      </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleCuisineFormSubmit} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        <div className="space-y-2">
-                          {/* Multilingual Names */}
-                          <Input name="name_en" value={cuisineForm.name_en} onChange={handleCuisineFormChange} placeholder="Name (EN)" required />
-                          <Input name="name_ar" value={cuisineForm.name_ar || ''} onChange={handleCuisineFormChange} placeholder="Name (AR)" />
-                          <Input name="name_fr" value={cuisineForm.name_fr || ''} onChange={handleCuisineFormChange} placeholder="Name (FR)" />
-                          <Input name="name_it" value={cuisineForm.name_it || ''} onChange={handleCuisineFormChange} placeholder="Name (IT)" />
-                          <Input name="name_es" value={cuisineForm.name_es || ''} onChange={handleCuisineFormChange} placeholder="Name (ES)" />
+                    
+                    <form onSubmit={handleCuisineFormSubmit} className="space-y-6 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* Basic Information */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Basic Information</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (English) *</label>
+                              <Input 
+                                name="name_en" 
+                                value={cuisineForm.name_en} 
+                                onChange={handleCuisineFormChange} 
+                                placeholder="Cuisine name in English" 
+                                required 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          {/* Multilingual Descriptions */}
-                          <Input name="description_en" value={cuisineForm.description_en || ''} onChange={handleCuisineFormChange} placeholder="Description (EN)" />
-                          <Input name="description_ar" value={cuisineForm.description_ar || ''} onChange={handleCuisineFormChange} placeholder="Description (AR)" />
-                          <Input name="description_fr" value={cuisineForm.description_fr || ''} onChange={handleCuisineFormChange} placeholder="Description (FR)" />
-                          <Input name="description_it" value={cuisineForm.description_it || ''} onChange={handleCuisineFormChange} placeholder="Description (IT)" />
-                          <Input name="description_es" value={cuisineForm.description_es || ''} onChange={handleCuisineFormChange} placeholder="Description (ES)" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (Arabic)</label>
+                              <Input 
+                                name="name_ar" 
+                                value={cuisineForm.name_ar || ''} 
+                                onChange={handleCuisineFormChange} 
+                                placeholder="اسم المطبخ" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          <Input name="type" value={cuisineForm.type || ''} onChange={handleCuisineFormChange} placeholder="Type" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (French)</label>
+                              <Input 
+                                name="name_fr" 
+                                value={cuisineForm.name_fr || ''} 
+                                onChange={handleCuisineFormChange} 
+                                placeholder="Nom de la cuisine" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          <Input name="regionIds" value={Array.isArray(cuisineForm.regionIds) ? cuisineForm.regionIds.join(',') : ''} onChange={e => setCuisineForm({ ...cuisineForm, regionIds: e.target.value.split(',') })} placeholder="Region IDs (comma separated)" />
-                          <Input name="ingredients" value={Array.isArray(cuisineForm.ingredients) ? cuisineForm.ingredients.join(',') : ''} onChange={e => setCuisineForm({ ...cuisineForm, ingredients: e.target.value.split(',') })} placeholder="Ingredients (comma separated)" />
-                          <Input name="spiceLevel" value={cuisineForm.spiceLevel || ''} onChange={handleCuisineFormChange} placeholder="Spice Level" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Type</label>
+                              <Input 
+                                name="type" 
+                                value={cuisineForm.type || ''} 
+                                onChange={handleCuisineFormChange} 
+                                placeholder="Cuisine type" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          <input type="file" name="images" multiple accept="image/*" onChange={handleCuisineFormChange} />
-                          <Input name="videoUrl" value={cuisineForm.videoUrl || ''} onChange={handleCuisineFormChange} placeholder="Video URL" />
-                          <Input name="popularVariants" value={Array.isArray(cuisineForm.popularVariants) ? cuisineForm.popularVariants.join(',') : ''} onChange={e => setCuisineForm({ ...cuisineForm, popularVariants: e.target.value.split(',') })} placeholder="Popular Variants (comma separated)" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Spice Level</label>
+                              <Input 
+                                name="spiceLevel" 
+                                value={cuisineForm.spiceLevel || ''} 
+                                onChange={handleCuisineFormChange} 
+                                placeholder="Spice level (1-5)" 
+                                type="number" 
+                                min="1" 
+                                max="5"
+                                className="w-full"
+                              />
                         </div>
                       </div>
-                      <DialogFooter>
-                        <Button type="submit">{editingCuisine ? 'Update' : 'Create'}</Button>
-                        <Button type="button" variant="outline" onClick={() => setShowCuisineForm(false)}>Cancel</Button>
-                      </DialogFooter>
+                        </div>
+
+                        {/* Description */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Description</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (English)</label>
+                              <textarea 
+                                name="description_en" 
+                                value={cuisineForm.description_en || ''} 
+                                onChange={handleCuisineFormChange} 
+                                placeholder="Cuisine description in English" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (Arabic)</label>
+                              <textarea 
+                                name="description_ar" 
+                                value={cuisineForm.description_ar || ''} 
+                                onChange={handleCuisineFormChange} 
+                                placeholder="وصف المطبخ" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (French)</label>
+                              <textarea 
+                                name="description_fr" 
+                                value={cuisineForm.description_fr || ''} 
+                                onChange={handleCuisineFormChange} 
+                                placeholder="Description de la cuisine" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Details */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Details</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Region IDs</label>
+                              <Input 
+                                name="regionIds" 
+                                value={Array.isArray(cuisineForm.regionIds) ? cuisineForm.regionIds.join(', ') : ''} 
+                                onChange={e => setCuisineForm({ ...cuisineForm, regionIds: e.target.value.split(',').map(id => id.trim()) })} 
+                                placeholder="Region IDs (comma separated)" 
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Ingredients</label>
+                              <Input 
+                                name="ingredients" 
+                                value={Array.isArray(cuisineForm.ingredients) ? cuisineForm.ingredients.join(', ') : ''} 
+                                onChange={e => setCuisineForm({ ...cuisineForm, ingredients: e.target.value.split(',').map(ingredient => ingredient.trim()) })} 
+                                placeholder="Ingredients (comma separated)" 
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Popular Variants</label>
+                              <Input 
+                                name="popularVariants" 
+                                value={Array.isArray(cuisineForm.popularVariants) ? cuisineForm.popularVariants.join(', ') : ''} 
+                                onChange={e => setCuisineForm({ ...cuisineForm, popularVariants: e.target.value.split(',').map(variant => variant.trim()) })} 
+                                placeholder="Popular variants (comma separated)" 
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Video URL</label>
+                              <Input 
+                                name="videoUrl" 
+                                value={cuisineForm.videoUrl || ''} 
+                                onChange={handleCuisineFormChange} 
+                                placeholder="Video URL" 
+                                className="w-full"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="border-t pt-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="file" 
+                              name="images" 
+                              multiple 
+                              accept="image/*" 
+                              onChange={handleCuisineFormChange}
+                              className="text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              onClick={() => setShowCuisineForm(false)}
+                              className="hover:bg-gray-50"
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              type="submit"
+                              className="bg-orange-600 hover:bg-orange-700"
+                            >
+                              {editingCuisine ? 'Update Cuisine' : 'Create Cuisine'}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
                     </form>
                   </DialogContent>
                 </Dialog>
               )}
             </div>
           ) : selectedEntity === 'heritage' ? (
-            <div>
-              <Button variant="outline" size="sm" onClick={() => setSelectedEntity(null)} className="mb-4">Back to Entities</Button>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Heritage</h3>
-                <Button size="sm" className="flex items-center gap-2" onClick={handleAddHeritage}><Plus className="w-4 h-4" /> Add New</Button>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedEntity(null)}
+                    className="hover:bg-gray-100"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    Back to Entities
+                  </Button>
               </div>
+                <Button 
+                  size="sm" 
+                  className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700"
+                  onClick={handleAddHeritage}
+                >
+                  <Plus className="w-4 h-4" /> 
+                  Add New Heritage
+                </Button>
+              </div>
+
               {loadingHeritage ? (
-                <div className="text-center py-8">Loading...</div>
+                <div className="flex items-center justify-center py-12">
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-600"></div>
+                    <span className="text-gray-600">Loading heritage items...</span>
+                  </div>
+                </div>
               ) : (
-                <div className="overflow-x-auto rounded shadow bg-white mb-4">
+                <div className="bg-white rounded-lg border shadow-sm">
+                  <div className="p-6 border-b">
+                    <h4 className="font-medium text-gray-900">Heritage List</h4>
+                    <p className="text-sm text-gray-500 mt-1">Manage cultural heritage and historical sites</p>
+                  </div>
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Region ID</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="font-semibold">Name</TableHead>
+                          <TableHead className="font-semibold">Type</TableHead>
+                          <TableHead className="font-semibold">Importance</TableHead>
+                          <TableHead className="font-semibold">Regions</TableHead>
+                          <TableHead className="font-semibold text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {heritage.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center text-gray-400">No data yet</TableCell>
+                            <TableCell colSpan={5} className="text-center py-12">
+                              <div className="flex flex-col items-center gap-3">
+                                <Star className="w-8 h-8 text-gray-300" />
+                                <div>
+                                  <p className="text-gray-500 font-medium">No heritage items found</p>
+                                  <p className="text-sm text-gray-400">Get started by adding your first heritage item</p>
+                                </div>
+                                <Button 
+                                  size="sm" 
+                                  onClick={handleAddHeritage}
+                                  className="mt-2"
+                                >
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Add Heritage
+                                </Button>
+                              </div>
+                            </TableCell>
                         </TableRow>
                       ) : heritage.map(item => (
-                        <TableRow key={item.id}>
-                          <TableCell>{item.name}</TableCell>
-                          <TableCell>{item.type}</TableCell>
-                          <TableCell>{Array.isArray(item.regionIds) ? item.regionIds.join(', ') : ''}</TableCell>
-                          <TableCell>
-                            <Button size="sm" variant="outline" onClick={() => handleEditHeritage(item)}><Pencil className="w-4 h-4" /></Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteHeritage(item.id)} className="ml-2"><Trash2 className="w-4 h-4" /></Button>
+                          <TableRow key={item.id} className="hover:bg-gray-50">
+                            <TableCell className="font-medium">{item.name_en || item.name}</TableCell>
+                            <TableCell>{item.type || 'N/A'}</TableCell>
+                            <TableCell>{item.importance || 'N/A'}</TableCell>
+                            <TableCell>{Array.isArray(item.regionIds) ? item.regionIds.join(', ') : 'N/A'}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => handleEditHeritage(item)}
+                                  className="hover:bg-yellow-50 hover:border-yellow-200"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive" 
+                                  onClick={() => {
+                                    if (window.confirm(`Are you sure you want to delete ${item.name_en || item.name}?`)) {
+                                      handleDeleteHeritage(item.id);
+                                    }
+                                  }}
+                                  className="hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 </div>
               )}
+
               {/* Add/Edit Form Modal */}
               {showHeritageForm && (
                 <Dialog open={showHeritageForm} onOpenChange={setShowHeritageForm}>
-                  <DialogContent className="max-w-6xl">
-                    <DialogHeader>
-                      <DialogTitle>{editingHeritage ? 'Edit Heritage' : 'Add Heritage'}</DialogTitle>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader className="border-b pb-4">
+                      <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                        <Star className="w-5 h-5 text-yellow-600" />
+                        {editingHeritage ? 'Edit Heritage' : 'Add New Heritage'}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {editingHeritage ? 'Update heritage information' : 'Create a new heritage item with multilingual support'}
+                      </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleHeritageFormSubmit} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        <div className="space-y-2">
-                          {/* Multilingual Names */}
-                          <Input name="name_en" value={heritageForm.name_en} onChange={handleHeritageFormChange} placeholder="Name (EN)" required />
-                          <Input name="name_ar" value={heritageForm.name_ar || ''} onChange={handleHeritageFormChange} placeholder="Name (AR)" />
-                          <Input name="name_fr" value={heritageForm.name_fr || ''} onChange={handleHeritageFormChange} placeholder="Name (FR)" />
-                          <Input name="name_it" value={heritageForm.name_it || ''} onChange={handleHeritageFormChange} placeholder="Name (IT)" />
-                          <Input name="name_es" value={heritageForm.name_es || ''} onChange={handleHeritageFormChange} placeholder="Name (ES)" />
+                    
+                    <form onSubmit={handleHeritageFormSubmit} className="space-y-6 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* Basic Information */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Basic Information</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (English) *</label>
+                              <Input 
+                                name="name_en" 
+                                value={heritageForm.name_en} 
+                                onChange={handleHeritageFormChange} 
+                                placeholder="Heritage name in English" 
+                                required 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          {/* Multilingual Descriptions */}
-                          <Input name="description_en" value={heritageForm.description_en || ''} onChange={handleHeritageFormChange} placeholder="Description (EN)" />
-                          <Input name="description_ar" value={heritageForm.description_ar || ''} onChange={handleHeritageFormChange} placeholder="Description (AR)" />
-                          <Input name="description_fr" value={heritageForm.description_fr || ''} onChange={handleHeritageFormChange} placeholder="Description (FR)" />
-                          <Input name="description_it" value={heritageForm.description_it || ''} onChange={handleHeritageFormChange} placeholder="Description (IT)" />
-                          <Input name="description_es" value={heritageForm.description_es || ''} onChange={handleHeritageFormChange} placeholder="Description (ES)" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (Arabic)</label>
+                              <Input 
+                                name="name_ar" 
+                                value={heritageForm.name_ar || ''} 
+                                onChange={handleHeritageFormChange} 
+                                placeholder="اسم التراث" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          <Input name="type" value={heritageForm.type || ''} onChange={handleHeritageFormChange} placeholder="Type" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (French)</label>
+                              <Input 
+                                name="name_fr" 
+                                value={heritageForm.name_fr || ''} 
+                                onChange={handleHeritageFormChange} 
+                                placeholder="Nom du patrimoine" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          <Input name="regionIds" value={Array.isArray(heritageForm.regionIds) ? heritageForm.regionIds.join(',') : ''} onChange={e => setHeritageForm({ ...heritageForm, regionIds: e.target.value.split(',') })} placeholder="Region IDs (comma separated)" />
-                          <input type="file" name="images" multiple accept="image/*" onChange={handleHeritageFormChange} />
-                          <Input name="videoUrl" value={heritageForm.videoUrl || ''} onChange={handleHeritageFormChange} placeholder="Video URL" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Type</label>
+                              <Input 
+                                name="type" 
+                                value={heritageForm.type || ''} 
+                                onChange={handleHeritageFormChange} 
+                                placeholder="Heritage type" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          <Input name="importance" value={heritageForm.importance || ''} onChange={handleHeritageFormChange} placeholder="Importance" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Importance</label>
+                              <Input 
+                                name="importance" 
+                                value={heritageForm.importance || ''} 
+                                onChange={handleHeritageFormChange} 
+                                placeholder="Historical importance" 
+                                className="w-full"
+                              />
                         </div>
                       </div>
-                      <DialogFooter>
-                        <Button type="submit">{editingHeritage ? 'Update' : 'Create'}</Button>
-                        <Button type="button" variant="outline" onClick={() => setShowHeritageForm(false)}>Cancel</Button>
-                      </DialogFooter>
+                        </div>
+
+                        {/* Description */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Description</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (English)</label>
+                              <textarea 
+                                name="description_en" 
+                                value={heritageForm.description_en || ''} 
+                                onChange={handleHeritageFormChange} 
+                                placeholder="Heritage description in English" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (Arabic)</label>
+                              <textarea 
+                                name="description_ar" 
+                                value={heritageForm.description_ar || ''} 
+                                onChange={handleHeritageFormChange} 
+                                placeholder="وصف التراث" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (French)</label>
+                              <textarea 
+                                name="description_fr" 
+                                value={heritageForm.description_fr || ''} 
+                                onChange={handleHeritageFormChange} 
+                                placeholder="Description du patrimoine" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Details */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Details</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Region IDs</label>
+                              <Input 
+                                name="regionIds" 
+                                value={Array.isArray(heritageForm.regionIds) ? heritageForm.regionIds.join(', ') : ''} 
+                                onChange={e => setHeritageForm({ ...heritageForm, regionIds: e.target.value.split(',').map(id => id.trim()) })} 
+                                placeholder="Region IDs (comma separated)" 
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Video URL</label>
+                              <Input 
+                                name="videoUrl" 
+                                value={heritageForm.videoUrl || ''} 
+                                onChange={handleHeritageFormChange} 
+                                placeholder="Video URL" 
+                                className="w-full"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="border-t pt-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="file" 
+                              name="images" 
+                              multiple 
+                              accept="image/*" 
+                              onChange={handleHeritageFormChange}
+                              className="text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100"
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              onClick={() => setShowHeritageForm(false)}
+                              className="hover:bg-gray-50"
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              type="submit"
+                              className="bg-yellow-600 hover:bg-yellow-700"
+                            >
+                              {editingHeritage ? 'Update Heritage' : 'Create Heritage'}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
                     </form>
                   </DialogContent>
                 </Dialog>
               )}
             </div>
           ) : selectedEntity === 'clothing' ? (
-            <div>
-              <Button variant="outline" size="sm" onClick={() => setSelectedEntity(null)} className="mb-4">Back to Entities</Button>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Clothing</h3>
-                <Button size="sm" className="flex items-center gap-2" onClick={handleAddClothing}><Plus className="w-4 h-4" /> Add New</Button>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedEntity(null)}
+                    className="hover:bg-gray-100"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    Back to Entities
+                  </Button>
               </div>
+                <Button 
+                  size="sm" 
+                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
+                  onClick={handleAddClothing}
+                >
+                  <Plus className="w-4 h-4" /> 
+                  Add New Clothing
+                </Button>
+              </div>
+
               {loadingClothing ? (
-                <div className="text-center py-8">Loading...</div>
+                <div className="flex items-center justify-center py-12">
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                    <span className="text-gray-600">Loading clothing items...</span>
+                  </div>
+                </div>
               ) : (
-                <div className="overflow-x-auto rounded shadow bg-white mb-4">
+                <div className="bg-white rounded-lg border shadow-sm">
+                  <div className="p-6 border-b">
+                    <h4 className="font-medium text-gray-900">Clothing List</h4>
+                    <p className="text-sm text-gray-500 mt-1">Manage traditional clothing and attire</p>
+                  </div>
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Region ID</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="font-semibold">Name</TableHead>
+                          <TableHead className="font-semibold">Gender</TableHead>
+                          <TableHead className="font-semibold">Materials</TableHead>
+                          <TableHead className="font-semibold">Regions</TableHead>
+                          <TableHead className="font-semibold text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {clothing.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center text-gray-400">No data yet</TableCell>
+                            <TableCell colSpan={5} className="text-center py-12">
+                              <div className="flex flex-col items-center gap-3">
+                                <Shirt className="w-8 h-8 text-gray-300" />
+                                <div>
+                                  <p className="text-gray-500 font-medium">No clothing items found</p>
+                                  <p className="text-sm text-gray-400">Get started by adding your first clothing item</p>
+                                </div>
+                                <Button 
+                                  size="sm" 
+                                  onClick={handleAddClothing}
+                                  className="mt-2"
+                                >
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Add Clothing
+                                </Button>
+                              </div>
+                            </TableCell>
                         </TableRow>
                       ) : clothing.map(item => (
-                        <TableRow key={item.id}>
-                          <TableCell>{item.name}</TableCell>
-                          <TableCell>{item.gender}</TableCell>
-                          <TableCell>{Array.isArray(item.regionIds) ? item.regionIds.join(', ') : ''}</TableCell>
-                          <TableCell>
-                            <Button size="sm" variant="outline" onClick={() => handleEditClothing(item)}><Pencil className="w-4 h-4" /></Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteClothing(item.id)} className="ml-2"><Trash2 className="w-4 h-4" /></Button>
+                          <TableRow key={item.id} className="hover:bg-gray-50">
+                            <TableCell className="font-medium">{item.name_en || item.name}</TableCell>
+                            <TableCell>{item.gender || 'N/A'}</TableCell>
+                            <TableCell>{Array.isArray(item.materials) ? item.materials.join(', ') : 'N/A'}</TableCell>
+                            <TableCell>{Array.isArray(item.regionIds) ? item.regionIds.join(', ') : 'N/A'}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => handleEditClothing(item)}
+                                  className="hover:bg-purple-50 hover:border-purple-200"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive" 
+                                  onClick={() => {
+                                    if (window.confirm(`Are you sure you want to delete ${item.name_en || item.name}?`)) {
+                                      handleDeleteClothing(item.id);
+                                    }
+                                  }}
+                                  className="hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 </div>
               )}
+
               {/* Add/Edit Form Modal */}
               {showClothingForm && (
                 <Dialog open={showClothingForm} onOpenChange={setShowClothingForm}>
-                  <DialogContent className="max-w-6xl">
-                    <DialogHeader>
-                      <DialogTitle>{editingClothing ? 'Edit Clothing' : 'Add Clothing'}</DialogTitle>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader className="border-b pb-4">
+                      <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                        <Shirt className="w-5 h-5 text-purple-600" />
+                        {editingClothing ? 'Edit Clothing' : 'Add New Clothing'}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {editingClothing ? 'Update clothing information' : 'Create a new clothing item with multilingual support'}
+                      </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleClothingFormSubmit} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        <div className="space-y-2">
-                          {/* Multilingual Names */}
-                          <Input name="name_en" value={clothingForm.name_en} onChange={handleClothingFormChange} placeholder="Name (EN)" required />
-                          <Input name="name_ar" value={clothingForm.name_ar || ''} onChange={handleClothingFormChange} placeholder="Name (AR)" />
-                          <Input name="name_fr" value={clothingForm.name_fr || ''} onChange={handleClothingFormChange} placeholder="Name (FR)" />
-                          <Input name="name_it" value={clothingForm.name_it || ''} onChange={handleClothingFormChange} placeholder="Name (IT)" />
-                          <Input name="name_es" value={clothingForm.name_es || ''} onChange={handleClothingFormChange} placeholder="Name (ES)" />
+                    
+                    <form onSubmit={handleClothingFormSubmit} className="space-y-6 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* Basic Information */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Basic Information</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (English) *</label>
+                              <Input 
+                                name="name_en" 
+                                value={clothingForm.name_en} 
+                                onChange={handleClothingFormChange} 
+                                placeholder="Clothing name in English" 
+                                required 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          {/* Multilingual Descriptions */}
-                          <Input name="description_en" value={clothingForm.description_en || ''} onChange={handleClothingFormChange} placeholder="Description (EN)" />
-                          <Input name="description_ar" value={clothingForm.description_ar || ''} onChange={handleClothingFormChange} placeholder="Description (AR)" />
-                          <Input name="description_fr" value={clothingForm.description_fr || ''} onChange={handleClothingFormChange} placeholder="Description (FR)" />
-                          <Input name="description_it" value={clothingForm.description_it || ''} onChange={handleClothingFormChange} placeholder="Description (IT)" />
-                          <Input name="description_es" value={clothingForm.description_es || ''} onChange={handleClothingFormChange} placeholder="Description (ES)" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (Arabic)</label>
+                              <Input 
+                                name="name_ar" 
+                                value={clothingForm.name_ar || ''} 
+                                onChange={handleClothingFormChange} 
+                                placeholder="اسم الملابس" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          <Input name="gender" value={clothingForm.gender || ''} onChange={handleClothingFormChange} placeholder="Gender (male, female, unisex)" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Name (French)</label>
+                              <Input 
+                                name="name_fr" 
+                                value={clothingForm.name_fr || ''} 
+                                onChange={handleClothingFormChange} 
+                                placeholder="Nom du vêtement" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          <Input name="regionIds" value={Array.isArray(clothingForm.regionIds) ? clothingForm.regionIds.join(',') : ''} onChange={e => setClothingForm({ ...clothingForm, regionIds: e.target.value.split(',') })} placeholder="Region IDs (comma separated)" />
-                          <Input name="materials" value={Array.isArray(clothingForm.materials) ? clothingForm.materials.join(',') : ''} onChange={e => setClothingForm({ ...clothingForm, materials: e.target.value.split(',') })} placeholder="Materials (comma separated)" />
-                          <Input name="occasions" value={Array.isArray(clothingForm.occasions) ? clothingForm.occasions.join(',') : ''} onChange={e => setClothingForm({ ...clothingForm, occasions: e.target.value.split(',') })} placeholder="Occasions (comma separated)" />
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Gender</label>
+                              <Input 
+                                name="gender" 
+                                value={clothingForm.gender || ''} 
+                                onChange={handleClothingFormChange} 
+                                placeholder="Gender (Male/Female/Unisex)" 
+                                className="w-full"
+                              />
                         </div>
-                        <div className="space-y-2">
-                          <input type="file" name="images" multiple accept="image/*" onChange={handleClothingFormChange} />
-                          <Input name="historicalNotes" value={clothingForm.historicalNotes || ''} onChange={handleClothingFormChange} placeholder="Historical Notes" />
                         </div>
                       </div>
-                      <DialogFooter>
-                        <Button type="submit">{editingClothing ? 'Update' : 'Create'}</Button>
-                        <Button type="button" variant="outline" onClick={() => setShowClothingForm(false)}>Cancel</Button>
-                      </DialogFooter>
+
+                        {/* Description */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Description</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (English)</label>
+                              <textarea 
+                                name="description_en" 
+                                value={clothingForm.description_en || ''} 
+                                onChange={handleClothingFormChange} 
+                                placeholder="Clothing description in English" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (Arabic)</label>
+                              <textarea 
+                                name="description_ar" 
+                                value={clothingForm.description_ar || ''} 
+                                onChange={handleClothingFormChange} 
+                                placeholder="وصف الملابس" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Description (French)</label>
+                              <textarea 
+                                name="description_fr" 
+                                value={clothingForm.description_fr || ''} 
+                                onChange={handleClothingFormChange} 
+                                placeholder="Description du vêtement" 
+                                className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Details */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900 border-b pb-2">Details</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Region IDs</label>
+                              <Input 
+                                name="regionIds" 
+                                value={Array.isArray(clothingForm.regionIds) ? clothingForm.regionIds.join(', ') : ''} 
+                                onChange={e => setClothingForm({ ...clothingForm, regionIds: e.target.value.split(',').map(id => id.trim()) })} 
+                                placeholder="Region IDs (comma separated)" 
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Materials</label>
+                              <Input 
+                                name="materials" 
+                                value={Array.isArray(clothingForm.materials) ? clothingForm.materials.join(', ') : ''} 
+                                onChange={e => setClothingForm({ ...clothingForm, materials: e.target.value.split(',').map(material => material.trim()) })} 
+                                placeholder="Materials (comma separated)" 
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Occasions</label>
+                              <Input 
+                                name="occasions" 
+                                value={Array.isArray(clothingForm.occasions) ? clothingForm.occasions.join(', ') : ''} 
+                                onChange={e => setClothingForm({ ...clothingForm, occasions: e.target.value.split(',').map(occasion => occasion.trim()) })} 
+                                placeholder="Occasions (comma separated)" 
+                                className="w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-1 block">Historical Notes</label>
+                              <textarea 
+                                name="historicalNotes" 
+                                value={clothingForm.historicalNotes || ''} 
+                                onChange={handleClothingFormChange} 
+                                placeholder="Historical notes about the clothing" 
+                                className="w-full h-16 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="border-t pt-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="file" 
+                              name="images" 
+                              multiple 
+                              accept="image/*" 
+                              onChange={handleClothingFormChange}
+                              className="text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              onClick={() => setShowClothingForm(false)}
+                              className="hover:bg-gray-50"
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              type="submit"
+                              className="bg-purple-600 hover:bg-purple-700"
+                            >
+                              {editingClothing ? 'Update Clothing' : 'Create Clothing'}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
                     </form>
                   </DialogContent>
                 </Dialog>
               )}
             </div>
           ) : null}
+        </DialogContent>
+      </Dialog>
+
+      {/* Premium User Profile Modal */}
+      <Dialog open={showUserModal} onOpenChange={setShowUserModal}>
+        <DialogContent className="max-w-6xl h-[85vh] p-0 overflow-hidden">
+          <div className="flex h-full">
+            {/* Left Sidebar - User Info & Quick Actions */}
+            <div className="w-80 bg-gradient-to-b from-emerald-50 to-emerald-100 border-r border-emerald-200 p-6 flex flex-col">
+              {/* User Avatar & Basic Info */}
+              <div className="text-center mb-6">
+                <div className="relative inline-block">
+                  <div className="h-24 w-24 rounded-full bg-gradient-to-br from-emerald-200 to-emerald-300 flex items-center justify-center border-4 border-white shadow-lg">
+                    <User className="h-12 w-12 text-emerald-700" />
+                  </div>
+                  <div className={`absolute -bottom-2 -right-2 h-8 w-8 rounded-full border-3 border-white flex items-center justify-center shadow-md ${
+                    selectedUser?.status === 'active' ? 'bg-green-500' : 
+                    selectedUser?.status === 'pending' ? 'bg-yellow-500' : 
+                    selectedUser?.status === 'suspended' ? 'bg-orange-500' : 'bg-red-500'
+                  }`}>
+                    <div className="h-3 w-3 rounded-full bg-white"></div>
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mt-4">
+                  {selectedUser?.firstName} {selectedUser?.lastName}
+                </h3>
+                <p className="text-gray-600 text-sm flex items-center justify-center gap-1 mt-1">
+                  <Mail className="h-3 w-3" />
+                  {selectedUser?.email}
+                </p>
+                <div className="flex items-center justify-center gap-2 mt-3">
+                  <StatusBadge status={selectedUser?.status || 'pending'} />
+                  <Badge variant="outline" className="bg-white text-emerald-800 border-emerald-300">
+                    {selectedUser?.role?.charAt(0).toUpperCase() + selectedUser?.role?.slice(1)}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="space-y-3 mb-6">
+                <div className="bg-white rounded-lg p-3 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Account Age</span>
+                    <span className="text-sm font-semibold">
+                      {selectedUser ? Math.floor((Date.now() - new Date(selectedUser.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : 0} days
+                    </span>
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-3 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Email Status</span>
+                    <span className={`text-sm font-semibold ${selectedUser?.emailVerified ? 'text-green-600' : 'text-red-600'}`}>
+                      {selectedUser?.emailVerified ? 'Verified' : 'Unverified'}
+                    </span>
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-3 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">2FA Status</span>
+                    <span className={`text-sm font-semibold ${selectedUser?.twoFactorEnabled ? 'text-green-600' : 'text-red-600'}`}>
+                      {selectedUser?.twoFactorEnabled ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="space-y-2 mb-6">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Quick Actions</h4>
+                {selectedUser?.status !== 'active' && (
+                  <Button 
+                    size="sm" 
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => {
+                      handleUpdateUserStatus(selectedUser.id, 'active');
+                      setShowUserModal(false);
+                    }}
+                  >
+                    <UserCheck className="h-4 w-4 mr-2" />
+                    Activate User
+                  </Button>
+                )}
+                {selectedUser?.status !== 'suspended' && (
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="w-full border-orange-300 text-orange-700 hover:bg-orange-50"
+                    onClick={() => {
+                      handleUpdateUserStatus(selectedUser.id, 'suspended');
+                      setShowUserModal(false);
+                    }}
+                  >
+                    <UserX className="h-4 w-4 mr-2" />
+                    Suspend User
+                  </Button>
+                )}
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Send Message
+                </Button>
+              </div>
+
+              {/* Account Timeline */}
+              <div className="flex-1">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Account Timeline</h4>
+                <div className="space-y-3">
+                  <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <div className="text-xs text-gray-500">Created</div>
+                    <div className="text-sm font-medium">
+                      {selectedUser ? new Date(selectedUser.createdAt).toLocaleDateString() : 'N/A'}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {selectedUser ? new Date(selectedUser.createdAt).toLocaleTimeString() : 'N/A'}
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <div className="text-xs text-gray-500">Last Updated</div>
+                    <div className="text-sm font-medium">
+                      {selectedUser ? new Date(selectedUser.updatedAt).toLocaleDateString() : 'N/A'}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {selectedUser ? new Date(selectedUser.updatedAt).toLocaleTimeString() : 'N/A'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Content Area */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">User Profile Details</h2>
+                    <p className="text-gray-600">Comprehensive view of user information and account status</p>
+                  </div>
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={() => {
+                      setConfirmDelete(selectedUser?.id || null);
+                      setShowUserModal(false);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete User
+                  </Button>
+                </div>
+
+                {selectedUser && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Personal Information */}
+                    <Card className="h-fit">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <User className="h-5 w-5 text-emerald-600" />
+                          Personal Information
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">First Name</label>
+                            <p className="text-sm font-medium bg-gray-50 p-2 rounded">{selectedUser.firstName}</p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Last Name</label>
+                            <p className="text-sm font-medium bg-gray-50 p-2 rounded">{selectedUser.lastName}</p>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Email Address</label>
+                          <p className="text-sm font-medium bg-gray-50 p-2 rounded">{selectedUser.email}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Phone Number</label>
+                          <p className="text-sm font-medium bg-gray-50 p-2 rounded">{selectedUser.phone || 'Not provided'}</p>
+                        </div>
+                        {selectedUser.bio && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Bio</label>
+                            <p className="text-sm text-gray-700 mt-1 bg-gray-50 p-3 rounded-md">
+                              {selectedUser.bio}
+                            </p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Account Security */}
+                    <Card className="h-fit">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Shield className="h-5 w-5 text-blue-600" />
+                          Account Security
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">User ID</label>
+                          <p className="text-sm font-mono bg-gray-100 p-2 rounded">{selectedUser.id}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Account Status</label>
+                          <div className="mt-1">
+                            <StatusBadge status={selectedUser.status} />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Email Verification</label>
+                          <div className="flex items-center gap-2 mt-1">
+                            {selectedUser.emailVerified ? (
+                              <span className="text-green-600 flex items-center gap-1">
+                                <Check className="h-4 w-4" />
+                                <span className="text-sm">Verified</span>
+                              </span>
+                            ) : (
+                              <span className="text-red-600 flex items-center gap-1">
+                                <X className="h-4 w-4" />
+                                <span className="text-sm">Not Verified</span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Two-Factor Authentication</label>
+                          <div className="flex items-center gap-2 mt-1">
+                            {selectedUser.twoFactorEnabled ? (
+                              <span className="text-green-600 flex items-center gap-1">
+                                <Check className="h-4 w-4" />
+                                <span className="text-sm">Enabled</span>
+                              </span>
+                            ) : (
+                              <span className="text-red-600 flex items-center gap-1">
+                                <X className="h-4 w-4" />
+                                <span className="text-sm">Disabled</span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Preferences & Settings */}
+                    <Card className="lg:col-span-2">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Settings className="h-5 w-5 text-gray-600" />
+                          Preferences & Settings
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Notification Preferences */}
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                              <Bell className="h-4 w-4" />
+                              Notification Preferences
+                            </h4>
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <Mail className="h-4 w-4 text-gray-500" />
+                                  <span className="text-sm">Email Notifications</span>
+                                </div>
+                                <div className={`h-3 w-3 rounded-full ${selectedUser.preferences?.notifications?.email ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                              </div>
+                              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <MessageSquare className="h-4 w-4 text-gray-500" />
+                                  <span className="text-sm">SMS Notifications</span>
+                                </div>
+                                <div className={`h-3 w-3 rounded-full ${selectedUser.preferences?.notifications?.sms ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                              </div>
+                              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <Bell className="h-4 w-4 text-gray-500" />
+                                  <span className="text-sm">Push Notifications</span>
+                                </div>
+                                <div className={`h-3 w-3 rounded-full ${selectedUser.preferences?.notifications?.push ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Privacy Settings */}
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                              <Eye className="h-4 w-4" />
+                              Privacy Settings
+                            </h4>
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <Eye className="h-4 w-4 text-gray-500" />
+                                  <span className="text-sm">Profile Visible</span>
+                                </div>
+                                <div className={`h-3 w-3 rounded-full ${selectedUser.preferences?.privacy?.profileVisible ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                              </div>
+                              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <Phone className="h-4 w-4 text-gray-500" />
+                                  <span className="text-sm">Show Phone</span>
+                                </div>
+                                <div className={`h-3 w-3 rounded-full ${selectedUser.preferences?.privacy?.showPhone ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                              </div>
+                              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <Mail className="h-4 w-4 text-gray-500" />
+                                  <span className="text-sm">Show Email</span>
+                                </div>
+                                <div className={`h-3 w-3 rounded-full ${selectedUser.preferences?.privacy?.showEmail ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 pt-4 border-t">
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm font-medium text-gray-500">Language Preference:</span>
+                            <Badge variant="outline" className="text-xs">
+                              {selectedUser.preferences?.language?.toUpperCase() || 'EN'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -357,6 +357,7 @@ export const fr = {
     title: 'Découvrir le Maroc',
     subtitle: 'Explorez les régions diverses, le patrimoine, la cuisine et la culture qui font du Maroc une destination inoubliable.',
     searchPlaceholder: 'Rechercher {category}...',
+    mapSearchDisabled: 'Recherche désactivée pour la vue carte',
     loadingMessage: 'Chargement des trésors du Maroc...',
     errorTitle: 'Oups ! Quelque chose s\'est mal passé',
     errorMessage: 'Nous avons des difficultés à charger les données. Veuillez essayer de rafraîchir la page.',
@@ -394,9 +395,9 @@ export const fr = {
       allCategories: 'Toutes les Catégories',
       allTypes: 'Tous les Types',
       allGenders: 'Tous les Genres',
-      category: 'Catégorie : {value}',
-      type: 'Type : {value}',
-      gender: 'Genre : {value}'
+      category: 'Catégorie: {value}',
+      type: 'Type: {value}',
+      gender: 'Genre: {value}'
     },
     cards: {
       attractions: 'attractions',

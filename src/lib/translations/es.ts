@@ -357,6 +357,7 @@ export const es = {
     title: 'Descubrir Marruecos',
     subtitle: 'Explora las diversas regiones, patrimonio, cocina y cultura que hacen de Marruecos un destino inolvidable.',
     searchPlaceholder: 'Buscar {category}...',
+    mapSearchDisabled: 'Búsqueda deshabilitada para vista de mapa',
     loadingMessage: 'Cargando los tesoros de Marruecos...',
     errorTitle: '¡Ups! Algo salió mal',
     errorMessage: 'Tenemos problemas para cargar los datos. Por favor, intenta refrescar la página.',

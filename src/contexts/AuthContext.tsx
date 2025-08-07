@@ -38,18 +38,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         // Check if we have valid tokens
         if (tokens && !isTokenExpired()) {
-          // User is already authenticated with valid tokens
+          // Get current user from API
+          const userResponse = await AuthAPI.getCurrentUser();
+          if (userResponse.success && userResponse.data) {
+            setUser(userResponse.data);
+          } else {
+            // User not found or invalid, clear auth state
+            clearAuth();
+          }
           setLoading(false);
           return;
         }
         
         // If we have expired tokens, try to refresh
         if (tokens && isTokenExpired()) {
-          const refreshResult = await AuthAPI.refreshToken();
-          if (refreshResult.success && refreshResult.data) {
-            setUser(refreshResult.data.user);
-            setTokens(refreshResult.data.tokens);
-          } else {
+          const refreshResult = await refreshToken();
+          if (!refreshResult) {
             // Refresh failed, clear auth state
             clearAuth();
           }
@@ -137,8 +141,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await AuthAPI.refreshToken();
       
       if (response.success && response.data) {
-        setUser(response.data.user);
-        setTokens(response.data.tokens);
+        // Update tokens in store
+        setTokens({
+          accessToken: response.data.accessToken,
+          refreshToken: response.data.refreshToken,
+          expiresAt: response.data.expiresAt,
+        });
+        
+        // Get current user profile
+        const userResponse = await AuthAPI.getCurrentUser();
+        if (userResponse.success && userResponse.data) {
+          setUser(userResponse.data);
+        }
+        
         return true;
       } else {
         clearAuth();

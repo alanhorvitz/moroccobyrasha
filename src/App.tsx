@@ -17,7 +17,7 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-import ProtectedRoute from './components/auth/ProtectedRoute';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 // Regional detail pages
 import RegionDetail from './pages/RegionDetail';
@@ -81,9 +81,9 @@ const App = () => (
               {/* Protected Dashboard Routes */}
               <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
               <Route path="/dashboard/profile" element={<ProtectedRoute><Layout><UserProfile /></Layout></ProtectedRoute>} />
-              <Route path="/dashboard/admin" element={<ProtectedRoute requiredRole="admin"><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
-              <Route path="/dashboard/guide" element={<ProtectedRoute requiredRole="guide"><Layout><GuideDashboard /></Layout></ProtectedRoute>} />
-              <Route path="/dashboard/tourist" element={<ProtectedRoute requiredRole="tourist"><Layout><TouristDashboard /></Layout></ProtectedRoute>} />
+              <Route path="/dashboard/admin" element={<ProtectedRoute requiredRole="ADMIN"><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
+              <Route path="/dashboard/guide" element={<ProtectedRoute requiredRole="GUIDE"><Layout><GuideDashboard /></Layout></ProtectedRoute>} />
+              <Route path="/dashboard/tourist" element={<ProtectedRoute requiredRole="TOURIST"><Layout><TouristDashboard /></Layout></ProtectedRoute>} />
               
               {/* Virtual Tour Route */}
               <Route path="/virtual-tours/:id" element={<Layout><VirtualTourDetail /></Layout>} />

@@ -416,6 +416,7 @@ model Review {
   updatedAt        DateTime @updatedAt
 
   // Relations (polymorphic) - using unique constraint names
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   attraction       Attraction?       @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "reviews_attraction_fkey")
   tourPackage      TourPackage?      @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "reviews_tour_package_fkey")
   guide            Guide?            @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "reviews_guide_fkey")
@@ -436,6 +437,9 @@ model UserPreferences {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
+  // Relations
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("user_preferences")
 }
 
@@ -446,6 +450,9 @@ model SavedItem {
   itemType  String   @db.VarChar(50) // region, attraction, tour_package, media_item, content_item
   savedDate DateTime @default(now())
   notes     String?  @db.Text
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, itemId, itemType])
   @@map("saved_items")
@@ -459,6 +466,9 @@ model SearchQuery {
   count     Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("search_queries")
 }
@@ -533,4 +543,56 @@ model Clothing {
   updatedAt      DateTime @updatedAt
 
   @@map("clothing")
+}
+
+// User Authentication Model
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique @db.VarChar(255)
+  passwordHash      String   @db.VarChar(255)
+  firstName         String   @db.VarChar(100)
+  lastName          String   @db.VarChar(100)
+  phone             String?  @db.VarChar(50)
+  role              UserRole @default(TOURIST)
+  status            UserStatus @default(PENDING)
+  emailVerified     Boolean  @default(false)
+  twoFactorEnabled  Boolean  @default(false)
+  twoFactorSecret   String?  @db.VarChar(255)
+  bio               String?  @db.Text
+  avatarUrl         String?  @db.VarChar(500)
+  preferences       Json?    // User preferences as JSON
+  lastLogin         DateTime?
+  loginCount        Int      @default(0)
+  failedLoginAttempts Int    @default(0)
+  lockedUntil       DateTime?
+  resetPasswordToken String? @db.VarChar(255)
+  resetPasswordExpires DateTime?
+  emailVerificationToken String? @db.VarChar(255)
+  emailVerificationExpires DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  reviews          Review[]
+  savedItems       SavedItem[]
+  userPreferences  UserPreferences?
+  searchQueries    SearchQuery[]
+
+  @@map("users")
+}
+
+// User roles enum
+enum UserRole {
+  TOURIST
+  GUIDE
+  ADMIN
+  SUPER_ADMIN
+}
+
+// User status enum
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  BANNED
 }

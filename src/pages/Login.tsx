@@ -41,6 +41,21 @@ const Login: React.FC = () => {
   // Get the redirect path from location state
   const from = location.state?.from?.pathname || '/';
 
+  // Function to get role-specific dashboard path
+  const getRoleDashboardPath = (role: string): string => {
+    switch (role) {
+      case 'ADMIN':
+      case 'SUPER_ADMIN':
+        return '/dashboard/admin';
+      case 'GUIDE':
+        return '/dashboard/guide';
+      case 'TOURIST':
+        return '/dashboard/tourist';
+      default:
+        return '/dashboard';
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -100,8 +115,17 @@ const Login: React.FC = () => {
       });
 
       if (response.success) {
-        // Successful login - navigate to intended destination
-        navigate(from, { replace: true });
+        // Get user data from the response to determine role
+        const userData = response.data?.user;
+        
+        if (userData) {
+          // Redirect to role-specific dashboard
+          const dashboardPath = getRoleDashboardPath(userData.role);
+          navigate(dashboardPath, { replace: true });
+        } else {
+          // Fallback to intended destination or dashboard
+          navigate(from === '/' ? '/dashboard' : from, { replace: true });
+        }
       } else if (response.data?.requiresMFA) {
         // MFA required (though it's disabled now, keeping for compatibility)
         setMfaData({
@@ -129,7 +153,14 @@ const Login: React.FC = () => {
 
       if (response.success) {
         setMfaData(null);
-        navigate(from, { replace: true });
+        // Redirect to role-specific dashboard after MFA
+        const userData = response.data?.user;
+        if (userData) {
+          const dashboardPath = getRoleDashboardPath(userData.role);
+          navigate(dashboardPath, { replace: true });
+        } else {
+          navigate(from === '/' ? '/dashboard' : from, { replace: true });
+        }
       } else {
         setMfaData(null);
         setErrors([response.message || 'MFA verification failed']);
@@ -218,13 +249,19 @@ const Login: React.FC = () => {
                   className="pl-10 pr-10"
                   required
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </Button>
               </div>
             </div>
 
@@ -243,55 +280,44 @@ const Login: React.FC = () => {
                   Remember me
                 </Label>
               </div>
-              <Link 
-                to="/forgot-password" 
-                className="text-sm text-emerald-600 hover:text-emerald-500"
+              <Link
+                to="/forgot-password"
+                className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline"
               >
                 Forgot password?
               </Link>
             </div>
 
             {/* Submit Button */}
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-emerald-600 hover:bg-emerald-700"
               disabled={isLoading}
             >
               {isLoading ? (
-                <>
+                <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Signing in...
-                </>
+                </div>
               ) : (
-                <>
+                <div className="flex items-center">
                   <LogIn className="w-4 h-4 mr-2" />
                   Sign In
-                </>
+                </div>
               )}
             </Button>
-          </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-emerald-50 rounded-lg">
-            <h4 className="text-sm font-medium text-emerald-800 mb-2">Demo Accounts:</h4>
-            <div className="text-xs text-emerald-700 space-y-1">
-              <div>Admin: admin@morocco.com / admin123</div>
-              <div>Tourist: user@morocco.com / user123</div>
-            </div>
-          </div>
-
-          {/* Register Link */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link 
-                to="/register" 
-                className="text-emerald-600 hover:text-emerald-500 font-medium"
+            {/* Sign Up Link */}
+            <div className="text-center text-sm">
+              <span className="text-gray-600">Don't have an account? </span>
+              <Link
+                to="/register"
+                className="text-emerald-600 hover:text-emerald-700 hover:underline font-medium"
               >
-                Create one here
+                Sign up
               </Link>
-            </p>
-          </div>
+            </div>
+          </form>
         </CardContent>
       </Card>
 
@@ -301,7 +327,7 @@ const Login: React.FC = () => {
           isOpen={mfaData.isOpen}
           onClose={handleMFAClose}
           onSuccess={handleMFASuccess}
-          mfaSessionId={mfaData.sessionId}
+          sessionId={mfaData.sessionId}
           availableMethods={mfaData.availableMethods}
           userEmail={mfaData.userEmail}
           userPhone={mfaData.userPhone}

@@ -1,3 +1,4 @@
+@ -1,553 +1,666 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -11,6 +12,8 @@ dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3001;
+
+
 
 // Middleware
 app.use(helmet());
@@ -74,6 +77,25 @@ app.post('/api/regions', async (req, res) => {
   }
 });
 
+// PUT (update) region
+app.put('/api/regions/:id', async (req, res) => {
+  try {
+    const region = await prisma.region.update({ where: { id: req.params.id }, data: req.body });
+    res.json(region);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+// DELETE region
+app.delete('/api/regions/:id', async (req, res) => {
+  try {
+    await prisma.region.delete({ where: { id: req.params.id } });
+    res.status(204).end();
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Attractions API routes
 app.get('/api/attractions', async (req, res) => {
   try {
@@ -113,6 +135,25 @@ app.post('/api/attractions', async (req, res) => {
     res.status(201).json(attraction);
   } catch (error) {
     console.error('Error creating attraction:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT (update) attraction
+app.put('/api/attractions/:id', async (req, res) => {
+  try {
+    const attraction = await prisma.attraction.update({ where: { id: req.params.id }, data: req.body });
+    res.json(attraction);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+// DELETE attraction
+app.delete('/api/attractions/:id', async (req, res) => {
+  try {
+    await prisma.attraction.delete({ where: { id: req.params.id } });
+    res.status(204).end();
+  } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -419,6 +460,25 @@ app.post('/api/festivals', async (req, res) => {
   }
 });
 
+// PUT (update) festival
+app.put('/api/festivals/:id', async (req, res) => {
+  try {
+    const festival = await prisma.festival.update({ where: { id: req.params.id }, data: req.body });
+    res.json(festival);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+// DELETE festival
+app.delete('/api/festivals/:id', async (req, res) => {
+  try {
+    await prisma.festival.delete({ where: { id: req.params.id } });
+    res.status(204).end();
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Cuisine API routes
 app.get('/api/cuisines', async (req, res) => {
   try {
@@ -450,6 +510,25 @@ app.post('/api/cuisines', async (req, res) => {
   }
 });
 
+// PUT (update) cuisine
+app.put('/api/cuisines/:id', async (req, res) => {
+  try {
+    const cuisine = await prisma.cuisine.update({ where: { id: req.params.id }, data: req.body });
+    res.json(cuisine);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+// DELETE cuisine
+app.delete('/api/cuisines/:id', async (req, res) => {
+  try {
+    await prisma.cuisine.delete({ where: { id: req.params.id } });
+    res.status(204).end();
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Heritage API routes
 app.get('/api/heritages', async (req, res) => {
   try {
@@ -461,20 +540,39 @@ app.get('/api/heritages', async (req, res) => {
   }
 });
 
+app.get('/api/heritages/:id', async (req, res) => {
+  try {
+    const heritage = await prisma.heritage.findUnique({ where: { id: req.params.id } });
+    if (!heritage) return res.status(404).json({ error: 'Not found' });
+    res.json(heritage);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.post('/api/heritages', async (req, res) => {
   try {
-    const { 
-      name, description, type, regionIds, images, videoUrl, importance 
-    } = req.body;
-    
-    const heritage = await prisma.heritage.create({
-      data: {
-        name, description, type, regionIds, images, videoUrl, importance,
-      },
-    });
+    const heritage = await prisma.heritage.create({ data: req.body });
     res.status(201).json(heritage);
   } catch (error) {
-    console.error('Error creating heritage:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/api/heritages/:id', async (req, res) => {
+  try {
+    const heritage = await prisma.heritage.update({ where: { id: req.params.id }, data: req.body });
+    res.json(heritage);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete('/api/heritages/:id', async (req, res) => {
+  try {
+    await prisma.heritage.delete({ where: { id: req.params.id } });
+    res.status(204).end();
+  } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -485,27 +583,43 @@ app.get('/api/clothing', async (req, res) => {
     const clothing = await prisma.clothing.findMany();
     res.json(clothing);
   } catch (error) {
-    console.error('Error fetching clothing:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/clothing/:id', async (req, res) => {
+  try {
+    const clothing = await prisma.clothing.findUnique({ where: { id: req.params.id } });
+    if (!clothing) return res.status(404).json({ error: 'Not found' });
+    res.json(clothing);
+  } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.post('/api/clothing', async (req, res) => {
   try {
-    const { 
-      name, description, gender, regionIds, materials, occasions, 
-      images, historicalNotes 
-    } = req.body;
-    
-    const clothing = await prisma.clothing.create({
-      data: {
-        name, description, gender, regionIds, materials, occasions,
-        images, historicalNotes,
-      },
-    });
+    const clothing = await prisma.clothing.create({ data: req.body });
     res.status(201).json(clothing);
   } catch (error) {
-    console.error('Error creating clothing:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/api/clothing/:id', async (req, res) => {
+  try {
+    const clothing = await prisma.clothing.update({ where: { id: req.params.id }, data: req.body });
+    res.json(clothing);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete('/api/clothing/:id', async (req, res) => {
+  try {
+    await prisma.clothing.delete({ where: { id: req.params.id } });
+    res.status(204).end();
+  } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 });

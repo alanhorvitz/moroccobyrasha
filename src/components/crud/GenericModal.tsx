@@ -172,22 +172,36 @@ export function GenericModal({ isOpen, onClose, mode, entityType, entity, onSucc
       // Ensure arrays are properly formatted
       const processedFormData = { ...formData };
       
+      // Handle image files conversion
+      if (formData.images && formData.images.length > 0 && formData.images[0] instanceof File) {
+        const imageUrls = [];
+        for (const file of formData.images) {
+          const reader = new FileReader();
+          const url = await new Promise((resolve) => {
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(file);
+          });
+          imageUrls.push(url);
+        }
+        processedFormData.images = imageUrls;
+      }
+      
       // Handle arrays for different entity types
       if (entityType === 'cuisine') {
         processedFormData.regionIds = Array.isArray(formData.regionIds) ? formData.regionIds : [];
         processedFormData.ingredients = Array.isArray(formData.ingredients) ? formData.ingredients : [];
         processedFormData.popularVariants = Array.isArray(formData.popularVariants) ? formData.popularVariants : [];
-        processedFormData.images = Array.isArray(formData.images) ? formData.images : [];
+        processedFormData.images = Array.isArray(processedFormData.images) ? processedFormData.images : [];
       } else if (entityType === 'heritage') {
         processedFormData.regionIds = Array.isArray(formData.regionIds) ? formData.regionIds : [];
-        processedFormData.images = Array.isArray(formData.images) ? formData.images : [];
+        processedFormData.images = Array.isArray(processedFormData.images) ? processedFormData.images : [];
       } else if (entityType === 'clothing') {
         processedFormData.regionIds = Array.isArray(formData.regionIds) ? formData.regionIds : [];
         processedFormData.materials = Array.isArray(formData.materials) ? formData.materials : [];
         processedFormData.occasions = Array.isArray(formData.occasions) ? formData.occasions : [];
-        processedFormData.images = Array.isArray(formData.images) ? formData.images : [];
+        processedFormData.images = Array.isArray(processedFormData.images) ? processedFormData.images : [];
       } else if (entityType === 'festival') {
-        processedFormData.images = Array.isArray(formData.images) ? formData.images : [];
+        processedFormData.images = Array.isArray(processedFormData.images) ? processedFormData.images : [];
       }
       
       console.log('Processed form data:', processedFormData);
@@ -386,6 +400,42 @@ export function GenericModal({ isOpen, onClose, mode, entityType, entity, onSucc
                 />
               </div>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="regionId">Region ID</Label>
+              <Input
+                id="regionId"
+                value={formData.regionId || ''}
+                onChange={(e) => setFormData({ ...formData, regionId: e.target.value })}
+                placeholder="Enter region ID"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="established">Established</Label>
+              <Input
+                id="established"
+                value={formData.established || ''}
+                onChange={(e) => setFormData({ ...formData, established: e.target.value })}
+                placeholder="e.g., 1960s"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="historicalSignificance">Historical Significance</Label>
+              <Textarea
+                id="historicalSignificance"
+                value={formData.historicalSignificance || ''}
+                onChange={(e) => setFormData({ ...formData, historicalSignificance: e.target.value })}
+                rows={2}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="videoUrl">Video URL</Label>
+              <Input
+                id="videoUrl"
+                value={formData.videoUrl || ''}
+                onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                placeholder="YouTube or other video URL"
+              />
+            </div>
           </>
         );
       case 'cuisine':
@@ -454,6 +504,15 @@ export function GenericModal({ isOpen, onClose, mode, entityType, entity, onSucc
                 placeholder="e.g., spicy version, vegetarian version"
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="regionIds">Regions (comma-separated IDs)</Label>
+              <Input
+                id="regionIds"
+                value={Array.isArray(formData.regionIds) ? formData.regionIds.join(', ') : ''}
+                onChange={(e) => setFormData({ ...formData, regionIds: e.target.value.split(',').map(item => item.trim()).filter(item => item) })}
+                placeholder="e.g., region1, region2"
+              />
+            </div>
           </>
         );
       case 'heritage':
@@ -484,6 +543,15 @@ export function GenericModal({ isOpen, onClose, mode, entityType, entity, onSucc
                 value={formData.type || ''}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                 required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="regionIds">Regions (comma-separated IDs)</Label>
+              <Input
+                id="regionIds"
+                value={Array.isArray(formData.regionIds) ? formData.regionIds.join(', ') : ''}
+                onChange={(e) => setFormData({ ...formData, regionIds: e.target.value.split(',').map(item => item.trim()).filter(item => item) })}
+                placeholder="e.g., region1, region2"
               />
             </div>
             <div className="space-y-2">
@@ -554,6 +622,15 @@ export function GenericModal({ isOpen, onClose, mode, entityType, entity, onSucc
                 required
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="regionIds">Regions (comma-separated IDs)</Label>
+              <Input
+                id="regionIds"
+                value={Array.isArray(formData.regionIds) ? formData.regionIds.join(', ') : ''}
+                onChange={(e) => setFormData({ ...formData, regionIds: e.target.value.split(',').map(item => item.trim()).filter(item => item) })}
+                placeholder="e.g., region1, region2"
+              />
+            </div>
           </>
         );
       default:
@@ -602,6 +679,35 @@ export function GenericModal({ isOpen, onClose, mode, entityType, entity, onSucc
         
         <form onSubmit={handleSubmit} className="space-y-4">
           {renderFormFields()}
+
+          {/* Image Upload Section */}
+          <div className="space-y-2">
+            <Label htmlFor="images">Images</Label>
+            <Input
+              id="images"
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(e) => {
+                const files = e.target.files;
+                if (files) {
+                  setFormData({ ...formData, images: Array.from(files) });
+                }
+              }}
+            />
+            {formData.images && formData.images.length > 0 && (
+              <div className="mt-2">
+                <p className="text-sm text-gray-600 mb-2">Selected images:</p>
+                <div className="flex flex-wrap gap-2">
+                  {formData.images.map((file, index) => (
+                    <div key={index} className="text-xs text-gray-500">
+                      {file instanceof File ? file.name : 'Image ' + (index + 1)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>

@@ -327,7 +327,7 @@ export const apiService = {
     return response.data;
   },
 
-  async getClothingItem(id: string): Promise<ApiClothing> {
+  async getClothing(id: string): Promise<ApiClothing> {
     const response = await api.get(`/clothing/${id}`);
     return response.data;
   },

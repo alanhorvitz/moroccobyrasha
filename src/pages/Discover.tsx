@@ -723,7 +723,7 @@ const HeritageCard = ({
   t: (key: string, params?: Record<string, string | number>) => string; 
   isRTL: boolean;
 }) => {
-    return (
+  return (
     <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
       <div className={`flex flex-col md:flex-row h-full ${isRTL ? 'rtl-flex-row' : ''}`}>
         <div className="w-full md:w-2/5 h-60 md:h-auto bg-slate-200 relative overflow-hidden">
@@ -743,6 +743,7 @@ const HeritageCard = ({
               {heritage.type ? heritage.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Heritage'}
             </Badge>
           </div>
+          {/* CRUD buttons overlay - removed as requested */}
         </div>
         <div className="w-full md:w-3/5 flex flex-col">
           <CardHeader>

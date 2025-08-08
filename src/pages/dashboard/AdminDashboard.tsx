@@ -1,7 +1,70 @@
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AuthAPI } from '@/lib/auth/api';
+import { EnhancedAuthAPI } from '@/lib/auth/enhanced-api';
 import { useAuth } from '@/contexts/AuthContext';
-import { AdminDashboard as AdminDashboardComponent } from '@/components/dashboard/AdminDashboard';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { AuditLogger } from '@/lib/admin/audit-logger';
+// import EnhancedUserTable from '@/components/admin/EnhancedUserTable';
+import AuditLogViewer from '@/components/admin/AuditLogViewer';
+import {
+  LayoutDashboard, Users, FileText, User, Clock, Filter, RefreshCcw, Search, ChevronLeft, ChevronRight,
+  Check, X, Trash2, UserCheck, UserX, MoreHorizontal, MapPin, Landmark, Calendar, Utensils, Star, Shirt, Eye, Plus, Pencil,
+  Mail, Shield, Settings, MessageSquare, Bell, Phone, Globe, Activity, CalendarDays, AlertCircle, Info
+} from 'lucide-react';
+import {
+  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import {
+  Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue
+} from '@/components/ui/select';
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader,
+  DialogTitle, DialogTrigger, DialogClose
+} from '@/components/ui/dialog';
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+} from '@/components/ui/table';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart,
+  ResponsiveContainer, Tooltip, XAxis, YAxis
+} from 'recharts';
+import { toast } from '@/hooks/use-toast';
+
+// Types
+import { AdminDashboardData, UserProfile } from '@/lib/types/auth';
+import { apiService, transformApiData } from '@/lib/api';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const getStatusColor = () => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800 hover:bg-green-200';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
+      case 'suspended':
+        return 'bg-orange-100 text-orange-800 hover:bg-orange-200';
+      case 'banned':
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+    }
+  };
+
+  return (
+    <Badge variant="outline" className={getStatusColor()}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </Badge>
+  );
+};
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();

@@ -66,6 +66,7 @@ export function RegionModal({ isOpen, onClose, mode, region, onSuccess }: Region
     latitude: 0,
     longitude: 0,
     imageUrls: [] as string[],
+    images: [] as File[],
   });
 
   useEffect(() => {
@@ -99,6 +100,7 @@ export function RegionModal({ isOpen, onClose, mode, region, onSuccess }: Region
         latitude: region.latitude || 0,
         longitude: region.longitude || 0,
         imageUrls: region.imageUrls || [],
+        images: [],
       });
     } else if (mode === 'create') {
       setFormData({
@@ -130,6 +132,7 @@ export function RegionModal({ isOpen, onClose, mode, region, onSuccess }: Region
         latitude: 0,
         longitude: 0,
         imageUrls: [],
+        images: [],
       });
     }
   }, [region, mode]);
@@ -139,14 +142,40 @@ export function RegionModal({ isOpen, onClose, mode, region, onSuccess }: Region
     setIsLoading(true);
 
     try {
+      // Process image files if any are selected
+      const processedFormData = { ...formData };
+      
+      if (formData.images && formData.images.length > 0 && formData.images[0] instanceof File) {
+        // Upload images to server
+        const formDataToUpload = new FormData();
+        formData.images.forEach((file) => {
+          formDataToUpload.append('images', file);
+        });
+
+        const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/upload`, {
+          method: 'POST',
+          body: formDataToUpload,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload images');
+        }
+
+        const uploadResult = await uploadResponse.json();
+        const uploadedImageUrls = uploadResult.files.map((file: any) => file.path);
+        
+        // Combine existing imageUrls with new ones
+        processedFormData.imageUrls = [...(formData.imageUrls || []), ...uploadedImageUrls];
+      }
+
       if (mode === 'create') {
-        await apiService.createRegion(formData);
+        await apiService.createRegion(processedFormData);
         toast({
           title: t('crud.success'),
           description: t('crud.regionCreated'),
         });
       } else if (mode === 'edit' && region) {
-        await apiService.updateRegion(region.id, formData);
+        await apiService.updateRegion(region.id, processedFormData);
         toast({
           title: t('crud.success'),
           description: t('crud.regionUpdated'),
@@ -155,6 +184,7 @@ export function RegionModal({ isOpen, onClose, mode, region, onSuccess }: Region
       onSuccess();
       onClose();
     } catch (error) {
+      console.error('Error in handleSubmit:', error);
       toast({
         title: t('crud.error'),
         description: t('crud.operationFailed'),
@@ -303,6 +333,47 @@ export function RegionModal({ isOpen, onClose, mode, region, onSuccess }: Region
                 onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) || 0 })}
               />
             </div>
+          </div>
+
+          {/* Image Upload Section */}
+          <div className="space-y-2">
+            <Label htmlFor="images">Images</Label>
+            <Input
+              id="images"
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(e) => {
+                const files = e.target.files;
+                if (files) {
+                  setFormData({ ...formData, images: Array.from(files) });
+                }
+              }}
+            />
+            {formData.images && formData.images.length > 0 && (
+              <div className="mt-2">
+                <p className="text-sm text-gray-600 mb-2">Selected images:</p>
+                <div className="flex flex-wrap gap-2">
+                  {formData.images.map((file, index) => (
+                    <div key={index} className="text-xs text-gray-500">
+                      {file instanceof File ? file.name : 'Image ' + (index + 1)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {formData.imageUrls && formData.imageUrls.length > 0 && (
+              <div className="mt-2">
+                <p className="text-sm text-gray-600 mb-2">Existing images:</p>
+                <div className="flex flex-wrap gap-2">
+                  {formData.imageUrls.map((url, index) => (
+                    <div key={index} className="text-xs text-gray-500">
+                      Image {index + 1}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>

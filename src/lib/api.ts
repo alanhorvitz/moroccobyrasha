@@ -184,6 +184,20 @@ export const apiService = {
     return response.data;
   },
 
+  async createRegion(data: Partial<ApiRegion>): Promise<ApiRegion> {
+    const response = await api.post('/regions', data);
+    return response.data;
+  },
+
+  async updateRegion(id: string, data: Partial<ApiRegion>): Promise<ApiRegion> {
+    const response = await api.put(`/regions/${id}`, data);
+    return response.data;
+  },
+
+  async deleteRegion(id: string): Promise<void> {
+    await api.delete(`/regions/${id}`);
+  },
+
   // Attractions
   async getAttractions(): Promise<ApiAttraction[]> {
     const response = await api.get('/attractions');
@@ -193,6 +207,22 @@ export const apiService = {
   async getAttraction(id: string): Promise<ApiAttraction> {
     const response = await api.get(`/attractions/${id}`);
     return response.data;
+  },
+
+  async createAttraction(data: Partial<ApiAttraction>): Promise<ApiAttraction> {
+    console.log('Creating attraction with data:', data);
+    const response = await api.post('/attractions', data);
+    console.log('Create attraction response:', response.data);
+    return response.data;
+  },
+
+  async updateAttraction(id: string, data: Partial<ApiAttraction>): Promise<ApiAttraction> {
+    const response = await api.put(`/attractions/${id}`, data);
+    return response.data;
+  },
+
+  async deleteAttraction(id: string): Promise<void> {
+    await api.delete(`/attractions/${id}`);
   },
 
   // Festivals
@@ -206,6 +236,27 @@ export const apiService = {
     return response.data;
   },
 
+  async createFestival(data: Partial<ApiFestival>): Promise<ApiFestival> {
+    console.log('Creating festival with data:', data);
+    try {
+      const response = await api.post('/festivals', data);
+      console.log('Create festival response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Festival creation error:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  async updateFestival(id: string, data: Partial<ApiFestival>): Promise<ApiFestival> {
+    const response = await api.put(`/festivals/${id}`, data);
+    return response.data;
+  },
+
+  async deleteFestival(id: string): Promise<void> {
+    await api.delete(`/festivals/${id}`);
+  },
+
   // Cuisines
   async getCuisines(): Promise<ApiCuisine[]> {
     const response = await api.get('/cuisines');
@@ -215,6 +266,27 @@ export const apiService = {
   async getCuisine(id: string): Promise<ApiCuisine> {
     const response = await api.get(`/cuisines/${id}`);
     return response.data;
+  },
+
+  async createCuisine(data: Partial<ApiCuisine>): Promise<ApiCuisine> {
+    console.log('Creating cuisine with data:', data);
+    try {
+      const response = await api.post('/cuisines', data);
+      console.log('Create cuisine response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Cuisine creation error:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  async updateCuisine(id: string, data: Partial<ApiCuisine>): Promise<ApiCuisine> {
+    const response = await api.put(`/cuisines/${id}`, data);
+    return response.data;
+  },
+
+  async deleteCuisine(id: string): Promise<void> {
+    await api.delete(`/cuisines/${id}`);
   },
 
   // Heritage
@@ -228,6 +300,27 @@ export const apiService = {
     return response.data;
   },
 
+  async createHeritage(data: Partial<ApiHeritage>): Promise<ApiHeritage> {
+    console.log('Creating heritage with data:', data);
+    try {
+      const response = await api.post('/heritages', data);
+      console.log('Create heritage response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Heritage creation error:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  async updateHeritage(id: string, data: Partial<ApiHeritage>): Promise<ApiHeritage> {
+    const response = await api.put(`/heritages/${id}`, data);
+    return response.data;
+  },
+
+  async deleteHeritage(id: string): Promise<void> {
+    await api.delete(`/heritages/${id}`);
+  },
+
   // Clothing
   async getClothing(): Promise<ApiClothing[]> {
     const response = await api.get('/clothing');
@@ -239,6 +332,27 @@ export const apiService = {
     return response.data;
   },
 
+  async createClothing(data: Partial<ApiClothing>): Promise<ApiClothing> {
+    console.log('Creating clothing with data:', data);
+    try {
+      const response = await api.post('/clothing', data);
+      console.log('Create clothing response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Clothing creation error:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  async updateClothing(id: string, data: Partial<ApiClothing>): Promise<ApiClothing> {
+    const response = await api.put(`/clothing/${id}`, data);
+    return response.data;
+  },
+
+  async deleteClothing(id: string): Promise<void> {
+    await api.delete(`/clothing/${id}`);
+  },
+
   // Tour Packages
   async getTourPackages(): Promise<ApiTourPackage[]> {
     const response = await api.get('/tour-packages');
@@ -248,6 +362,20 @@ export const apiService = {
   async getTourPackage(id: string): Promise<ApiTourPackage> {
     const response = await api.get(`/tour-packages/${id}`);
     return response.data;
+  },
+
+  async createTourPackage(data: Partial<ApiTourPackage>): Promise<ApiTourPackage> {
+    const response = await api.post('/tour-packages', data);
+    return response.data;
+  },
+
+  async updateTourPackage(id: string, data: Partial<ApiTourPackage>): Promise<ApiTourPackage> {
+    const response = await api.put(`/tour-packages/${id}`, data);
+    return response.data;
+  },
+
+  async deleteTourPackage(id: string): Promise<void> {
+    await api.delete(`/tour-packages/${id}`);
   },
 
   // Health check

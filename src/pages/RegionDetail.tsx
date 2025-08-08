@@ -78,7 +78,18 @@ export default function RegionDetail() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-96 bg-gradient-to-r from-emerald-600 to-emerald-400">
+      <section className="relative h-96 bg-gradient-to-r from-emerald-600 to-emerald-400 overflow-hidden">
+        {/* Region background image from database */}
+        {region.imageUrl ? (
+          <img 
+            src={region.imageUrl} 
+            alt={region.name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        ) : null}
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="absolute inset-0 flex items-center">
           <div className="container mx-auto px-4">
@@ -156,7 +167,18 @@ export default function RegionDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {regionAttractions.map((attraction) => (
                     <Card key={attraction.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                      <div className="relative h-48 bg-slate-200">
+                      <div className="relative h-48 bg-slate-200 overflow-hidden">
+                        {/* Attraction image from database */}
+                        {attraction.images && attraction.images.length > 0 ? (
+                          <img 
+                            src={attraction.images[0]} 
+                            alt={attraction.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        ) : null}
                         <div className={`absolute top-4 ${isRTL ? 'right-4' : 'left-4'}`}>
                           <Badge className="bg-emerald-600 hover:bg-emerald-700">{attraction.type}</Badge>
                         </div>

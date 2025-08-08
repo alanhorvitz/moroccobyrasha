@@ -862,12 +862,8 @@ const AdminDashboard: React.FC = () => {
   const fetchRegions = async () => {
     setLoadingRegions(true);
     try {
-      const response = await EnhancedAuthAPI.getRegions();
-      if (response.success && response.data) {
-        setRegions(response.data);
-      } else {
-        setError('Failed to load regions');
-      }
+      const regions = await apiService.getRegions();
+      setRegions(regions);
     } catch (err) {
       setError('An error occurred while fetching regions');
     } finally {
@@ -878,36 +874,34 @@ const AdminDashboard: React.FC = () => {
   const handleEditRegion = (region) => {
     setEditingRegion(region);
     setRegionForm({
-      name_en: region.name_en || region.name || '',
+      name_en: region.name_en || '',
       name_ar: region.name_ar || '',
       name_fr: region.name_fr || '',
       name_it: region.name_it || '',
       name_es: region.name_es || '',
-      description_en: region.description_en || region.description || '',
+      description_en: region.description_en || '',
       description_ar: region.description_ar || '',
       description_fr: region.description_fr || '',
       description_it: region.description_it || '',
       description_es: region.description_es || '',
-      climate_en: region.climate_en || region.climate || '',
+      climate_en: region.climate_en || '',
       climate_ar: region.climate_ar || '',
       climate_fr: region.climate_fr || '',
       climate_it: region.climate_it || '',
       climate_es: region.climate_es || '',
-      bestTimeToVisit_en: region.bestTimeToVisit_en || region.bestTimeToVisit || '',
+      bestTimeToVisit_en: region.bestTimeToVisit_en || '',
       bestTimeToVisit_ar: region.bestTimeToVisit_ar || '',
       bestTimeToVisit_fr: region.bestTimeToVisit_fr || '',
       bestTimeToVisit_it: region.bestTimeToVisit_it || '',
       bestTimeToVisit_es: region.bestTimeToVisit_es || '',
-      keyFacts_en: region.keyFacts_en || region.keyFacts || '',
+      keyFacts_en: region.keyFacts_en || '',
       keyFacts_ar: region.keyFacts_ar || '',
       keyFacts_fr: region.keyFacts_fr || '',
       keyFacts_it: region.keyFacts_it || '',
       keyFacts_es: region.keyFacts_es || '',
-      capital: region.capital || '',
-      population: region.population || '',
-      latitude: region.latitude || '',
-      longitude: region.longitude || '',
-      images: region.images || []
+      latitude: region.latitude || 0,
+      longitude: region.longitude || 0,
+      imageUrls: region.imageUrls || []
     });
     setShowRegionForm(true);
   };
@@ -939,11 +933,9 @@ const AdminDashboard: React.FC = () => {
       keyFacts_fr: '',
       keyFacts_it: '',
       keyFacts_es: '',
-      capital: '',
-      population: '',
-      latitude: '',
-      longitude: '',
-      images: []
+      latitude: 0,
+      longitude: 0,
+      imageUrls: []
     });
     setEditingRegion(null);
     setShowRegionForm(true);
@@ -952,69 +944,8 @@ const AdminDashboard: React.FC = () => {
   const handleDeleteRegion = async (id) => {
     setActionInProgress(id);
     try {
-      const response = await EnhancedAuthAPI.deleteRegion(id);
-      if (response.success) {
-        setRegions(regions.filter(region => region.id !== id));
-        setEditingRegion(null);
-        setRegionForm({
-          name_en: '',
-          name_ar: '',
-          name_fr: '',
-          name_it: '',
-          name_es: '',
-          description_en: '',
-          description_ar: '',
-          description_fr: '',
-          description_it: '',
-          description_es: '',
-          climate_en: '',
-          climate_ar: '',
-          climate_fr: '',
-          climate_it: '',
-          climate_es: '',
-          bestTimeToVisit_en: '',
-          bestTimeToVisit_ar: '',
-          bestTimeToVisit_fr: '',
-          bestTimeToVisit_it: '',
-          bestTimeToVisit_es: '',
-          keyFacts_en: '',
-          keyFacts_ar: '',
-          keyFacts_fr: '',
-          keyFacts_it: '',
-          keyFacts_es: '',
-          capital: '',
-          population: '',
-          latitude: '',
-          longitude: '',
-          images: []
-        });
-      } else {
-        setError(`Failed to delete region: ${response.message}`);
-      }
-    } catch (err) {
-      setError('An error occurred while deleting region');
-    } finally {
-      setActionInProgress(null);
-    }
-  };
-
-  const handleRegionFormChange = (e) => {
-    setRegionForm({ ...regionForm, [e.target.name]: e.target.value });
-  };
-
-  const handleRegionFormSubmit = async (e) => {
-    e.preventDefault();
-    setActionInProgress(editingRegion ? editingRegion.id : 'new');
-    try {
-      let response;
-      if (editingRegion) {
-        response = await EnhancedAuthAPI.updateRegion(editingRegion.id, regionForm);
-      } else {
-        response = await EnhancedAuthAPI.createRegion(regionForm);
-      }
-      
-      if (response.success) {
-        setShowRegionForm(false);
+      await apiService.deleteRegion(id);
+      setRegions(regions.filter(region => region.id !== id));
       setEditingRegion(null);
       setRegionForm({
         name_en: '',
@@ -1042,25 +973,103 @@ const AdminDashboard: React.FC = () => {
         keyFacts_fr: '',
         keyFacts_it: '',
         keyFacts_es: '',
-        capital: '',
-        population: '',
-        latitude: '',
-        longitude: '',
-        images: []
+        latitude: 0,
+        longitude: 0,
+        imageUrls: []
+      });
+      toast({ 
+        title: 'Success', 
+        description: 'Region deleted successfully!', 
+        variant: 'default' 
+      });
+    } catch (err) {
+      console.error('Region delete error:', err);
+      toast({ 
+        title: 'Error', 
+        description: 'An error occurred while deleting region', 
+        variant: 'destructive' 
+      });
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
+  const handleRegionFormChange = (e) => {
+    const { name, value, files } = e.target;
+    
+    if (name === 'imageUrls' && files) {
+      // Handle file input
+      const fileArray = Array.from(files);
+      setRegionForm({ ...regionForm, [name]: fileArray });
+    } else {
+      // Handle regular input fields
+      setRegionForm({ ...regionForm, [name]: value });
+    }
+  };
+
+  const handleRegionFormSubmit = async (e) => {
+    e.preventDefault();
+    setActionInProgress(editingRegion ? editingRegion.id : 'new');
+    try {
+      // Convert files to URLs if they exist
+      let formData = { ...regionForm };
+      if (regionForm.imageUrls && regionForm.imageUrls.length > 0 && regionForm.imageUrls[0] instanceof File) {
+        const imageUrls = [];
+        for (const file of regionForm.imageUrls) {
+          const reader = new FileReader();
+          const url = await new Promise((resolve) => {
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(file);
+          });
+          imageUrls.push(url);
+        }
+        formData.imageUrls = imageUrls;
+      }
+
+      if (editingRegion) {
+        await apiService.updateRegion(editingRegion.id, formData);
+      } else {
+        await apiService.createRegion(formData);
+      }
+      
+      setShowRegionForm(false);
+      setEditingRegion(null);
+      setRegionForm({
+        name_en: '',
+        name_ar: '',
+        name_fr: '',
+        name_it: '',
+        name_es: '',
+        description_en: '',
+        description_ar: '',
+        description_fr: '',
+        description_it: '',
+        description_es: '',
+        climate_en: '',
+        climate_ar: '',
+        climate_fr: '',
+        climate_it: '',
+        climate_es: '',
+        bestTimeToVisit_en: '',
+        bestTimeToVisit_ar: '',
+        bestTimeToVisit_fr: '',
+        bestTimeToVisit_it: '',
+        bestTimeToVisit_es: '',
+        keyFacts_en: '',
+        keyFacts_ar: '',
+        keyFacts_fr: '',
+        keyFacts_it: '',
+        keyFacts_es: '',
+        latitude: 0,
+        longitude: 0,
+        imageUrls: []
       });
       fetchRegions();
-        toast({ 
-          title: 'Success', 
-          description: `Region ${editingRegion ? 'updated' : 'created'} successfully!`, 
-          variant: 'default' 
-        });
-      } else {
-        toast({ 
-          title: 'Error', 
-          description: response.message || 'Failed to save region', 
-          variant: 'destructive' 
-        });
-      }
+      toast({ 
+        title: 'Success', 
+        description: `Region ${editingRegion ? 'updated' : 'created'} successfully!`, 
+        variant: 'default' 
+      });
     } catch (err) {
       console.error('Region save error:', err);
       toast({ 
@@ -1831,8 +1840,8 @@ const AdminDashboard: React.FC = () => {
                 <TableHeader>
                         <TableRow className="bg-gray-50">
                           <TableHead className="font-semibold">Name</TableHead>
-                          <TableHead className="font-semibold">Capital</TableHead>
-                          <TableHead className="font-semibold">Population</TableHead>
+  
+                          
                           <TableHead className="font-semibold text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1860,8 +1869,7 @@ const AdminDashboard: React.FC = () => {
                       ) : regions.map(region => (
                           <TableRow key={region.id} className="hover:bg-gray-50">
                             <TableCell className="font-medium">{region.name_en || region.name}</TableCell>
-                            <TableCell>{region.capital || 'N/A'}</TableCell>
-                            <TableCell>{region.population || 'N/A'}</TableCell>
+
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-2">
                                 <Button 
@@ -1945,27 +1953,7 @@ const AdminDashboard: React.FC = () => {
                                 className="w-full"
                               />
                         </div>
-                            <div>
-                              <label className="text-sm font-medium text-gray-700 mb-1 block">Capital</label>
-                              <Input 
-                                name="capital" 
-                                value={regionForm.capital || ''} 
-                                onChange={handleRegionFormChange} 
-                                placeholder="Capital city" 
-                                className="w-full"
-                              />
-                        </div>
-                            <div>
-                              <label className="text-sm font-medium text-gray-700 mb-1 block">Population</label>
-                              <Input 
-                                name="population" 
-                                value={regionForm.population || ''} 
-                                onChange={handleRegionFormChange} 
-                                placeholder="Population count" 
-                                type="number"
-                                className="w-full"
-                              />
-                      </div>
+
                           </div>
                         </div>
 
@@ -2075,12 +2063,24 @@ const AdminDashboard: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <input 
                               type="file" 
-                              name="images" 
+                              name="imageUrls" 
                               multiple 
                               accept="image/*" 
                               onChange={handleRegionFormChange}
                               className="text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
                             />
+                            {regionForm.imageUrls && regionForm.imageUrls.length > 0 && (
+                              <div className="mt-2">
+                                <p className="text-sm text-gray-600 mb-2">Selected images:</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {regionForm.imageUrls.map((file, index) => (
+                                    <div key={index} className="text-xs text-gray-500">
+                                      {file instanceof File ? file.name : 'Image ' + (index + 1)}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                           <div className="flex gap-3">
                             <Button 

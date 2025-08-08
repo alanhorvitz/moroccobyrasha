@@ -240,14 +240,14 @@ export default function ServicesPage() {
               <div>
                 <label className="text-sm font-medium mb-2 block">Minimum Capacity:</label>
                 <Select 
-                  value={selectedCapacity?.toString() || ""} 
-                  onValueChange={(value) => setSelectedCapacity(value ? parseInt(value) : null)}
+                  value={selectedCapacity?.toString() || "any"} 
+                  onValueChange={(value) => setSelectedCapacity(value === "any" ? null : parseInt(value))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Any Capacity" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Any Capacity</SelectItem>
+                    <SelectItem value="any">Any Capacity</SelectItem>
                     <SelectItem value="2">2+ passengers</SelectItem>
                     <SelectItem value="4">4+ passengers</SelectItem>
                     <SelectItem value="6">6+ passengers</SelectItem>

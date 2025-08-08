@@ -95,6 +95,87 @@ export const en = {
     shall: 'shall',
   },
 
+  // CRUD Operations
+  crud: {
+    create: 'Create',
+    update: 'Update',
+    delete: 'Delete',
+    edit: 'Edit',
+    save: 'Save',
+    saving: 'Saving...',
+    deleting: 'Deleting...',
+    cancel: 'Cancel',
+    success: 'Success',
+    error: 'Error',
+    operationFailed: 'Operation failed. Please try again.',
+    
+    // Region CRUD
+    createRegion: 'Create Region',
+    editRegion: 'Edit Region',
+    deleteRegion: 'Delete Region',
+    createRegionDesc: 'Add a new region to the platform',
+    editRegionDesc: 'Modify region information',
+    deleteRegionConfirm: 'Are you sure you want to delete "{name}"?',
+    regionCreated: 'Region created successfully',
+    regionUpdated: 'Region updated successfully',
+    regionDeleted: 'Region deleted successfully',
+    
+    // Attraction CRUD
+    createAttraction: 'Create Attraction',
+    editAttraction: 'Edit Attraction',
+    deleteAttraction: 'Delete Attraction',
+    createAttractionDesc: 'Add a new attraction to the platform',
+    editAttractionDesc: 'Modify attraction information',
+    deleteAttractionConfirm: 'Are you sure you want to delete "{name}"?',
+    attractionCreated: 'Attraction created successfully',
+    attractionUpdated: 'Attraction updated successfully',
+    attractionDeleted: 'Attraction deleted successfully',
+    
+    // Festival CRUD
+    createFestival: 'Create Festival',
+    editFestival: 'Edit Festival',
+    deleteFestival: 'Delete Festival',
+    createFestivalDesc: 'Add a new festival to the platform',
+    editFestivalDesc: 'Modify festival information',
+    deleteFestivalConfirm: 'Are you sure you want to delete "{name}"?',
+    festivalCreated: 'Festival created successfully',
+    festivalUpdated: 'Festival updated successfully',
+    festivalDeleted: 'Festival deleted successfully',
+    
+    // Cuisine CRUD
+    createCuisine: 'Create Cuisine',
+    editCuisine: 'Edit Cuisine',
+    deleteCuisine: 'Delete Cuisine',
+    createCuisineDesc: 'Add a new cuisine to the platform',
+    editCuisineDesc: 'Modify cuisine information',
+    deleteCuisineConfirm: 'Are you sure you want to delete "{name}"?',
+    cuisineCreated: 'Cuisine created successfully',
+    cuisineUpdated: 'Cuisine updated successfully',
+    cuisineDeleted: 'Cuisine deleted successfully',
+    
+    // Heritage CRUD
+    createHeritage: 'Create Heritage',
+    editHeritage: 'Edit Heritage',
+    deleteHeritage: 'Delete Heritage',
+    createHeritageDesc: 'Add a new heritage item to the platform',
+    editHeritageDesc: 'Modify heritage information',
+    deleteHeritageConfirm: 'Are you sure you want to delete "{name}"?',
+    heritageCreated: 'Heritage created successfully',
+    heritageUpdated: 'Heritage updated successfully',
+    heritageDeleted: 'Heritage deleted successfully',
+    
+    // Clothing CRUD
+    createClothing: 'Create Clothing',
+    editClothing: 'Edit Clothing',
+    deleteClothing: 'Delete Clothing',
+    createClothingDesc: 'Add a new clothing item to the platform',
+    editClothingDesc: 'Modify clothing information',
+    deleteClothingConfirm: 'Are you sure you want to delete "{name}"?',
+    clothingCreated: 'Clothing created successfully',
+    clothingUpdated: 'Clothing updated successfully',
+    clothingDeleted: 'Clothing deleted successfully',
+  },
+
   // Home Page
   home: {
     heroTitle: 'Discover the Magic of Morocco',

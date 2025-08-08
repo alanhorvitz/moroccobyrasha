@@ -81,14 +81,25 @@ export default function HomePage() {
               <Link key={region.id} to={`/regions/${region.id}`}>
                 <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
                   <div className="relative h-48 bg-emerald-100 overflow-hidden">
-                    <img 
-                      src={region.imageUrl || `/images/${region.name.replace(/\s+/g, '')}.jpg`}
-                      alt={region.name}
-                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/images/morocco-default.jpg';
-                      }}
-                    />
+                    {region.imageUrl ? (
+                      <img 
+                        src={region.imageUrl}
+                        alt={region.name}
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/images/morocco-default.jpg';
+                        }}
+                      />
+                    ) : (
+                      <img 
+                        src={`/images/${region.name.replace(/\s+/g, '')}.jpg`}
+                        alt={region.name}
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/images/morocco-default.jpg';
+                        }}
+                      />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60"></div>
                     <div className="absolute bottom-0 p-4">
                       <h3 className="text-xl font-bold text-white drop-shadow-lg">{region.name}</h3>

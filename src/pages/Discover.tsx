@@ -69,6 +69,8 @@ export default function DiscoverPage() {
   const cuisineItems = apiCuisines?.map(cuisine => transformApiData.cuisine(cuisine, language)) || [];
   const festivalEvents = apiFestivals?.map(festival => transformApiData.festival(festival, language)) || [];
 
+
+
   // Use useMemo to compute filtered data instead of useState + useEffect
   const filteredRegions = useMemo(() => {
     if (!searchTerm) return regions;
@@ -213,6 +215,8 @@ export default function DiscoverPage() {
     setSelectedCuisineType(null);
     setSelectedFestivalType(null);
   };
+
+  // CRUD handlers - removed as requested
 
   // Loading states
   const isLoading = regionsLoading || attractionsLoading || heritagesLoading || 
@@ -404,10 +408,19 @@ export default function DiscoverPage() {
         
         {/* Regions Tab Content */}
         <TabsContent value="regions" className="pt-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold">{t('discover.tabs.regions')}</h2>
+          </div>
           {filteredRegions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredRegions.map((region) => (
-                <RegionCard key={region.id} region={region} attractions={attractions} t={t} isRTL={isRTL} />
+                <RegionCard 
+                  key={region.id} 
+                  region={region} 
+                  attractions={attractions} 
+                  t={t} 
+                  isRTL={isRTL}
+                />
               ))}
             </div>
           ) : (
@@ -475,10 +488,19 @@ export default function DiscoverPage() {
         
         {/* Attractions Tab Content */}
         <TabsContent value="attractions" className="pt-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold">{t('discover.tabs.attractions')}</h2>
+          </div>
           {filteredAttractions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredAttractions.map((attraction) => (
-                <AttractionCard key={attraction.id} attraction={attraction} regions={regions} t={t} isRTL={isRTL} />
+                <AttractionCard 
+                  key={attraction.id} 
+                  attraction={attraction} 
+                  regions={regions} 
+                  t={t} 
+                  isRTL={isRTL}
+                />
               ))}
             </div>
           ) : (
@@ -490,10 +512,19 @@ export default function DiscoverPage() {
         
         {/* Heritage Tab Content */}
         <TabsContent value="heritage" className="pt-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold">{t('discover.tabs.heritage')}</h2>
+          </div>
           {filteredHeritage.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredHeritage.map((heritage) => (
-                <HeritageCard key={heritage.id} heritage={heritage} regions={regions} t={t} isRTL={isRTL} />
+                <HeritageCard 
+                  key={heritage.id} 
+                  heritage={heritage} 
+                  regions={regions} 
+                  t={t} 
+                  isRTL={isRTL}
+                />
               ))}
             </div>
           ) : (
@@ -505,10 +536,18 @@ export default function DiscoverPage() {
         
         {/* Clothing Tab Content */}
         <TabsContent value="clothing" className="pt-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold">{t('discover.tabs.clothing')}</h2>
+          </div>
           {filteredClothing.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredClothing.map((clothing) => (
-                <ClothingCard key={clothing.id} clothing={clothing} t={t} isRTL={isRTL} />
+                <ClothingCard 
+                  key={clothing.id} 
+                  clothing={clothing} 
+                  t={t} 
+                  isRTL={isRTL}
+                />
               ))}
             </div>
           ) : (
@@ -520,10 +559,18 @@ export default function DiscoverPage() {
         
         {/* Cuisine Tab Content */}
         <TabsContent value="cuisine" className="pt-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold">{t('discover.tabs.cuisine')}</h2>
+          </div>
           {filteredCuisine.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredCuisine.map((cuisine) => (
-                <CuisineCard key={cuisine.id} cuisine={cuisine} t={t} isRTL={isRTL} />
+                <CuisineCard 
+                  key={cuisine.id} 
+                  cuisine={cuisine} 
+                  t={t} 
+                  isRTL={isRTL}
+                />
               ))}
             </div>
           ) : (
@@ -535,10 +582,19 @@ export default function DiscoverPage() {
         
         {/* Festivals Tab Content */}
         <TabsContent value="festivals" className="pt-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold">{t('discover.tabs.festivals')}</h2>
+          </div>
           {filteredFestivals.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredFestivals.map((festival) => (
-                <FestivalCard key={festival.id} festival={festival} regions={regions} t={t} isRTL={isRTL} />
+                <FestivalCard 
+                  key={festival.id} 
+                  festival={festival} 
+                  regions={regions} 
+                  t={t} 
+                  isRTL={isRTL}
+                />
               ))}
             </div>
           ) : (
@@ -548,18 +604,40 @@ export default function DiscoverPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* CRUD Modals - removed as requested */}
     </div>
   );
 }
 
 // Region Card Component
-const RegionCard = ({ region, attractions, t, isRTL }: { region: Region; attractions: Attraction[]; t: (key: string, params?: Record<string, string | number>) => string; isRTL: boolean }) => {
+const RegionCard = ({ 
+  region, 
+  attractions, 
+  t, 
+  isRTL
+}: { 
+  region: Region; 
+  attractions: Attraction[]; 
+  t: (key: string, params?: Record<string, string | number>) => string; 
+  isRTL: boolean;
+}) => {
   const regionAttractionsCount = attractions.filter(a => a.regionId === region.id).length;
   
   return (
     <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
-      <div className="relative h-48 bg-gradient-to-r from-emerald-600 to-emerald-400">
-        {/* Region image would go here in implementation */}
+      <div className="relative h-48 bg-gradient-to-r from-emerald-600 to-emerald-400 overflow-hidden">
+        {/* Region image from database */}
+        {region.imageUrl ? (
+          <img 
+            src={region.imageUrl} 
+            alt={region.name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50"></div>
         <div className="absolute bottom-0 p-4">
           <h3 className="text-xl font-bold text-white">{region.name}</h3>
@@ -583,13 +661,33 @@ const RegionCard = ({ region, attractions, t, isRTL }: { region: Region; attract
 };
 
 // Attraction Card Component
-const AttractionCard = ({ attraction, regions, t, isRTL }: { attraction: Attraction; regions: Region[]; t: (key: string, params?: Record<string, string | number>) => string; isRTL: boolean }) => {
+const AttractionCard = ({ 
+  attraction, 
+  regions, 
+  t, 
+  isRTL
+}: { 
+  attraction: Attraction; 
+  regions: Region[]; 
+  t: (key: string, params?: Record<string, string | number>) => string; 
+  isRTL: boolean;
+}) => {
   const region = regions.find(r => r.id === attraction.regionId);
   
   return (
     <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
-      <div className="relative h-48 bg-slate-200">
-        {/* Attraction image would go here in implementation */}
+      <div className="relative h-48 bg-slate-200 overflow-hidden">
+        {/* Attraction image from database */}
+        {attraction.images && attraction.images.length > 0 ? (
+          <img 
+            src={attraction.images[0]} 
+            alt={attraction.name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        ) : null}
         <div className={`absolute top-4 z-10 ${isRTL ? 'right-4' : 'left-4'}`}>
           <Badge className="bg-emerald-600 hover:bg-emerald-700">{attraction.type}</Badge>
         </div>
@@ -614,15 +712,35 @@ const AttractionCard = ({ attraction, regions, t, isRTL }: { attraction: Attract
 };
 
 // Heritage Card Component
-const HeritageCard = ({ heritage, regions, t, isRTL }: { heritage: HeritageItem; regions: Region[]; t: (key: string, params?: Record<string, string | number>) => string; isRTL: boolean }) => {
-  return (
+const HeritageCard = ({ 
+  heritage, 
+  regions, 
+  t, 
+  isRTL
+}: { 
+  heritage: HeritageItem; 
+  regions: Region[]; 
+  t: (key: string, params?: Record<string, string | number>) => string; 
+  isRTL: boolean;
+}) => {
+    return (
     <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
       <div className={`flex flex-col md:flex-row h-full ${isRTL ? 'rtl-flex-row' : ''}`}>
-        <div className="w-full md:w-2/5 h-60 md:h-auto bg-slate-200 relative">
-          {/* Heritage image would go here in implementation */}
+        <div className="w-full md:w-2/5 h-60 md:h-auto bg-slate-200 relative overflow-hidden">
+          {/* Heritage image from database */}
+          {heritage.images && heritage.images.length > 0 ? (
+            <img 
+              src={heritage.images[0]} 
+              alt={heritage.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : null}
           <div className={`absolute top-4 ${isRTL ? 'right-4' : 'left-4'}`}>
             <Badge variant="secondary" className="capitalize">
-              {heritage.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+              {heritage.type ? heritage.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Heritage'}
             </Badge>
           </div>
         </div>
@@ -630,17 +748,17 @@ const HeritageCard = ({ heritage, regions, t, isRTL }: { heritage: HeritageItem;
           <CardHeader>
             <CardTitle className="text-xl">{heritage.name}</CardTitle>
             <CardDescription>
-              {heritage.regionIds.map(regionId => {
+              {Array.isArray(heritage.regionIds) ? heritage.regionIds.map(regionId => {
                 const region = regions.find(r => r.id === regionId);
                 return region?.name;
-              }).filter(Boolean).join(', ')}
+              }).filter(Boolean).join(', ') : 'Multiple Regions'}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
             <p className="text-slate-600 line-clamp-4 mb-3">{heritage.description}</p>
             <div className="text-sm text-emerald-700">
               <p className="font-medium">{t('discover.cards.significance')}:</p>
-              <p className="line-clamp-2">{heritage.importance}</p>
+              <p className="line-clamp-2">{heritage.importance || 'Cultural significance'}</p>
             </div>
           </CardContent>
           <CardFooter>
@@ -657,12 +775,30 @@ const HeritageCard = ({ heritage, regions, t, isRTL }: { heritage: HeritageItem;
 };
 
 // Clothing Card Component
-const ClothingCard = ({ clothing, t, isRTL }: { clothing: ClothingItem; t: (key: string, params?: Record<string, string | number>) => string; isRTL: boolean }) => {
+const ClothingCard = ({ 
+  clothing, 
+  t, 
+  isRTL
+}: { 
+  clothing: ClothingItem; 
+  t: (key: string, params?: Record<string, string | number>) => string; 
+  isRTL: boolean;
+}) => {
   return (
     <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
       <div className={`flex flex-col md:flex-row h-full ${isRTL ? 'rtl-flex-row' : ''}`}>
-        <div className="w-full md:w-2/5 h-60 md:h-auto bg-slate-200 relative">
-          {/* Clothing image would go here in implementation */}
+        <div className="w-full md:w-2/5 h-60 md:h-auto bg-slate-200 relative overflow-hidden">
+          {/* Clothing image from database */}
+          {clothing.images && clothing.images.length > 0 ? (
+            <img 
+              src={clothing.images[0]} 
+              alt={clothing.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : null}
           <div className={`absolute top-4 ${isRTL ? 'right-4' : 'left-4'}`}>
             <Badge className="capitalize">
               {clothing.gender}
@@ -705,12 +841,30 @@ const ClothingCard = ({ clothing, t, isRTL }: { clothing: ClothingItem; t: (key:
 };
 
 // Cuisine Card Component
-const CuisineCard = ({ cuisine, t, isRTL }: { cuisine: CuisineItem; t: (key: string, params?: Record<string, string | number>) => string; isRTL: boolean }) => {
+const CuisineCard = ({ 
+  cuisine, 
+  t, 
+  isRTL
+}: { 
+  cuisine: CuisineItem; 
+  t: (key: string, params?: Record<string, string | number>) => string; 
+  isRTL: boolean;
+}) => {
   return (
     <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
       <div className={`flex flex-col md:flex-row h-full ${isRTL ? 'rtl-flex-row' : ''}`}>
-        <div className="w-full md:w-2/5 h-60 md:h-auto bg-slate-200 relative">
-          {/* Cuisine image would go here in implementation */}
+        <div className="w-full md:w-2/5 h-60 md:h-auto bg-slate-200 relative overflow-hidden">
+          {/* Cuisine image from database */}
+          {cuisine.images && cuisine.images.length > 0 ? (
+            <img 
+              src={cuisine.images[0]} 
+              alt={cuisine.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : null}
           <div className={`absolute top-4 ${isRTL ? 'right-4' : 'left-4'}`}>
             <Badge variant="secondary" className="capitalize">
               {cuisine.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
@@ -764,7 +918,17 @@ const CuisineCard = ({ cuisine, t, isRTL }: { cuisine: CuisineItem; t: (key: str
 };
 
 // Festival Card Component
-const FestivalCard = ({ festival, regions, t, isRTL }: { festival: FestivalEvent; regions: Region[]; t: (key: string, params?: Record<string, string | number>) => string; isRTL: boolean }) => {
+const FestivalCard = ({ 
+  festival, 
+  regions, 
+  t, 
+  isRTL
+}: { 
+  festival: FestivalEvent; 
+  regions: Region[]; 
+  t: (key: string, params?: Record<string, string | number>) => string; 
+  isRTL: boolean;
+}) => {
   const region = festival.regionId !== 'all' 
     ? regions.find(r => r.id === festival.regionId) 
     : null;
@@ -772,8 +936,18 @@ const FestivalCard = ({ festival, regions, t, isRTL }: { festival: FestivalEvent
   return (
     <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
       <div className={`flex flex-col md:flex-row h-full ${isRTL ? 'rtl-flex-row' : ''}`}>
-        <div className="w-full md:w-2/5 h-60 md:h-auto bg-slate-200 relative">
-          {/* Festival image would go here in implementation */}
+        <div className="w-full md:w-2/5 h-60 md:h-auto bg-slate-200 relative overflow-hidden">
+          {/* Festival image from database */}
+          {festival.images && festival.images.length > 0 ? (
+            <img 
+              src={festival.images[0]} 
+              alt={festival.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : null}
           <div className={`absolute top-4 ${isRTL ? 'right-4' : 'left-4'}`}>
             <Badge variant="secondary" className="capitalize">
               {festival.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}

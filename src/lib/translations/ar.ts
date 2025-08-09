@@ -93,6 +93,10 @@ export const ar = {
     might: 'ربما',
     must: 'يجب',
     shall: 'سوف',
+    resetFilters: 'إعادة تعيين التصفية',
+    region: 'المنطقة',
+    allRegions: 'كل المناطق',
+    min: 'د',
   },
 
   // Home Page
@@ -157,6 +161,23 @@ export const ar = {
     coastal: 'ساحلي',
     mountain: 'جبلي',
     city: 'مدينة',
+    virtualTours: 'الجولات الافتراضية',
+    searchTourPackages: 'ابحث في الباقات السياحية...',
+    searchTravelGuides: 'ابحث في أدلة السفر...',
+    searchVirtualTours: 'ابحث في الجولات الافتراضية...',
+    durationRange: 'المدة (أيام): {from} - {to}',
+    priceRange: 'نطاق السعر: {from} - {to}',
+    noTourPackages: 'لا توجد باقات سياحية تطابق معاييرك.',
+    noTravelGuides: 'لا توجد أدلة سفر تطابق معاييرك.',
+    noVirtualTours: 'لا توجد جولات افتراضية تطابق معاييرك.',
+    guideType: 'نوع الدليل',
+    guideTypes: {
+      general: 'عام',
+      specialized: 'متخصص',
+      thematic: 'موضوعي',
+    },
+    experience360: 'تجربة 360°',
+    startVirtualTour: 'ابدأ الجولة الافتراضية',
   },
 
   // Gallery
@@ -197,6 +218,7 @@ export const ar = {
     readTime: 'وقت القراءة',
     categories: 'الفئات',
     tags: 'العلامات',
+    readGuide: 'اقرأ الدليل',
   },
 
   // Marketplace

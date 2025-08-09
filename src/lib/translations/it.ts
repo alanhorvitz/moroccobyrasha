@@ -93,6 +93,10 @@ export const it = {
     might: 'potrebbe',
     must: 'deve',
     shall: 'dovrà',
+    resetFilters: 'Reimposta Filtri',
+    region: 'Regione',
+    allRegions: 'Tutte le Regioni',
+    min: 'min',
   },
 
   // Home Page
@@ -157,6 +161,23 @@ export const it = {
     coastal: 'Costiero',
     mountain: 'Montagna',
     city: 'Città',
+    virtualTours: 'Tour Virtuali',
+    searchTourPackages: 'Cerca pacchetti turistici...',
+    searchTravelGuides: 'Cerca guide di viaggio...',
+    searchVirtualTours: 'Cerca tour virtuali...',
+    durationRange: 'Durata (giorni): {from} - {to}',
+    priceRange: 'Fascia di prezzo: {from} - {to}',
+    noTourPackages: 'Nessun pacchetto turistico trovato che corrisponda ai tuoi criteri.',
+    noTravelGuides: 'Nessuna guida di viaggio trovata che corrisponda ai tuoi criteri.',
+    noVirtualTours: 'Nessun tour virtuale trovato che corrisponda ai tuoi criteri.',
+    guideType: 'Tipo di guida',
+    guideTypes: {
+      general: 'Generale',
+      specialized: 'Specializzato',
+      thematic: 'Tematico',
+    },
+    experience360: 'Esperienza 360°',
+    startVirtualTour: 'Avvia Tour Virtuale',
   },
 
   // Gallery
@@ -197,6 +218,7 @@ export const it = {
     readTime: 'Tempo di Lettura',
     categories: 'Categorie',
     tags: 'Tag',
+    readGuide: 'Leggi Guida',
   },
 
   // Marketplace

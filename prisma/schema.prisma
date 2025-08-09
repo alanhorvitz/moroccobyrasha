@@ -40,6 +40,11 @@ model Region {
   name_fr            String   @db.VarChar(255)
   name_it            String   @db.VarChar(255)
 
+  // Back-relations for join tables
+  tourPackageRegions      TourPackageRegion[]
+  guideRegions            GuideRegion[]
+  transportServiceRegions TransportServiceRegion[]
+
   @@map("regions")
 }
 
@@ -77,38 +82,52 @@ model Attraction {
 }
 
 model TourPackage {
-  id             String   @id @default(cuid())
-  duration       Int
-  price          Float
-  currency       String   @default("MAD") @db.VarChar(10)
-  imageUrls      String   @db.LongText
-  included       String   @db.LongText
-  excluded       String   @db.LongText
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  description_ar String?  @db.Text
-  description_en String?  @db.Text
-  description_es String?  @db.Text
-  description_fr String?  @db.Text
-  description_it String?  @db.Text
-  difficulty_ar  String?  @db.VarChar(50)
-  difficulty_en  String?  @db.VarChar(50)
-  difficulty_es  String?  @db.VarChar(50)
-  difficulty_fr  String?  @db.VarChar(50)
-  difficulty_it  String?  @db.VarChar(50)
-  title_ar       String   @db.VarChar(255)
-  title_en       String   @db.VarChar(255)
-  title_es       String   @db.VarChar(255)
-  title_fr       String   @db.VarChar(255)
-  title_it       String   @db.VarChar(255)
+  id              String   @id @default(cuid())
+  duration        Int
+  price           Float
+  currency        String   @default("MAD") @db.VarChar(10)
+  imageUrls       String   @db.LongText
+  included        String   @db.LongText
+  excluded        String   @db.LongText
+  regionId        String
+  maxParticipants Int?
+  featured        Boolean  @default(false)
+  rating          Float?   @default(0)
+  reviewCount     Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  description_ar  String?  @db.Text
+  description_en  String?  @db.Text
+  description_es  String?  @db.Text
+  description_fr  String?  @db.Text
+  description_it  String?  @db.Text
+  difficulty_ar   String?  @db.VarChar(50)
+  difficulty_en   String?  @db.VarChar(50)
+  difficulty_es   String?  @db.VarChar(50)
+  difficulty_fr   String?  @db.VarChar(50)
+  difficulty_it   String?  @db.VarChar(50)
+  title_ar        String   @db.VarChar(255)
+  title_en        String   @db.VarChar(255)
+  title_es        String   @db.VarChar(255)
+  title_fr        String   @db.VarChar(255)
+  title_it        String   @db.VarChar(255)
 
+  // Relationships
+  itinerary       Itinerary?
+  regions         TourPackageRegion[]
+
+  @@index([regionId], map: "tour_packages_regionId_fkey")
   @@map("tour_packages")
 }
 
 model TourPackageRegion {
-  id            String @id @default(cuid())
+  id            String      @id @default(cuid())
   tourPackageId String
   regionId      String
+
+  // Relations
+  tourPackage   TourPackage @relation(fields: [tourPackageId], references: [id])
+  region        Region      @relation(fields: [regionId], references: [id])
 
   @@unique([tourPackageId, regionId])
   @@index([regionId], map: "tour_package_regions_regionId_fkey")
@@ -116,27 +135,36 @@ model TourPackageRegion {
 }
 
 model Itinerary {
-  id            String @id @default(cuid())
-  tourPackageId String @unique
+  id            String        @id @default(cuid())
+  tourPackageId String        @unique
+
+  // Relations
+  tourPackage   TourPackage   @relation(fields: [tourPackageId], references: [id])
+  days          ItineraryDay[]
 
   @@map("itineraries")
 }
 
 model ItineraryDay {
-  id             String  @id @default(cuid())
+  id             String         @id @default(cuid())
   itineraryId    String
   dayNumber      Int
-  activities     String  @db.LongText
-  description_ar String? @db.Text
-  description_en String? @db.Text
-  description_es String? @db.Text
-  description_fr String? @db.Text
-  description_it String? @db.Text
-  title_ar       String? @db.VarChar(255)
-  title_en       String? @db.VarChar(255)
-  title_es       String? @db.VarChar(255)
-  title_fr       String? @db.VarChar(255)
-  title_it       String? @db.VarChar(255)
+  activities     String         @db.LongText
+  description_ar String?        @db.Text
+  description_en String?        @db.Text
+  description_es String?        @db.Text
+  description_fr String?        @db.Text
+  description_it String?        @db.Text
+  title_ar       String?        @db.VarChar(255)
+  title_en       String?        @db.VarChar(255)
+  title_es       String?        @db.VarChar(255)
+  title_fr       String?        @db.VarChar(255)
+  title_it       String?        @db.VarChar(255)
+
+  // Relations
+  itinerary      Itinerary      @relation(fields: [itineraryId], references: [id])
+  accommodation  Accommodation?
+  meals          Meal[]
 
   @@unique([itineraryId, dayNumber])
   @@map("itinerary_days")
@@ -163,6 +191,9 @@ model Accommodation {
   type_fr        String? @db.VarChar(100)
   type_it        String? @db.VarChar(100)
 
+  // Relations
+  itineraryDay   ItineraryDay @relation(fields: [itineraryDayId], references: [id])
+
   @@map("accommodations")
 }
 
@@ -176,6 +207,9 @@ model Meal {
   description_es String? @db.Text
   description_fr String? @db.Text
   description_it String? @db.Text
+
+  // Relations
+  itineraryDay   ItineraryDay @relation(fields: [itineraryDayId], references: [id])
 
   @@index([itineraryDayId], map: "meals_itineraryDayId_fkey")
   @@map("meals")
@@ -256,6 +290,9 @@ model Guide {
   email             String?  @db.VarChar(255)
   phone             String?  @db.VarChar(50)
   website           String?  @db.VarChar(500)
+  rating            Float?   @default(0)
+  reviewCount       Int      @default(0)
+  available         Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   availability      String?  @db.LongText
@@ -270,6 +307,9 @@ model Guide {
   name_fr           String   @db.VarChar(255)
   name_it           String   @db.VarChar(255)
 
+  // Relationships
+  regions           GuideRegion[]
+
   @@map("guides")
 }
 
@@ -278,6 +318,10 @@ model GuideRegion {
   guideId  String
   regionId String
 
+  // Relations
+  guide    Guide  @relation(fields: [guideId], references: [id])
+  region   Region @relation(fields: [regionId], references: [id])
+
   @@unique([guideId, regionId])
   @@index([regionId], map: "guide_regions_regionId_fkey")
   @@map("guide_regions")
@@ -285,11 +329,13 @@ model GuideRegion {
 
 model TransportService {
   id              String   @id @default(cuid())
+  type            String   @db.VarChar(100)
   airportTransfer Boolean  @default(false)
   imageUrls       String   @db.LongText
   email           String?  @db.VarChar(255)
   phone           String?  @db.VarChar(50)
   website         String?  @db.VarChar(500)
+  available       Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   serviceArea     String?  @db.LongText
@@ -309,6 +355,10 @@ model TransportService {
   type_fr         String   @db.VarChar(100)
   type_it         String   @db.VarChar(100)
 
+  // Relationships
+  vehicleOptions  VehicleOption[]
+  regions         TransportServiceRegion[]
+
   @@map("transport_services")
 }
 
@@ -316,6 +366,10 @@ model TransportServiceRegion {
   id                 String @id @default(cuid())
   transportServiceId String
   regionId           String
+
+  // Relations
+  transportService   TransportService @relation(fields: [transportServiceId], references: [id])
+  region             Region           @relation(fields: [regionId], references: [id])
 
   @@unique([transportServiceId, regionId])
   @@index([regionId], map: "transport_service_regions_regionId_fkey")
@@ -331,6 +385,9 @@ model VehicleOption {
   currency           String @default("MAD") @db.VarChar(10)
   features           String @db.LongText
   imageUrls          String @db.LongText
+
+  // Relations
+  transportService   TransportService @relation(fields: [transportServiceId], references: [id])
 
   @@index([transportServiceId], map: "vehicle_options_transportServiceId_fkey")
   @@map("vehicle_options")
@@ -504,4 +561,36 @@ enum UserStatus {
   ACTIVE
   SUSPENDED
   BANNED
+}
+
+// New model for Travel Guides
+model TravelGuide {
+  id               String   @id @default(cuid())
+  regionIds        String   @db.LongText
+  author           String   @db.VarChar(255)
+  publishedDate    DateTime
+  type             String   @db.VarChar(100)
+  tags             String   @db.LongText
+  imageUrls        String   @db.LongText
+  featuredImageUrl String?  @db.VarChar(500)
+  videoUrl         String?  @db.VarChar(500)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  title_ar         String   @db.VarChar(255)
+  title_en         String   @db.VarChar(255)
+  title_es         String   @db.VarChar(255)
+  title_fr         String   @db.VarChar(255)
+  title_it         String   @db.VarChar(255)
+  description_ar   String?  @db.Text
+  description_en   String?  @db.Text
+  description_es   String?  @db.Text
+  description_fr   String?  @db.Text
+  description_it   String?  @db.Text
+  content_ar       String?  @db.LongText
+  content_en       String?  @db.LongText
+  content_es       String?  @db.LongText
+  content_fr       String?  @db.LongText
+  content_it       String?  @db.LongText
+
+  @@map("travel_guides")
 }

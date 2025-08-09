@@ -143,32 +143,86 @@ export interface ApiClothing {
 
 export interface ApiTourPackage {
   id: string;
-  title_en: string;
   title_ar: string;
+  title_en: string;
+  title_es: string;
   title_fr: string;
   title_it: string;
-  title_es: string;
-  description_en?: string;
   description_ar?: string;
+  description_en?: string;
+  description_es?: string;
   description_fr?: string;
   description_it?: string;
-  description_es?: string;
-  difficulty_en?: string;
   difficulty_ar?: string;
+  difficulty_en?: string;
+  difficulty_es?: string;
   difficulty_fr?: string;
   difficulty_it?: string;
-  difficulty_es?: string;
   duration: number;
   price: number;
   currency: string;
   imageUrls: string[];
   included: string[];
   excluded: string[];
+  regionId: string;
+  maxParticipants?: number;
+  featured: boolean;
+  rating?: number;
+  reviewCount: number;
   createdAt: string;
   updatedAt: string;
   regions?: any[];
-  itinerary?: any;
-  reviews?: any[];
+  itinerary?: {
+    id: string;
+    tourPackageId: string;
+    days: Array<{
+      id: string;
+      itineraryId: string;
+      dayNumber: number;
+      activities: string[];
+      title_en?: string | null;
+      title_ar?: string | null;
+      title_fr?: string | null;
+      title_it?: string | null;
+      title_es?: string | null;
+      description_en?: string | null;
+      description_ar?: string | null;
+      description_fr?: string | null;
+      description_it?: string | null;
+      description_es?: string | null;
+      accommodation?: any | null;
+      meals?: any[];
+    }>;
+  } | null;
+}
+
+export interface ApiTravelGuide {
+  id: string;
+  title_ar: string;
+  title_en: string;
+  title_es: string;
+  title_fr: string;
+  title_it: string;
+  description_ar?: string;
+  description_en?: string;
+  description_es?: string;
+  description_fr?: string;
+  description_it?: string;
+  regionIds: string[];
+  content_ar?: string;
+  content_en?: string;
+  content_es?: string;
+  content_fr?: string;
+  content_it?: string;
+  author: string;
+  publishedDate: string;
+  type: string;
+  tags: string[];
+  imageUrls: string[];
+  featuredImageUrl?: string;
+  videoUrl?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // API functions
@@ -180,7 +234,7 @@ export const apiService = {
       const response = await api.get('/regions');
       console.log('API response received:', response.status, response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('API call failed:', error);
       if (error.response) {
         console.error('Error response:', error.response.status, error.response.data);
@@ -258,7 +312,7 @@ export const apiService = {
       const response = await api.post('/festivals', data);
       console.log('Create festival response:', response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Festival creation error:', error.response?.data || error.message);
       throw error;
     }
@@ -290,7 +344,7 @@ export const apiService = {
       const response = await api.post('/cuisines', data);
       console.log('Create cuisine response:', response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Cuisine creation error:', error.response?.data || error.message);
       throw error;
     }
@@ -322,7 +376,7 @@ export const apiService = {
       const response = await api.post('/heritages', data);
       console.log('Create heritage response:', response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Heritage creation error:', error.response?.data || error.message);
       throw error;
     }
@@ -354,7 +408,7 @@ export const apiService = {
       const response = await api.post('/clothing', data);
       console.log('Create clothing response:', response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Clothing creation error:', error.response?.data || error.message);
       throw error;
     }
@@ -394,6 +448,22 @@ export const apiService = {
     await api.delete(`/tour-packages/${id}`);
   },
 
+  // Travel Guides
+  async getTravelGuides(): Promise<ApiTravelGuide[]> {
+    const response = await api.get('/travel-guides');
+    return response.data;
+  },
+
+  async getTravelGuide(id: string): Promise<ApiTravelGuide> {
+    const response = await api.get(`/travel-guides/${id}`);
+    return response.data;
+  },
+
+  async createTravelGuide(data: Partial<ApiTravelGuide>): Promise<ApiTravelGuide> {
+    const response = await api.post('/travel-guides', data);
+    return response.data;
+  },
+
   // Health check
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
     const response = await api.get('/health');
@@ -405,13 +475,10 @@ export const apiService = {
 export const transformApiData = {
   // Transform API region to frontend region format
   region(apiRegion: ApiRegion, language: string = 'en') {
-    // Helper function to get localized field
     const getLocalizedField = (baseField: string) => {
       const field = `${baseField}_${language}` as keyof ApiRegion;
       return (apiRegion[field] as string) || (apiRegion[`${baseField}_en` as keyof ApiRegion] as string) || '';
     };
-
-    // Extract capital from keyFacts if available
     const keyFacts = getLocalizedField('keyFacts');
     const capitalMatch = keyFacts.match(/Capital:\s*([^,]+)/);
     const capital = capitalMatch ? capitalMatch[1].trim() : getLocalizedField('name');
@@ -435,12 +502,12 @@ export const transformApiData = {
       nameFr: apiRegion.name_fr,
       capital: capital,
       description: getLocalizedField('description'),
-      population: '', // Not in API, would need to be added
+      population: '',
       attractions: apiRegion.attractions?.map(a => a.id) || [],
       bestTimeToVisit: getLocalizedField('bestTimeToVisit'),
       climate: getLocalizedField('climate'),
       coordinates: {
-        lat: apiRegion.latitude || 31.7917, // Default to Morocco center if no coordinates
+        lat: apiRegion.latitude || 31.7917,
         lng: apiRegion.longitude || -7.0926,
       },
       imageUrls,
@@ -450,7 +517,6 @@ export const transformApiData = {
 
   // Transform API attraction to frontend attraction format
   attraction(apiAttraction: ApiAttraction, language: string = 'en') {
-    // Helper function to get localized field
     const getLocalizedField = (baseField: string) => {
       const field = `${baseField}_${language}` as keyof ApiAttraction;
       return (apiAttraction[field] as string) || (apiAttraction[`${baseField}_en` as keyof ApiAttraction] as string) || '';
@@ -464,7 +530,7 @@ export const transformApiData = {
       type: (getLocalizedField('category') as any) || 'cultural',
       images: Array.isArray(apiAttraction.imageUrls) ? apiAttraction.imageUrls : [],
       location: {
-        lat: apiAttraction.latitude || 31.7917, // Default to Morocco center if no coordinates
+        lat: apiAttraction.latitude || 31.7917,
         lng: apiAttraction.longitude || -7.0926,
       },
     };
@@ -474,7 +540,7 @@ export const transformApiData = {
   festival(apiFestival: ApiFestival, language: string = 'en') {
     return {
       id: apiFestival.id,
-      name: apiFestival.name, // Note: Festival schema doesn't have multilingual fields yet
+      name: apiFestival.name,
       description: apiFestival.description || '',
       type: apiFestival.type,
       location: apiFestival.location,
@@ -492,7 +558,7 @@ export const transformApiData = {
   cuisine(apiCuisine: ApiCuisine, language: string = 'en') {
     return {
       id: apiCuisine.id,
-      name: apiCuisine.name, // Note: Cuisine schema doesn't have multilingual fields yet
+      name: apiCuisine.name,
       description: apiCuisine.description || '',
       type: apiCuisine.type,
       regionIds: Array.isArray(apiCuisine.regionIds) ? apiCuisine.regionIds : [],
@@ -508,7 +574,7 @@ export const transformApiData = {
   heritage(apiHeritage: ApiHeritage, language: string = 'en') {
     return {
       id: apiHeritage.id,
-      name: apiHeritage.name, // Note: Heritage schema doesn't have multilingual fields yet
+      name: apiHeritage.name,
       description: apiHeritage.description || '',
       type: apiHeritage.type,
       regionIds: Array.isArray(apiHeritage.regionIds) ? apiHeritage.regionIds : [],
@@ -522,7 +588,7 @@ export const transformApiData = {
   clothing(apiClothing: ApiClothing, language: string = 'en') {
     return {
       id: apiClothing.id,
-      name: apiClothing.name, // Note: Clothing schema doesn't have multilingual fields yet
+      name: apiClothing.name,
       description: apiClothing.description || '',
       gender: apiClothing.gender as any,
       regionIds: Array.isArray(apiClothing.regionIds) ? apiClothing.regionIds : [],
@@ -535,7 +601,6 @@ export const transformApiData = {
 
   // Transform API tour package to frontend tour package format
   tourPackage(apiTourPackage: ApiTourPackage, language: string = 'en') {
-    // Helper function to get localized field
     const getLocalizedField = (baseField: string) => {
       const field = `${baseField}_${language}` as keyof ApiTourPackage;
       return (apiTourPackage[field] as string) || (apiTourPackage[`${baseField}_en` as keyof ApiTourPackage] as string) || '';
@@ -545,16 +610,47 @@ export const transformApiData = {
       id: apiTourPackage.id,
       title: getLocalizedField('title'),
       description: getLocalizedField('description'),
-      difficulty: getLocalizedField('difficulty'),
+      regionId: apiTourPackage.regionId,
       duration: apiTourPackage.duration,
       price: apiTourPackage.price,
-      currency: apiTourPackage.currency,
-      imageUrls: Array.isArray(apiTourPackage.imageUrls) ? apiTourPackage.imageUrls : [],
-      included: Array.isArray(apiTourPackage.included) ? apiTourPackage.included : [],
-      excluded: Array.isArray(apiTourPackage.excluded) ? apiTourPackage.excluded : [],
-      regions: apiTourPackage.regions || [],
-      itinerary: apiTourPackage.itinerary || [],
-      reviews: apiTourPackage.reviews || [],
+      inclusions: Array.isArray(apiTourPackage.included) ? apiTourPackage.included : [],
+      exclusions: Array.isArray(apiTourPackage.excluded) ? apiTourPackage.excluded : [],
+      itinerary: Array.isArray(apiTourPackage.itinerary?.days)
+        ? apiTourPackage.itinerary!.days.map((d) => ({
+            day: d.dayNumber,
+            title: (d as any)[`title_${language}`] || (d as any).title_en || '',
+            description: (d as any)[`description_${language}`] || (d as any).description_en || '',
+            activities: Array.isArray(d.activities) ? (d.activities as any) : [],
+          }))
+        : [],
+      images: Array.isArray(apiTourPackage.imageUrls) ? apiTourPackage.imageUrls : [],
+      maxParticipants: apiTourPackage.maxParticipants || 0,
+      featured: apiTourPackage.featured,
+      rating: apiTourPackage.rating || 0,
+      reviewCount: apiTourPackage.reviewCount || 0,
+    };
+  },
+
+  // Transform API travel guide to frontend travel guide format
+  travelGuide(apiGuide: ApiTravelGuide, language: string = 'en') {
+    const getLocalizedField = (baseField: string) => {
+      const field = `${baseField}_${language}` as keyof ApiTravelGuide;
+      return (apiGuide[field] as string) || (apiGuide[`${baseField}_en` as keyof ApiTravelGuide] as string) || '';
+    };
+
+    return {
+      id: apiGuide.id,
+      title: getLocalizedField('title'),
+      description: getLocalizedField('description'),
+      regionIds: Array.isArray(apiGuide.regionIds) ? apiGuide.regionIds : [],
+      content: getLocalizedField('content'),
+      author: apiGuide.author,
+      publishedDate: apiGuide.publishedDate,
+      type: apiGuide.type as any,
+      tags: Array.isArray(apiGuide.tags) ? apiGuide.tags : [],
+      images: Array.isArray(apiGuide.imageUrls) ? apiGuide.imageUrls : [],
+      featuredImage: apiGuide.featuredImageUrl || '',
+      videoUrl: apiGuide.videoUrl,
     };
   },
 };

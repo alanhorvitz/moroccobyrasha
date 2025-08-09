@@ -24,6 +24,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiService, ApiRegion } from "@/lib/api";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQueryClient } from '@tanstack/react-query';
 
 interface RegionModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ interface RegionModalProps {
 export function RegionModal({ isOpen, onClose, mode, region, onSuccess }: RegionModalProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name_en: '',
@@ -144,45 +146,63 @@ export function RegionModal({ isOpen, onClose, mode, region, onSuccess }: Region
     try {
       // Process image files if any are selected
       const processedFormData = { ...formData };
-      
+      // Ensure imageUrls is always an array
+      processedFormData.imageUrls = Array.isArray(formData.imageUrls) ? formData.imageUrls : [];
       if (formData.images && formData.images.length > 0 && formData.images[0] instanceof File) {
         // Upload images to server
         const formDataToUpload = new FormData();
         formData.images.forEach((file) => {
           formDataToUpload.append('images', file);
         });
-
         const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/upload`, {
           method: 'POST',
           body: formDataToUpload,
         });
-
         if (!uploadResponse.ok) {
           throw new Error('Failed to upload images');
         }
-
         const uploadResult = await uploadResponse.json();
         const uploadedImageUrls = uploadResult.files.map((file: any) => file.path);
-        
         // Combine existing imageUrls with new ones
         processedFormData.imageUrls = [...(formData.imageUrls || []), ...uploadedImageUrls];
       }
-
+      let updateSuccess = false;
       if (mode === 'create') {
         await apiService.createRegion(processedFormData);
         toast({
           title: t('crud.success'),
           description: t('crud.regionCreated'),
         });
+        updateSuccess = true;
       } else if (mode === 'edit' && region) {
-        await apiService.updateRegion(region.id, processedFormData);
-        toast({
-          title: t('crud.success'),
-          description: t('crud.regionUpdated'),
-        });
+        try {
+          await apiService.updateRegion(region.id, processedFormData);
+          toast({
+            title: t('crud.success'),
+            description: t('crud.regionUpdated'),
+          });
+          updateSuccess = true;
+        } catch (err: any) {
+          // Try to show backend error
+          let errorMsg = t('crud.operationFailed');
+          if (err && err.response && err.response.data && err.response.data.error) {
+            errorMsg = err.response.data.error;
+          } else if (err && err.message) {
+            errorMsg = err.message;
+          }
+          toast({
+            title: t('crud.error'),
+            description: errorMsg,
+            variant: 'destructive',
+          });
+        }
       }
-      onSuccess();
-      onClose();
+      if (updateSuccess) {
+        // Invalidate regions cache so Discover page refetches
+        queryClient.invalidateQueries(['regions']);
+        onSuccess();
+        onClose();
+      }
     } catch (error) {
       console.error('Error in handleSubmit:', error);
       toast({
@@ -205,6 +225,8 @@ export function RegionModal({ isOpen, onClose, mode, region, onSuccess }: Region
         title: t('crud.success'),
         description: t('crud.regionDeleted'),
       });
+      // Invalidate regions cache so Discover page refetches
+      queryClient.invalidateQueries(['regions']);
       onSuccess();
       onClose();
     } catch (error) {

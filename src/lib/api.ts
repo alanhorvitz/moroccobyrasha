@@ -415,7 +415,19 @@ export const transformApiData = {
     const keyFacts = getLocalizedField('keyFacts');
     const capitalMatch = keyFacts.match(/Capital:\s*([^,]+)/);
     const capital = capitalMatch ? capitalMatch[1].trim() : getLocalizedField('name');
-    
+
+    // Parse imageUrls as array (handle JSON string or array)
+    let imageUrls: string[] = [];
+    if (Array.isArray(apiRegion.imageUrls)) {
+      imageUrls = apiRegion.imageUrls;
+    } else if (typeof apiRegion.imageUrls === 'string') {
+      try {
+        imageUrls = JSON.parse(apiRegion.imageUrls);
+      } catch {
+        imageUrls = [];
+      }
+    }
+
     return {
       id: apiRegion.id,
       name: getLocalizedField('name'),
@@ -431,7 +443,8 @@ export const transformApiData = {
         lat: apiRegion.latitude || 31.7917, // Default to Morocco center if no coordinates
         lng: apiRegion.longitude || -7.0926,
       },
-      imageUrl: Array.isArray(apiRegion.imageUrls) ? apiRegion.imageUrls[0] || '' : '',
+      imageUrls,
+      imageUrl: imageUrls[0] || '',
     };
   },
 

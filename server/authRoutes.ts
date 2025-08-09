@@ -564,6 +564,83 @@ router.post('/verify-email', async (req, res) => {
   }
 });
 
+// Get all users (accessible to all authenticated users, but with different permissions)
+router.get('/users', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { page = 1, limit = 10, role, status, search } = req.query;
+    const user = req.user!;
+
+    const skip = (Number(page) - 1) * Number(limit);
+    const take = Number(limit);
+
+    const where: any = {};
+
+    // Non-admin users can only see basic user information
+    if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+      // For non-admin users, only show basic user info (no sensitive data)
+      where.status = 'ACTIVE'; // Only show active users
+    } else {
+      // Admin users can see all users and filter by role/status
+      if (role) where.role = role;
+      if (status) where.status = status;
+    }
+
+    if (search) {
+      where.OR = [
+        { email: { contains: search as string } },
+        { firstName: { contains: search as string } },
+        { lastName: { contains: search as string } },
+      ];
+    }
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip,
+        take,
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          phone: user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' ? true : false,
+          role: true,
+          status: user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' ? true : false,
+          emailVerified: user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' ? true : false,
+          lastLogin: user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' ? true : false,
+          loginCount: user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' ? true : false,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        users,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total,
+          totalPages: Math.ceil(total / Number(limit)),
+        },
+        filters: {
+          roles: ['TOURIST', 'GUIDE', 'ADMIN', 'SUPER_ADMIN'],
+          statuses: user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' 
+            ? ['PENDING', 'ACTIVE', 'SUSPENDED', 'BANNED'] 
+            : ['ACTIVE'],
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Admin: Get all users (admin only)
 router.get('/admin/users', authenticateToken, requireRole(['ADMIN', 'SUPER_ADMIN']), async (req, res) => {
   try {
@@ -616,12 +693,120 @@ router.get('/admin/users', authenticateToken, requireRole(['ADMIN', 'SUPER_ADMIN
           page: Number(page),
           limit: Number(limit),
           total,
-          pages: Math.ceil(total / Number(limit)),
+          totalPages: Math.ceil(total / Number(limit)),
+        },
+        filters: {
+          roles: ['TOURIST', 'GUIDE', 'ADMIN', 'SUPER_ADMIN'],
+          statuses: ['PENDING', 'ACTIVE', 'SUSPENDED', 'BANNED'],
         },
       },
     });
   } catch (error) {
     console.error('Get users error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Admin: Update user status (admin only)
+router.patch('/admin/users/:id', authenticateToken, requireRole(['ADMIN', 'SUPER_ADMIN']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, role } = req.body;
+
+    // Validate status if provided
+    if (status && !['ACTIVE', 'PENDING', 'SUSPENDED', 'BANNED'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value' });
+    }
+
+    // Validate role if provided
+    if (role && !['TOURIST', 'GUIDE', 'ADMIN', 'SUPER_ADMIN'].includes(role)) {
+      return res.status(400).json({ error: 'Invalid role value' });
+    }
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Update user
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        ...(status && { status }),
+        ...(role && { role }),
+        updatedAt: new Date(),
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        role: true,
+        status: true,
+        emailVerified: true,
+        lastLogin: true,
+        loginCount: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'User updated successfully',
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Admin: Delete user (admin only)
+router.delete('/admin/users/:id', authenticateToken, requireRole(['ADMIN', 'SUPER_ADMIN']), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Prevent deleting the last admin user
+    if (existingUser.role === 'ADMIN' || existingUser.role === 'SUPER_ADMIN') {
+      const adminCount = await prisma.user.count({
+        where: {
+          role: {
+            in: ['ADMIN', 'SUPER_ADMIN'],
+          },
+        },
+      });
+
+      if (adminCount <= 1) {
+        return res.status(400).json({ error: 'Cannot delete the last admin user' });
+      }
+    }
+
+    // Delete user
+    await prisma.user.delete({
+      where: { id },
+    });
+
+    res.json({
+      success: true,
+      message: 'User deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

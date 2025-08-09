@@ -76,6 +76,19 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Helpers to normalize incoming array/object fields to JSON text for Prisma string columns
+const toJsonText = (value: any, defaultEmptyArray = true): string => {
+  if (value === undefined || value === null) {
+    return defaultEmptyArray ? '[]' : 'null';
+  }
+  if (typeof value === 'string') return value;
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return defaultEmptyArray ? '[]' : 'null';
+  }
+};
+
 // Mount authentication routes
 app.use('/api/auth', authRoutes);
 
@@ -198,7 +211,9 @@ app.post('/api/regions', async (req, res) => {
         climate_en, climate_ar, climate_fr, climate_it, climate_es,
         bestTimeToVisit_en, bestTimeToVisit_ar, bestTimeToVisit_fr, bestTimeToVisit_it, bestTimeToVisit_es,
         keyFacts_en, keyFacts_ar, keyFacts_fr, keyFacts_it, keyFacts_es,
-        latitude, longitude, imageUrls,
+        latitude: latitude ? Number(latitude) : null,
+        longitude: longitude ? Number(longitude) : null,
+        imageUrls: toJsonText(imageUrls),
       },
     });
     res.status(201).json(region);
@@ -211,7 +226,28 @@ app.post('/api/regions', async (req, res) => {
 // PUT (update) region
 app.put('/api/regions/:id', async (req, res) => {
   try {
-    const region = await prisma.region.update({ where: { id: req.params.id }, data: req.body });
+    const { 
+      name_en, name_ar, name_fr, name_it, name_es,
+      description_en, description_ar, description_fr, description_it, description_es,
+      climate_en, climate_ar, climate_fr, climate_it, climate_es,
+      bestTimeToVisit_en, bestTimeToVisit_ar, bestTimeToVisit_fr, bestTimeToVisit_it, bestTimeToVisit_es,
+      keyFacts_en, keyFacts_ar, keyFacts_fr, keyFacts_it, keyFacts_es,
+      latitude, longitude, imageUrls 
+    } = req.body;
+
+    const region = await prisma.region.update({
+      where: { id: req.params.id },
+      data: {
+        name_en, name_ar, name_fr, name_it, name_es,
+        description_en, description_ar, description_fr, description_it, description_es,
+        climate_en, climate_ar, climate_fr, climate_it, climate_es,
+        bestTimeToVisit_en, bestTimeToVisit_ar, bestTimeToVisit_fr, bestTimeToVisit_it, bestTimeToVisit_es,
+        keyFacts_en, keyFacts_ar, keyFacts_fr, keyFacts_it, keyFacts_es,
+        latitude: latitude ? Number(latitude) : null,
+        longitude: longitude ? Number(longitude) : null,
+        imageUrls: toJsonText(imageUrls),
+      },
+    });
     res.json(region);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -246,17 +282,35 @@ app.post('/api/attractions', async (req, res) => {
       category_en, category_ar, category_fr, category_it, category_es,
       regionId, latitude, longitude, imageUrls, rating, tags, entryFee, currency, openingHours 
     } = req.body;
-    
+
     const attraction = await prisma.attraction.create({
       data: {
-        name_en, name_ar, name_fr, name_it, name_es,
-        description_en, description_ar, description_fr, description_it, description_es,
-        category_en, category_ar, category_fr, category_it, category_es,
-        regionId, latitude, longitude, imageUrls, rating, tags, entryFee, currency, openingHours,
+        name_en,
+        name_ar,
+        name_fr,
+        name_it,
+        name_es,
+        description_en,
+        description_ar,
+        description_fr,
+        description_it,
+        description_es,
+        category_en,
+        category_ar,
+        category_fr,
+        category_it,
+        category_es,
+        regionId,
+        latitude: latitude ? Number(latitude) : null,
+        longitude: longitude ? Number(longitude) : null,
+        imageUrls: toJsonText(imageUrls),
+        rating: rating ? Number(rating) : 0,
+        tags: toJsonText(tags),
+        entryFee: entryFee ? Number(entryFee) : 0,
+        currency,
+        openingHours: openingHours ?? null,
       },
-      include: {
-        region: true,
-      },
+      include: { region: true },
     });
     res.status(201).json(attraction);
   } catch (error) {
@@ -268,9 +322,45 @@ app.post('/api/attractions', async (req, res) => {
 // PUT (update) attraction
 app.put('/api/attractions/:id', async (req, res) => {
   try {
-    const attraction = await prisma.attraction.update({ where: { id: req.params.id }, data: req.body });
+    const {
+      name_en, name_ar, name_fr, name_it, name_es,
+      description_en, description_ar, description_fr, description_it, description_es,
+      category_en, category_ar, category_fr, category_it, category_es,
+      regionId, latitude, longitude, imageUrls, rating, tags, entryFee, currency, openingHours 
+    } = req.body;
+
+    const attraction = await prisma.attraction.update({
+      where: { id: req.params.id },
+      data: {
+        name_en,
+        name_ar,
+        name_fr,
+        name_it,
+        name_es,
+        description_en,
+        description_ar,
+        description_fr,
+        description_it,
+        description_es,
+        category_en,
+        category_ar,
+        category_fr,
+        category_it,
+        category_es,
+        regionId,
+        latitude: latitude ? Number(latitude) : null,
+        longitude: longitude ? Number(longitude) : null,
+        imageUrls: toJsonText(imageUrls),
+        rating: rating ? Number(rating) : 0,
+        tags: toJsonText(tags),
+        entryFee: entryFee ? Number(entryFee) : 0,
+        currency,
+        openingHours: openingHours ?? null,
+      },
+    });
     res.json(attraction);
   } catch (error) {
+    console.error('Error updating attraction:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -568,8 +658,17 @@ app.post('/api/festivals', async (req, res) => {
     
     const festival = await prisma.festival.create({
       data: {
-        name, description, type, location, regionId, timeOfYear, duration,
-        images, videoUrl, established, historicalSignificance,
+        name,
+        description: description ?? null,
+        type,
+        location,
+        regionId: regionId || null,
+        timeOfYear,
+        duration: duration ? Number(duration) : 1,
+        images: toJsonText(images),
+        videoUrl: videoUrl ?? null,
+        established: established ?? null,
+        historicalSignificance: historicalSignificance ?? null,
       },
       include: {
         region: true,
@@ -585,7 +684,27 @@ app.post('/api/festivals', async (req, res) => {
 // PUT (update) festival
 app.put('/api/festivals/:id', async (req, res) => {
   try {
-    const festival = await prisma.festival.update({ where: { id: req.params.id }, data: req.body });
+    const { 
+      name, description, type, location, regionId, timeOfYear, duration, 
+      images, videoUrl, established, historicalSignificance 
+    } = req.body;
+
+    const festival = await prisma.festival.update({ 
+      where: { id: req.params.id }, 
+      data: {
+        name,
+        description: description ?? null,
+        type,
+        location,
+        regionId: regionId || null,
+        timeOfYear,
+        duration: duration ? Number(duration) : 1,
+        images: toJsonText(images),
+        videoUrl: videoUrl ?? null,
+        established: established ?? null,
+        historicalSignificance: historicalSignificance ?? null,
+      }
+    });
     res.json(festival);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -621,8 +740,15 @@ app.post('/api/cuisines', async (req, res) => {
     
     const cuisine = await prisma.cuisine.create({
       data: {
-        name, description, type, regionIds, ingredients, spiceLevel,
-        images, videoUrl, popularVariants,
+        name,
+        description: description ?? null,
+        type,
+        regionIds: toJsonText(regionIds),
+        ingredients: toJsonText(ingredients),
+        spiceLevel,
+        images: toJsonText(images),
+        videoUrl: videoUrl ?? null,
+        popularVariants: toJsonText(popularVariants),
       },
     });
     res.status(201).json(cuisine);
@@ -635,7 +761,25 @@ app.post('/api/cuisines', async (req, res) => {
 // PUT (update) cuisine
 app.put('/api/cuisines/:id', async (req, res) => {
   try {
-    const cuisine = await prisma.cuisine.update({ where: { id: req.params.id }, data: req.body });
+    const { 
+      name, description, type, regionIds, ingredients, spiceLevel, 
+      images, videoUrl, popularVariants 
+    } = req.body;
+
+    const cuisine = await prisma.cuisine.update({
+      where: { id: req.params.id },
+      data: {
+        name,
+        description: description ?? null,
+        type,
+        regionIds: toJsonText(regionIds),
+        ingredients: toJsonText(ingredients),
+        spiceLevel,
+        images: toJsonText(images),
+        videoUrl: videoUrl ?? null,
+        popularVariants: toJsonText(popularVariants),
+      },
+    });
     res.json(cuisine);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -674,7 +818,18 @@ app.get('/api/heritages/:id', async (req, res) => {
 
 app.post('/api/heritages', async (req, res) => {
   try {
-    const heritage = await prisma.heritage.create({ data: req.body });
+    const { name, description, type, regionIds, images, videoUrl, importance } = req.body;
+    const heritage = await prisma.heritage.create({
+      data: {
+        name,
+        description: description ?? null,
+        type,
+        regionIds: toJsonText(regionIds),
+        images: toJsonText(images),
+        videoUrl: videoUrl ?? null,
+        importance: importance ?? null,
+      },
+    });
     res.status(201).json(heritage);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -683,7 +838,19 @@ app.post('/api/heritages', async (req, res) => {
 
 app.put('/api/heritages/:id', async (req, res) => {
   try {
-    const heritage = await prisma.heritage.update({ where: { id: req.params.id }, data: req.body });
+    const { name, description, type, regionIds, images, videoUrl, importance } = req.body;
+    const heritage = await prisma.heritage.update({
+      where: { id: req.params.id },
+      data: {
+        name,
+        description: description ?? null,
+        type,
+        regionIds: toJsonText(regionIds),
+        images: toJsonText(images),
+        videoUrl: videoUrl ?? null,
+        importance: importance ?? null,
+      },
+    });
     res.json(heritage);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -721,7 +888,19 @@ app.get('/api/clothing/:id', async (req, res) => {
 
 app.post('/api/clothing', async (req, res) => {
   try {
-    const clothing = await prisma.clothing.create({ data: req.body });
+    const { name, description, gender, regionIds, materials, occasions, images, historicalNotes } = req.body;
+    const clothing = await prisma.clothing.create({
+      data: {
+        name,
+        description: description ?? null,
+        gender,
+        regionIds: toJsonText(regionIds),
+        materials: toJsonText(materials),
+        occasions: toJsonText(occasions),
+        images: toJsonText(images),
+        historicalNotes: historicalNotes ?? null,
+      },
+    });
     res.status(201).json(clothing);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -730,7 +909,20 @@ app.post('/api/clothing', async (req, res) => {
 
 app.put('/api/clothing/:id', async (req, res) => {
   try {
-    const clothing = await prisma.clothing.update({ where: { id: req.params.id }, data: req.body });
+    const { name, description, gender, regionIds, materials, occasions, images, historicalNotes } = req.body;
+    const clothing = await prisma.clothing.update({
+      where: { id: req.params.id },
+      data: {
+        name,
+        description: description ?? null,
+        gender,
+        regionIds: toJsonText(regionIds),
+        materials: toJsonText(materials),
+        occasions: toJsonText(occasions),
+        images: toJsonText(images),
+        historicalNotes: historicalNotes ?? null,
+      },
+    });
     res.json(clothing);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });

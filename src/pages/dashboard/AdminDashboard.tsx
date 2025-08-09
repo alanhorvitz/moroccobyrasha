@@ -263,19 +263,30 @@ const AdminDashboard: React.FC = () => {
 
   const handleAttractionFormSubmit = async (e) => {
     e.preventDefault();
+    // --- Frontend validation ---
+    if (!attractionForm.name_en || !attractionForm.regionId) {
+      toast({ title: 'Error', description: 'Name (English) and Region ID are required.', variant: 'destructive' });
+      return;
+    }
+    // Ensure imageUrls and tags are arrays
+    const formData = {
+      ...attractionForm,
+      imageUrls: Array.isArray(attractionForm.imageUrls) ? attractionForm.imageUrls : [],
+      tags: Array.isArray(attractionForm.tags) ? attractionForm.tags : [],
+    };
     try {
       let res;
       if (editingAttraction) {
         res = await fetch(`/api/attractions/${editingAttraction.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(attractionForm),
+          body: JSON.stringify(formData),
         });
       } else {
         res = await fetch('/api/attractions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(attractionForm),
+          body: JSON.stringify(formData),
         });
       }
       if (res.ok) {
@@ -283,7 +294,13 @@ const AdminDashboard: React.FC = () => {
         setShowAttractionForm(false);
         fetchAttractions();
       } else {
-        toast({ title: 'Error', description: 'Failed to save attraction', variant: 'destructive' });
+        // Try to show backend error message
+        let errorMsg = 'Failed to save attraction';
+        try {
+          const errData = await res.json();
+          if (errData && errData.error) errorMsg = errData.error;
+        } catch {}
+        toast({ title: 'Error', description: errorMsg, variant: 'destructive' });
       }
     } catch (err) {
       toast({ title: 'Error', description: 'Failed to save attraction', variant: 'destructive' });
@@ -708,11 +725,6 @@ const AdminDashboard: React.FC = () => {
   }, [showManagementModal, selectedEntity]);
 
   useEffect(() => {
-    // Check if user has admin permissions
-    if (user && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
-      navigate('/dashboard');
-    }
-
     // Seed demo audit logs
     AuditLogger.seedDemoLogs();
 
@@ -1417,43 +1429,51 @@ const AdminDashboard: React.FC = () => {
                       <TableRow>
                         <TableHead>User</TableHead>
                         <TableHead>Email</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Status</TableHead>
+                        {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+                          <>
+                            <TableHead>Role</TableHead>
+                            <TableHead>Status</TableHead>
+                          </>
+                        )}
                         <TableHead className="w-[120px]">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {users.users.map((user) => (
-                        <TableRow key={user.id}>
+                      {users.users.map((userItem) => (
+                        <TableRow key={userItem.id}>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <div className="h-8 w-8 rounded-full bg-emerald-100 flex items-center justify-center">
                                 <User className="h-4 w-4 text-emerald-600" />
                               </div>
                               <div>
-                                <p className="font-medium">{`${user.firstName} ${user.lastName}`}</p>
-                                <p className="text-xs text-gray-500">ID: {user.id}</p>
+                                <p className="font-medium">{`${userItem.firstName} ${userItem.lastName}`}</p>
+                                <p className="text-xs text-gray-500">ID: {userItem.id}</p>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>{user.email}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="bg-emerald-50 text-emerald-800">
-                              {user.role}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge status={user.status} />
-                          </TableCell>
+                          <TableCell>{userItem.email}</TableCell>
+                          {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+                            <>
+                              <TableCell>
+                                <Badge variant="outline" className="bg-emerald-50 text-emerald-800">
+                                  {userItem.role}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <StatusBadge status={userItem.status} />
+                              </TableCell>
+                            </>
+                          )}
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  disabled={actionInProgress === user.id}
+                                  disabled={actionInProgress === userItem.id}
                                 >
-                                  {actionInProgress === user.id ? (
+                                  {actionInProgress === userItem.id ? (
                                     <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-emerald-600" />
                                   ) : (
                                     <MoreHorizontal className="h-4 w-4" />
@@ -1462,74 +1482,79 @@ const AdminDashboard: React.FC = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleViewUserProfile(user)}>
+                                <DropdownMenuItem onClick={() => handleViewUserProfile(userItem)}>
                                   <User className="h-4 w-4 mr-2" />
                                   View Profile
                                 </DropdownMenuItem>
 
-                                {user.status !== 'ACTIVE' && (
-                                  <DropdownMenuItem onClick={() => handleUpdateUserStatus(user.id, 'active')}>
-                                    <UserCheck className="h-4 w-4 mr-2" />
-                                    Activate User
-                                  </DropdownMenuItem>
-                                )}
+                                {/* Only show admin actions for ADMIN and SUPER_ADMIN users */}
+                                {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+                                  <>
+                                    {userItem.status !== 'ACTIVE' && (
+                                      <DropdownMenuItem onClick={() => handleUpdateUserStatus(userItem.id, 'active')}>
+                                        <UserCheck className="h-4 w-4 mr-2" />
+                                        Activate User
+                                      </DropdownMenuItem>
+                                    )}
 
-                                {user.status !== 'SUSPENDED' && (
-                                  <DropdownMenuItem onClick={() => handleUpdateUserStatus(user.id, 'suspended')}>
-                                    <UserX className="h-4 w-4 mr-2" />
-                                    Suspend User
-                                  </DropdownMenuItem>
-                                )}
+                                    {userItem.status !== 'SUSPENDED' && (
+                                      <DropdownMenuItem onClick={() => handleUpdateUserStatus(userItem.id, 'suspended')}>
+                                        <UserX className="h-4 w-4 mr-2" />
+                                        Suspend User
+                                      </DropdownMenuItem>
+                                    )}
 
-                                <Dialog open={confirmDelete === user.id} onOpenChange={(open) => !open && setConfirmDelete(null)}>
-                                  <DialogTrigger asChild>
-                                    <DropdownMenuItem
-                                      onSelect={(e) => {
-                                        e.preventDefault();
-                                        setConfirmDelete(user.id);
-                                      }}
-                                      className="text-red-600"
-                                    >
-                                      <Trash2 className="h-4 w-4 mr-2" />
-                                      Delete User
-                                    </DropdownMenuItem>
-                                  </DialogTrigger>
-                                  <DialogContent>
-                                    <DialogHeader>
-                                      <DialogTitle>Delete User</DialogTitle>
-                                      <DialogDescription>
-                                        Are you sure you want to delete the user account for {user.firstName} {user.lastName}?
-                                        This action cannot be undone.
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <DialogFooter>
-                                      <Button
-                                        variant="outline"
-                                        onClick={() => setConfirmDelete(null)}
-                                        disabled={actionInProgress === user.id}
-                                      >
-                                        Cancel
-                                      </Button>
-                                      <Button
-                                        variant="destructive"
-                                        onClick={() => handleDeleteUser(user.id)}
-                                        disabled={actionInProgress === user.id}
-                                      >
-                                        {actionInProgress === user.id ? (
-                                          <>
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                            Deleting...
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Trash2 className="h-4 w-4 mr-2" />
-                                            Delete
-                                          </>
-                                        )}
-                                      </Button>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
+                                    <Dialog open={confirmDelete === userItem.id} onOpenChange={(open) => !open && setConfirmDelete(null)}>
+                                      <DialogTrigger asChild>
+                                        <DropdownMenuItem
+                                          onSelect={(e) => {
+                                            e.preventDefault();
+                                            setConfirmDelete(userItem.id);
+                                          }}
+                                          className="text-red-600"
+                                        >
+                                          <Trash2 className="h-4 w-4 mr-2" />
+                                          Delete User
+                                        </DropdownMenuItem>
+                                      </DialogTrigger>
+                                      <DialogContent>
+                                        <DialogHeader>
+                                          <DialogTitle>Delete User</DialogTitle>
+                                          <DialogDescription>
+                                            Are you sure you want to delete the user account for {userItem.firstName} {userItem.lastName}?
+                                            This action cannot be undone.
+                                          </DialogDescription>
+                                        </DialogHeader>
+                                        <DialogFooter>
+                                          <Button
+                                            variant="outline"
+                                            onClick={() => setConfirmDelete(null)}
+                                            disabled={actionInProgress === userItem.id}
+                                          >
+                                            Cancel
+                                          </Button>
+                                          <Button
+                                            variant="destructive"
+                                            onClick={() => handleDeleteUser(userItem.id)}
+                                            disabled={actionInProgress === userItem.id}
+                                          >
+                                            {actionInProgress === userItem.id ? (
+                                              <>
+                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                                Deleting...
+                                              </>
+                                            ) : (
+                                              <>
+                                                <Trash2 className="h-4 w-4 mr-2" />
+                                                Delete
+                                              </>
+                                            )}
+                                          </Button>
+                                        </DialogFooter>
+                                      </DialogContent>
+                                    </Dialog>
+                                  </>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>

@@ -623,25 +623,20 @@ const RegionCard = ({
   isRTL: boolean;
 }) => {
   const regionAttractionsCount = attractions.filter(a => a.regionId === region.id).length;
-  
+  // Use first image or fallback
+  const bgImage = (region.imageUrls && region.imageUrls.length > 0) ? region.imageUrls[0] : (region.imageUrl || '/images/morocco-default.jpg');
   return (
     <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
       <div className="relative h-48 bg-gradient-to-r from-emerald-600 to-emerald-400 overflow-hidden">
-        {/* Region image from database */}
-        {region.imageUrl ? (
-          <img 
-            src={region.imageUrl} 
-            alt={region.name}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
-        ) : null}
+        {/* Region image as CSS background */}
+        <div
+          className="absolute inset-0 w-full h-full"
+          style={{ backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50"></div>
         <div className="absolute bottom-0 p-4">
           <h3 className="text-xl font-bold text-white">{region.name}</h3>
-          <div className={`flex items-center text-white/80 text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <div className={`flex items-center text-white/80 text-sm ${isRTL ? 'flex-row-reverse' : ''}`}> 
             <MapPin className={`h-4 w-4 ${isRTL ? 'ml-1' : 'mr-1'}`} />
             {region.capital}
           </div>

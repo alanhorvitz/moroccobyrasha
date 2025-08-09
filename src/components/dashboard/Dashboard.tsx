@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { AdminDashboard } from './AdminDashboard';
+import AdminDashboard from '@/pages/dashboard/AdminDashboard';
 import { UserDashboard } from './UserDashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,12 +52,11 @@ export const Dashboard: React.FC = () => {
     switch (userRole) {
       case 'ADMIN':
       case 'SUPER_ADMIN':
-        return <AdminDashboard user={user} />;
-      
       case 'TOURIST':
       case 'GUIDE':
       default:
-        return <UserDashboard user={user} />;
+        // Use the AdminDashboard as the default for all users
+        return <AdminDashboard />;
     }
   };
 

@@ -79,17 +79,11 @@ export default function RegionDetail() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative h-96 bg-gradient-to-r from-emerald-600 to-emerald-400 overflow-hidden">
-        {/* Region background image from database */}
-        {region.imageUrl ? (
-          <img 
-            src={region.imageUrl} 
-            alt={region.name}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
-        ) : null}
+        {/* Region background image from database as CSS background */}
+        <div
+          className="absolute inset-0 w-full h-full"
+          style={{ backgroundImage: `url(${(region.imageUrls && region.imageUrls.length > 0) ? region.imageUrls[0] : (region.imageUrl || '/images/morocco-default.jpg')})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+        />
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="absolute inset-0 flex items-center">
           <div className="container mx-auto px-4">
@@ -120,7 +114,7 @@ export default function RegionDetail() {
                 <p className="text-slate-600">{t('regionDetail.placesCount', { count: regionAttractions.length })}</p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-6 text-center">
                 <Thermometer className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
@@ -128,7 +122,7 @@ export default function RegionDetail() {
                 <p className="text-slate-600">{region.climate || t('regionDetail.mediterranean')}</p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-6 text-center">
                 <Calendar className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
@@ -136,7 +130,7 @@ export default function RegionDetail() {
                 <p className="text-slate-600">{region.bestTimeToVisit || t('regionDetail.springAndFall')}</p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-6 text-center">
                 <Camera className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
@@ -156,13 +150,13 @@ export default function RegionDetail() {
               <TabsTrigger value="attractions">{t('regionDetail.tabs.attractions')}</TabsTrigger>
               <TabsTrigger value="about">{t('regionDetail.tabs.about')}</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="attractions" className="mt-8">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold mb-2">{t('regionDetail.attractionsInRegion', { name: region.name })}</h2>
                 <p className="text-slate-600">{t('regionDetail.attractionsDescription')}</p>
               </div>
-              
+
               {regionAttractions.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {regionAttractions.map((attraction) => (
@@ -170,8 +164,8 @@ export default function RegionDetail() {
                       <div className="relative h-48 bg-slate-200 overflow-hidden">
                         {/* Attraction image from database */}
                         {attraction.images && attraction.images.length > 0 ? (
-                          <img 
-                            src={attraction.images[0]} 
+                          <img
+                            src={attraction.images[0]}
                             alt={attraction.name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -206,13 +200,13 @@ export default function RegionDetail() {
                 </div>
               )}
             </TabsContent>
-            
+
             <TabsContent value="about" className="mt-8">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold mb-2">{t('regionDetail.aboutRegion', { name: region.name })}</h2>
                 <p className="text-slate-600">{t('regionDetail.aboutDescription')}</p>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                   <h3 className="text-xl font-semibold mb-4">{t('regionDetail.overview')}</h3>
@@ -220,7 +214,7 @@ export default function RegionDetail() {
                     {region.description}
                   </p>
                 </div>
-                
+
                 <div>
                   <h3 className="text-xl font-semibold mb-4">{t('regionDetail.keyFacts')}</h3>
                   <div className="space-y-3">

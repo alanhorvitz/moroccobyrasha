@@ -350,25 +350,40 @@ export function RegionModal({ isOpen, onClose, mode, region, onSuccess }: Region
                 }
               }}
             />
+            {/* Preview for new uploads */}
             {formData.images && formData.images.length > 0 && (
               <div className="mt-2">
                 <p className="text-sm text-gray-600 mb-2">Selected images:</p>
                 <div className="flex flex-wrap gap-2">
                   {formData.images.map((file, index) => (
-                    <div key={index} className="text-xs text-gray-500">
-                      {file instanceof File ? file.name : 'Image ' + (index + 1)}
+                    <div key={index} className="text-xs text-gray-500 flex flex-col items-center">
+                      {file instanceof File ? (
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={file.name}
+                          className="w-20 h-20 object-cover rounded border mb-1"
+                        />
+                      ) : null}
+                      <span>{file instanceof File ? file.name : `Image ${index + 1}`}</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
+            {/* Preview for existing images */}
             {formData.imageUrls && formData.imageUrls.length > 0 && (
               <div className="mt-2">
                 <p className="text-sm text-gray-600 mb-2">Existing images:</p>
                 <div className="flex flex-wrap gap-2">
                   {formData.imageUrls.map((url, index) => (
-                    <div key={index} className="text-xs text-gray-500">
-                      Image {index + 1}
+                    <div key={index} className="text-xs text-gray-500 flex flex-col items-center">
+                      <img
+                        src={url}
+                        alt={`Image ${index + 1}`}
+                        className="w-20 h-20 object-cover rounded border mb-1"
+                        onError={e => (e.currentTarget.src = '/images/morocco-default.jpg')}
+                      />
+                      <span>Image {index + 1}</span>
                     </div>
                   ))}
                 </div>

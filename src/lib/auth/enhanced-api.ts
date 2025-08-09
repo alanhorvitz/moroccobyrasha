@@ -103,7 +103,7 @@ class EnhancedAPIClient {
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) return false;
 
-      const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
+      const response = await axios.post(`${API_BASE_URL}/api/auth/refresh-token`, {
         refreshToken,
         deviceFingerprint: SecurityService.generateDeviceFingerprint()
       });
@@ -378,52 +378,30 @@ export class EnhancedAuthAPI {
     status?: string;
   }): Promise<ApiResponse<UserListResponse>> {
     try {
-      let filteredUsers = [...mockUsers];
+      // Build query parameters
+      const queryParams = new URLSearchParams();
+      if (params.page) queryParams.append('page', params.page.toString());
+      if (params.limit) queryParams.append('limit', params.limit.toString());
+      if (params.search) queryParams.append('search', params.search);
+      if (params.role) queryParams.append('role', params.role);
+      if (params.status) queryParams.append('status', params.status);
 
-      // Apply filters
-      if (params.search) {
-        const search = params.search.toLowerCase();
-        filteredUsers = filteredUsers.filter(user =>
-          user.firstName.toLowerCase().includes(search) ||
-          user.lastName.toLowerCase().includes(search) ||
-          user.email.toLowerCase().includes(search)
-        );
+      // Make real API call to backend - use the new /users endpoint
+      const response = await apiClient.request<UserListResponse>({
+        method: 'GET',
+        url: `/api/auth/users?${queryParams.toString()}`,
+      });
+
+      if (response.success && response.data) {
+        return response;
+      } else {
+        return {
+          success: false,
+          message: response.message || 'Failed to load users',
+        };
       }
-
-      if (params.role) {
-        filteredUsers = filteredUsers.filter(user => user.role === params.role);
-      }
-
-      if (params.status) {
-        filteredUsers = filteredUsers.filter(user => user.status === params.status);
-      }
-
-      // Pagination
-      const page = params.page || 1;
-      const limit = params.limit || 10;
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
-
-      const response: UserListResponse = {
-        users: paginatedUsers,
-        pagination: {
-          total: filteredUsers.length,
-          page,
-          limit,
-          totalPages: Math.ceil(filteredUsers.length / limit),
-        },
-        filters: {
-          roles: ['TOURIST', 'GUIDE', 'ADMIN', 'SUPER_ADMIN'],
-          statuses: ['ACTIVE', 'PENDING', 'SUSPENDED', 'BANNED'],
-        },
-      };
-
-      return {
-        success: true,
-        data: response,
-      };
     } catch (error) {
+      console.error('Get users error:', error);
       return {
         success: false,
         message: 'Failed to load users',
@@ -433,25 +411,16 @@ export class EnhancedAuthAPI {
 
   static async updateUserStatus(userId: string, status: string): Promise<ApiResponse<null>> {
     try {
-      const userIndex = mockUsers.findIndex(u => u.id === userId);
-      if (userIndex === -1) {
-        return {
-          success: false,
-          message: 'User not found',
-        };
-      }
+      // Make real API call to backend
+      const response = await apiClient.request<null>({
+        method: 'PATCH',
+        url: `/api/auth/admin/users/${userId}`,
+        data: { status },
+      });
 
-      mockUsers[userIndex] = {
-        ...mockUsers[userIndex],
-        status: status as 'pending' | 'active' | 'suspended' | 'banned',
-        updatedAt: new Date(),
-      };
-
-      return {
-        success: true,
-        message: 'User status updated successfully',
-      };
+      return response;
     } catch (error) {
+      console.error('Update user status error:', error);
       return {
         success: false,
         message: 'Failed to update user status',
@@ -461,21 +430,15 @@ export class EnhancedAuthAPI {
 
   static async deleteUser(userId: string): Promise<ApiResponse<null>> {
     try {
-      const userIndex = mockUsers.findIndex(u => u.id === userId);
-      if (userIndex === -1) {
-        return {
-          success: false,
-          message: 'User not found',
-        };
-      }
+      // Make real API call to backend
+      const response = await apiClient.request<null>({
+        method: 'DELETE',
+        url: `/api/auth/admin/users/${userId}`,
+      });
 
-      mockUsers.splice(userIndex, 1);
-
-      return {
-        success: true,
-        message: 'User deleted successfully',
-      };
+      return response;
     } catch (error) {
+      console.error('Delete user error:', error);
       return {
         success: false,
         message: 'Failed to delete user',
@@ -492,34 +455,50 @@ export class EnhancedAuthAPI {
   }
 
   static async getCurrentUser(): Promise<ApiResponse<UserProfile>> {
-    const userJson = localStorage.getItem('user');
-    if (!userJson) {
-      return { success: false, message: 'User not found' };
+    try {
+      const response = await apiClient.request<UserProfile>({
+        method: 'GET',
+        url: '/api/auth/profile',
+      });
+      return response;
+    } catch (error) {
+      return { success: false, message: 'Failed to fetch user profile' };
     }
-    
-    return { success: true, data: JSON.parse(userJson) };
   }
 
-  static async refreshToken(): Promise<ApiResponse<{ user: UserProfile; tokens: { accessToken: string; refreshToken: string; expiresAt: Date } }>> {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) {
-      return { success: false, message: 'No refresh token' };
-    }
+  static async refreshToken(): Promise<ApiResponse<{ accessToken: string; refreshToken: string; expiresAt: Date }>> {
+    try {
+      const storedRefreshToken = localStorage.getItem('refreshToken');
+      if (!storedRefreshToken) {
+        return { success: false, message: 'No refresh token' };
+      }
 
-    // Mock refresh logic
-    const userJson = localStorage.getItem('user');
-    if (userJson) {
-      const user = JSON.parse(userJson);
-      const tokens = {
-        accessToken: `refreshed_jwt_${user.id}_${Date.now()}`,
-        refreshToken: `refresh_${user.id}_${SecurityService.generateSecureRandom()}`,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      const response = await axios.post(`${API_BASE_URL}/api/auth/refresh-token`, {
+        refreshToken: storedRefreshToken,
+        deviceFingerprint: SecurityService.generateDeviceFingerprint(),
+      });
+
+      if (response.data?.success && response.data?.data) {
+        // Persist new tokens for subsequent requests
+        localStorage.setItem('accessToken', response.data.data.accessToken);
+        localStorage.setItem('refreshToken', response.data.data.refreshToken);
+        return {
+          success: true,
+          data: response.data.data,
+        };
+      }
+
+      return {
+        success: false,
+        message: response.data?.message || 'Failed to refresh token',
       };
-
-      return { success: true, data: { user, tokens } };
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      return {
+        success: false,
+        message: 'Failed to refresh token',
+      };
     }
-
-    return { success: false, message: 'Failed to refresh token' };
   }
 
   static async updateProfile(updates: Partial<UserProfile>): Promise<ApiResponse<UserProfile>> {

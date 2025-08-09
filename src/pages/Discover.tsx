@@ -48,7 +48,7 @@ export default function DiscoverPage() {
 
   const { data: apiClothing, isLoading: clothingLoading, error: clothingError } = useQuery({
     queryKey: ['clothing', language],
-    queryFn: apiService.getClothing,
+    queryFn: apiService.getClothingList,
   });
 
   const { data: apiCuisines, isLoading: cuisinesLoading, error: cuisinesError } = useQuery({

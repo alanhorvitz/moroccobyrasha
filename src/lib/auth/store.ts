@@ -99,9 +99,9 @@ export const useAuth = () => {
   
   return {
     ...store,
-    isAdmin: store.user?.role === 'admin' || store.user?.role === 'super_admin',
-    isSuperAdmin: store.user?.role === 'super_admin',
-    isGuide: store.user?.role === 'guide',
-    isTourist: store.user?.role === 'tourist',
+    isAdmin: store.user?.role === 'ADMIN' || store.user?.role === 'SUPER_ADMIN',
+    isSuperAdmin: store.user?.role === 'SUPER_ADMIN',
+    isGuide: store.user?.role === 'GUIDE',
+    isTourist: store.user?.role === 'TOURIST',
   };
 };

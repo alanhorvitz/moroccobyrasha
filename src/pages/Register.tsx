@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, UserPlus, Mail, Lock, User, Phone, Users } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, Mail, Lock, User, Phone, Users, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +12,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ValidationService, getPasswordStrengthColor, getPasswordStrengthText } from '@/lib/auth/validation';
 import { AdvancedPasswordValidator } from '@/lib/auth/security';
 import { EnhancedAuthAPI } from '@/lib/auth/enhanced-api';
-import { UserRole } from '@/lib/types/auth';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -25,7 +24,7 @@ const Register: React.FC = () => {
     firstName: '',
     lastName: '',
     phone: '',
-    role: '' as UserRole | '',
+    role: '' as 'TOURIST' | 'GUIDE' | '',
     agreeToTerms: false
   });
   
@@ -35,7 +34,7 @@ const Register: React.FC = () => {
   const [passwordStrength, setPasswordStrength] = useState<{
     score: number;
     strength: 'very-weak' | 'weak' | 'fair' | 'good' | 'strong' | 'very-strong';
-    issues: string[];
+    errors: string[];
     suggestions: string[];
   } | null>(null);
 
@@ -61,7 +60,7 @@ const Register: React.FC = () => {
   const handleRoleChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
-      role: value as UserRole
+      role: value as 'TOURIST' | 'GUIDE'
     }));
   };
 
@@ -100,13 +99,13 @@ const Register: React.FC = () => {
         password: formData.password,
         firstName: formData.firstName,
         lastName: formData.lastName,
-        role: formData.role as 'tourist' | 'guide',
+        role: formData.role,
         phone: formData.phone || undefined,
         agreeToTerms: formData.agreeToTerms
       });
 
       if (response.success) {
-        // Redirect to login or verification page
+        // Redirect to login with success message
         navigate('/login', { 
           state: { 
             message: 'Registration successful! Please check your email to verify your account.' 
@@ -158,13 +157,13 @@ const Register: React.FC = () => {
                   <SelectValue placeholder="Select your account type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="tourist">
+                  <SelectItem value="TOURIST">
                     <div className="flex items-center">
                       <User className="w-4 h-4 mr-2" />
                       Tourist - Explore and book tours
                     </div>
                   </SelectItem>
-                  <SelectItem value="guide">
+                  <SelectItem value="GUIDE">
                     <div className="flex items-center">
                       <Users className="w-4 h-4 mr-2" />
                       Tour Guide - Offer services and tours
@@ -252,27 +251,53 @@ const Register: React.FC = () => {
                   className="pl-10 pr-10"
                   required
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </Button>
               </div>
               
               {/* Password Strength Indicator */}
-              {passwordStrength && formData.password && (
-                <div className="text-sm">
-                  <div className={`font-medium ${getPasswordStrengthColor(passwordStrength.strength)}`}>
-                    Password Strength: {getPasswordStrengthText(passwordStrength.strength)}
+              {passwordStrength && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Password strength:</span>
+                    <span className={getPasswordStrengthColor(passwordStrength.strength)}>
+                      {getPasswordStrengthText(passwordStrength.strength)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor(passwordStrength.strength)}`}
+                      style={{ width: `${(passwordStrength.score / 4) * 100}%` }}
+                    ></div>
                   </div>
                   {passwordStrength.errors.length > 0 && (
-                    <ul className="text-xs text-gray-500 mt-1 space-y-1">
-                      {passwordStrength.errors.map((error: string, index: number) => (
-                        <li key={index}>• {error}</li>
-                      ))}
-                    </ul>
+                    <div className="mt-2 text-xs text-red-600">
+                      <ul className="list-disc list-inside">
+                        {passwordStrength.errors.map((error, index) => (
+                          <li key={index}>{error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {passwordStrength.suggestions.length > 0 && (
+                    <div className="mt-2 text-xs text-blue-600">
+                      <ul className="list-disc list-inside">
+                        {passwordStrength.suggestions.map((suggestion, index) => (
+                          <li key={index}>{suggestion}</li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                 </div>
               )}
@@ -293,18 +318,24 @@ const Register: React.FC = () => {
                   className="pl-10 pr-10"
                   required
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </Button>
               </div>
             </div>
 
-            {/* Terms Agreement */}
-            <div className="flex items-start space-x-2">
+            {/* Terms and Conditions */}
+            <div className="flex items-center space-x-2">
               <Checkbox
                 id="agreeToTerms"
                 name="agreeToTerms"
@@ -312,52 +343,50 @@ const Register: React.FC = () => {
                 onCheckedChange={(checked) => 
                   setFormData(prev => ({ ...prev, agreeToTerms: checked as boolean }))
                 }
-                className="mt-1"
+                required
               />
-              <Label htmlFor="agreeToTerms" className="text-sm leading-5">
+              <Label htmlFor="agreeToTerms" className="text-sm">
                 I agree to the{' '}
-                <Link to="/terms" className="text-emerald-600 hover:text-emerald-500">
+                <Link to="/terms" className="text-emerald-600 hover:text-emerald-700 hover:underline">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link to="/privacy" className="text-emerald-600 hover:text-emerald-500">
+                <Link to="/privacy" className="text-emerald-600 hover:text-emerald-700 hover:underline">
                   Privacy Policy
                 </Link>
               </Label>
             </div>
 
             {/* Submit Button */}
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-emerald-600 hover:bg-emerald-700"
               disabled={isLoading}
             >
               {isLoading ? (
-                <>
+                <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Creating account...
-                </>
+                </div>
               ) : (
-                <>
+                <div className="flex items-center">
                   <UserPlus className="w-4 h-4 mr-2" />
                   Create Account
-                </>
+                </div>
               )}
             </Button>
-          </form>
 
-          {/* Login Link */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link 
-                to="/login" 
-                className="text-emerald-600 hover:text-emerald-500 font-medium"
+            {/* Sign In Link */}
+            <div className="text-center text-sm">
+              <span className="text-gray-600">Already have an account? </span>
+              <Link
+                to="/login"
+                className="text-emerald-600 hover:text-emerald-700 hover:underline font-medium"
               >
-                Sign in here
+                Sign in
               </Link>
-            </p>
-          </div>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>

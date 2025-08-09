@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+﻿import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthAPI } from '@/lib/auth/api';
 import { EnhancedAuthAPI } from '@/lib/auth/enhanced-api';
@@ -46,13 +46,13 @@ import { useLanguage } from '@/contexts/LanguageContext';
 const StatusBadge = ({ status }: { status: string }) => {
   const getStatusColor = () => {
     switch (status) {
-      case 'active':
+      case 'ACTIVE':
         return 'bg-green-100 text-green-800 hover:bg-green-200';
-      case 'pending':
+      case 'PENDING':
         return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
-      case 'suspended':
+      case 'SUSPENDED':
         return 'bg-orange-100 text-orange-800 hover:bg-orange-200';
-      case 'banned':
+      case 'BANNED':
         return 'bg-red-100 text-red-800 hover:bg-red-200';
       default:
         return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
@@ -71,33 +71,7 @@ const AdminDashboard: React.FC = () => {
   const { user, hasPermission } = useAuth();
   const { language } = useLanguage();
 
-  const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);
-  const [users, setUsers] = useState<{
-    users: UserProfile[];
-    pagination: { total: number; page: number; limit: number; totalPages: number };
-    filters: { roles: string[]; statuses: string[] };
-  } | null>(null);
-  const [loading, setLoading] = useState({
-    dashboard: true,
-    users: true
-  });
-  const [error, setError] = useState<string | null>(null);
-  const [searchParams, setSearchParams] = useState({
-    search: '',
-    role: 'all',
-    status: 'all',
-    page: 1,
-    limit: 10
-  });
-  const [actionInProgress, setActionInProgress] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [showUserModal, setShowUserModal] = useState(false);
-
-  const [regions, setRegions] = useState([]);
-  const [showRegionModal, setShowRegionModal] = useState(false);
-  const [editingRegion, setEditingRegion] = useState(null);
-  const [regionForm, setRegionForm] = useState({
+  const getEmptyRegionForm = () => ({
     name_en: '',
     name_ar: '',
     name_fr: '',
@@ -125,10 +99,38 @@ const AdminDashboard: React.FC = () => {
     keyFacts_es: '',
     capital: '',
     population: '',
-    latitude: '',
-    longitude: '',
+    latitude: 0,
+    longitude: 0,
     images: []
   });
+
+  const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);
+  const [users, setUsers] = useState<{
+    users: UserProfile[];
+    pagination: { total: number; page: number; limit: number; totalPages: number };
+    filters: { roles: string[]; statuses: string[] };
+  } | null>(null);
+  const [loading, setLoading] = useState({
+    dashboard: true,
+    users: true
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useState({
+    search: '',
+    role: 'all',
+    status: 'all',
+    page: 1,
+    limit: 10
+  });
+  const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [showUserModal, setShowUserModal] = useState(false);
+
+  const [regions, setRegions] = useState([]);
+  const [showRegionModal, setShowRegionModal] = useState(false);
+  const [editingRegion, setEditingRegion] = useState(null);
+  const [regionForm, setRegionForm] = useState(getEmptyRegionForm());
 
   const [showManagementModal, setShowManagementModal] = useState(false);
   const [selectedEntity, setSelectedEntity] = useState<'regions' | 'attractions' | 'festivals' | 'cuisines' | 'heritage' | 'clothing' | null>(null);
@@ -139,7 +141,7 @@ const AdminDashboard: React.FC = () => {
     name_en: '', name_ar: '', name_fr: '', name_it: '', name_es: '',
     description_en: '', description_ar: '', description_fr: '', description_it: '', description_es: '',
     category_en: '', category_ar: '', category_fr: '', category_it: '', category_es: '',
-    regionId: '', latitude: '', longitude: '', imageUrls: [], rating: '', tags: [], entryFee: '', currency: 'MAD', openingHours: ''
+    regionId: '', latitude: 0, longitude: 0, images: [], rating: 0, tags: [], entryFee: 0, currency: 'MAD', openingHours: ''
   });
   const [editingAttraction, setEditingAttraction] = useState(null);
   const [loadingAttractions, setLoadingAttractions] = useState(false);
@@ -203,7 +205,7 @@ const AdminDashboard: React.FC = () => {
       name_en: '', name_ar: '', name_fr: '', name_it: '', name_es: '',
       description_en: '', description_ar: '', description_fr: '', description_it: '', description_es: '',
       category_en: '', category_ar: '', category_fr: '', category_it: '', category_es: '',
-      regionId: '', latitude: '', longitude: '', imageUrls: [], rating: '', tags: [], entryFee: '', currency: 'MAD', openingHours: ''
+      regionId: '', latitude: 0, longitude: 0, images: [], rating: 0, tags: [], entryFee: 0, currency: 'MAD', openingHours: ''
     });
     setEditingAttraction(null);
     setShowAttractionForm(true);
@@ -229,7 +231,7 @@ const AdminDashboard: React.FC = () => {
       regionId: attraction.regionId || '',
       latitude: attraction.latitude || '',
       longitude: attraction.longitude || '',
-      imageUrls: attraction.imageUrls || [],
+      images: attraction.images || [],
       rating: attraction.rating || '',
       tags: attraction.tags || [],
       entryFee: attraction.entryFee || '',
@@ -588,7 +590,7 @@ const AdminDashboard: React.FC = () => {
   const fetchClothing = async () => {
     setLoadingClothing(true);
     try {
-      const response = await apiService.getClothing();
+      const response = await apiService.getClothingList();
       if (Array.isArray(response)) {
         const transformed = response.map(item => transformApiData.clothing(item, language));
         setClothing(transformed);
@@ -707,7 +709,7 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     // Check if user has admin permissions
-    if (user && user.role !== 'admin' && user.role !== 'super_admin') {
+    if (user && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
       navigate('/dashboard');
     }
 
@@ -862,10 +864,65 @@ const AdminDashboard: React.FC = () => {
   const fetchRegions = async () => {
     setLoadingRegions(true);
     try {
+      console.log('Fetching regions...');
       const regions = await apiService.getRegions();
+      console.log('Regions fetched:', regions);
       setRegions(regions);
+      setError(null); // Clear any previous errors
     } catch (err) {
-      setError('An error occurred while fetching regions');
+      console.error('Error fetching regions:', err);
+      setError(`An error occurred while fetching regions: ${err.message || err}`);
+      
+      // Fallback to mock data for demo purposes
+      const mockRegions = [
+        {
+          id: 'mock-1',
+          name_en: 'Marrakech-Safi',
+          name_ar: 'مراكش آسفي',
+          name_fr: 'Marrakech-Safi',
+          name_it: 'Marrakech-Safi',
+          name_es: 'Marrakech-Safi',
+          description_en: 'Historic region known for the imperial city of Marrakech',
+          description_ar: 'منطقة تاريخية معروفة بمدينة مراكش الإمبراطورية',
+          description_fr: 'Région historique connue pour la ville impériale de Marrakech',
+          description_it: 'Regione storica nota per la città imperiale di Marrakech',
+          description_es: 'Región histórica conocida por la ciudad imperial de Marrakech',
+          latitude: 31.6295,
+          longitude: -7.9811,
+          images: [],
+          capital: 'Marrakech',
+          population: '4,520,569',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'mock-2', 
+          name_en: 'Casablanca-Settat',
+          name_ar: 'الدار البيضاء سطات',
+          name_fr: 'Casablanca-Settat',
+          name_it: 'Casablanca-Settat',
+          name_es: 'Casablanca-Settat',
+          description_en: 'Economic hub and largest city of Morocco',
+          description_ar: 'المركز الاقتصادي وأكبر مدينة في المغرب',
+          description_fr: 'Centre économique et plus grande ville du Maroc',
+          description_it: 'Centro economico e città più grande del Marocco',
+          description_es: 'Centro económico y ciudad más grande de Marruecos',
+          latitude: 33.5731,
+          longitude: -7.5898,
+          images: [],
+          capital: 'Casablanca',
+          population: '6,861,739',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+      
+      setRegions(mockRegions);
+      toast({
+        title: 'Warning',
+        description: 'Using demo data. Backend connection failed.',
+        variant: 'default'
+      });
     } finally {
       setLoadingRegions(false);
     }
@@ -899,44 +956,17 @@ const AdminDashboard: React.FC = () => {
       keyFacts_fr: region.keyFacts_fr || '',
       keyFacts_it: region.keyFacts_it || '',
       keyFacts_es: region.keyFacts_es || '',
+      capital: region.capital || '',
+      population: region.population || '',
       latitude: region.latitude || 0,
       longitude: region.longitude || 0,
-      imageUrls: region.imageUrls || []
+      images: region.images || []
     });
     setShowRegionForm(true);
   };
 
   const handleAddRegion = () => {
-    setRegionForm({
-      name_en: '',
-      name_ar: '',
-      name_fr: '',
-      name_it: '',
-      name_es: '',
-      description_en: '',
-      description_ar: '',
-      description_fr: '',
-      description_it: '',
-      description_es: '',
-      climate_en: '',
-      climate_ar: '',
-      climate_fr: '',
-      climate_it: '',
-      climate_es: '',
-      bestTimeToVisit_en: '',
-      bestTimeToVisit_ar: '',
-      bestTimeToVisit_fr: '',
-      bestTimeToVisit_it: '',
-      bestTimeToVisit_es: '',
-      keyFacts_en: '',
-      keyFacts_ar: '',
-      keyFacts_fr: '',
-      keyFacts_it: '',
-      keyFacts_es: '',
-      latitude: 0,
-      longitude: 0,
-      imageUrls: []
-    });
+    setRegionForm(getEmptyRegionForm());
     setEditingRegion(null);
     setShowRegionForm(true);
   };
@@ -975,7 +1005,7 @@ const AdminDashboard: React.FC = () => {
         keyFacts_es: '',
         latitude: 0,
         longitude: 0,
-        imageUrls: []
+        images: []
       });
       toast({ 
         title: 'Success', 
@@ -997,7 +1027,7 @@ const AdminDashboard: React.FC = () => {
   const handleRegionFormChange = (e) => {
     const { name, value, files } = e.target;
     
-    if (name === 'imageUrls' && files) {
+    if (name === 'images' && files) {
       // Handle file input
       const fileArray = Array.from(files);
       setRegionForm({ ...regionForm, [name]: fileArray });
@@ -1013,17 +1043,17 @@ const AdminDashboard: React.FC = () => {
     try {
       // Convert files to URLs if they exist
       let formData = { ...regionForm };
-      if (regionForm.imageUrls && regionForm.imageUrls.length > 0 && regionForm.imageUrls[0] instanceof File) {
-        const imageUrls = [];
-        for (const file of regionForm.imageUrls) {
+      if (regionForm.images && regionForm.images.length > 0 && regionForm.images[0] instanceof File) {
+        const images = [];
+        for (const file of regionForm.images) {
           const reader = new FileReader();
           const url = await new Promise((resolve) => {
             reader.onload = () => resolve(reader.result);
             reader.readAsDataURL(file);
           });
-          imageUrls.push(url);
+          images.push(url);
         }
-        formData.imageUrls = imageUrls;
+        formData.images = images;
       }
 
       if (editingRegion) {
@@ -1062,7 +1092,7 @@ const AdminDashboard: React.FC = () => {
         keyFacts_es: '',
         latitude: 0,
         longitude: 0,
-        imageUrls: []
+        images: []
       });
       fetchRegions();
       toast({ 
@@ -1437,14 +1467,14 @@ const AdminDashboard: React.FC = () => {
                                   View Profile
                                 </DropdownMenuItem>
 
-                                {user.status !== 'active' && (
+                                {user.status !== 'ACTIVE' && (
                                   <DropdownMenuItem onClick={() => handleUpdateUserStatus(user.id, 'active')}>
                                     <UserCheck className="h-4 w-4 mr-2" />
                                     Activate User
                                   </DropdownMenuItem>
                                 )}
 
-                                {user.status !== 'suspended' && (
+                                {user.status !== 'SUSPENDED' && (
                                   <DropdownMenuItem onClick={() => handleUpdateUserStatus(user.id, 'suspended')}>
                                     <UserX className="h-4 w-4 mr-2" />
                                     Suspend User
@@ -1939,7 +1969,7 @@ const AdminDashboard: React.FC = () => {
                                 name="name_ar" 
                                 value={regionForm.name_ar || ''} 
                                 onChange={handleRegionFormChange} 
-                                placeholder="اسم المنطقة" 
+                                placeholder="╪º╪│┘à ╪º┘ä┘à┘å╪╖┘é╪⌐" 
                                 className="w-full"
                               />
                         </div>
@@ -1949,7 +1979,7 @@ const AdminDashboard: React.FC = () => {
                                 name="name_fr" 
                                 value={regionForm.name_fr || ''} 
                                 onChange={handleRegionFormChange} 
-                                placeholder="Nom de la région" 
+                                placeholder="Nom de la r├⌐gion" 
                                 className="w-full"
                               />
                         </div>
@@ -1977,7 +2007,7 @@ const AdminDashboard: React.FC = () => {
                                 name="description_ar" 
                                 value={regionForm.description_ar || ''} 
                                 onChange={handleRegionFormChange} 
-                                placeholder="وصف المنطقة" 
+                                placeholder="┘ê╪╡┘ü ╪º┘ä┘à┘å╪╖┘é╪⌐" 
                                 className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                               />
                             </div>
@@ -1987,7 +2017,7 @@ const AdminDashboard: React.FC = () => {
                                 name="description_fr" 
                                 value={regionForm.description_fr || ''} 
                                 onChange={handleRegionFormChange} 
-                                placeholder="Description de la région" 
+                                placeholder="Description de la r├⌐gion" 
                                 className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                               />
                             </div>
@@ -2063,17 +2093,17 @@ const AdminDashboard: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <input 
                               type="file" 
-                              name="imageUrls" 
+                              name="images" 
                               multiple 
                               accept="image/*" 
                               onChange={handleRegionFormChange}
                               className="text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
                             />
-                            {regionForm.imageUrls && regionForm.imageUrls.length > 0 && (
+                            {regionForm.images && regionForm.images.length > 0 && (
                               <div className="mt-2">
                                 <p className="text-sm text-gray-600 mb-2">Selected images:</p>
                                 <div className="flex flex-wrap gap-2">
-                                  {regionForm.imageUrls.map((file, index) => (
+                                  {regionForm.images.map((file, index) => (
                                     <div key={index} className="text-xs text-gray-500">
                                       {file instanceof File ? file.name : 'Image ' + (index + 1)}
                                     </div>
@@ -2255,7 +2285,7 @@ const AdminDashboard: React.FC = () => {
                                 name="name_ar" 
                                 value={attractionForm.name_ar || ''} 
                                 onChange={handleAttractionFormChange} 
-                                placeholder="اسم المعلم السياحي" 
+                                placeholder="╪º╪│┘à ╪º┘ä┘à╪╣┘ä┘à ╪º┘ä╪│┘è╪º╪¡┘è" 
                                 className="w-full"
                               />
                         </div>
@@ -2312,7 +2342,7 @@ const AdminDashboard: React.FC = () => {
                                 name="description_ar" 
                                 value={attractionForm.description_ar || ''} 
                                 onChange={handleAttractionFormChange} 
-                                placeholder="وصف المعلم السياحي" 
+                                placeholder="┘ê╪╡┘ü ╪º┘ä┘à╪╣┘ä┘à ╪º┘ä╪│┘è╪º╪¡┘è" 
                                 className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                             </div>
@@ -2561,7 +2591,7 @@ const AdminDashboard: React.FC = () => {
                                 name="name_ar" 
                                 value={festivalForm.name_ar || ''} 
                                 onChange={handleFestivalFormChange} 
-                                placeholder="اسم المهرجان" 
+                                placeholder="╪º╪│┘à ╪º┘ä┘à┘ç╪▒╪¼╪º┘å" 
                                 className="w-full"
                               />
                         </div>
@@ -2618,7 +2648,7 @@ const AdminDashboard: React.FC = () => {
                                 name="description_ar" 
                                 value={festivalForm.description_ar || ''} 
                                 onChange={handleFestivalFormChange} 
-                                placeholder="وصف المهرجان" 
+                                placeholder="┘ê╪╡┘ü ╪º┘ä┘à┘ç╪▒╪¼╪º┘å" 
                                 className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                               />
                             </div>
@@ -2847,7 +2877,7 @@ const AdminDashboard: React.FC = () => {
                                 name="name_ar" 
                                 value={cuisineForm.name_ar || ''} 
                                 onChange={handleCuisineFormChange} 
-                                placeholder="اسم المطبخ" 
+                                placeholder="╪º╪│┘à ╪º┘ä┘à╪╖╪¿╪«" 
                                 className="w-full"
                               />
                         </div>
@@ -2907,7 +2937,7 @@ const AdminDashboard: React.FC = () => {
                                 name="description_ar" 
                                 value={cuisineForm.description_ar || ''} 
                                 onChange={handleCuisineFormChange} 
-                                placeholder="وصف المطبخ" 
+                                placeholder="┘ê╪╡┘ü ╪º┘ä┘à╪╖╪¿╪«" 
                                 className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                               />
                             </div>
@@ -3151,7 +3181,7 @@ const AdminDashboard: React.FC = () => {
                                 name="name_ar" 
                                 value={heritageForm.name_ar || ''} 
                                 onChange={handleHeritageFormChange} 
-                                placeholder="اسم التراث" 
+                                placeholder="╪º╪│┘à ╪º┘ä╪¬╪▒╪º╪½" 
                                 className="w-full"
                               />
                         </div>
@@ -3208,7 +3238,7 @@ const AdminDashboard: React.FC = () => {
                                 name="description_ar" 
                                 value={heritageForm.description_ar || ''} 
                                 onChange={handleHeritageFormChange} 
-                                placeholder="وصف التراث" 
+                                placeholder="┘ê╪╡┘ü ╪º┘ä╪¬╪▒╪º╪½" 
                                 className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                               />
                             </div>
@@ -3432,7 +3462,7 @@ const AdminDashboard: React.FC = () => {
                                 name="name_ar" 
                                 value={clothingForm.name_ar || ''} 
                                 onChange={handleClothingFormChange} 
-                                placeholder="اسم الملابس" 
+                                placeholder="╪º╪│┘à ╪º┘ä┘à┘ä╪º╪¿╪│" 
                                 className="w-full"
                               />
                         </div>
@@ -3442,7 +3472,7 @@ const AdminDashboard: React.FC = () => {
                                 name="name_fr" 
                                 value={clothingForm.name_fr || ''} 
                                 onChange={handleClothingFormChange} 
-                                placeholder="Nom du vêtement" 
+                                placeholder="Nom du v├¬tement" 
                                 className="w-full"
                               />
                         </div>
@@ -3479,7 +3509,7 @@ const AdminDashboard: React.FC = () => {
                                 name="description_ar" 
                                 value={clothingForm.description_ar || ''} 
                                 onChange={handleClothingFormChange} 
-                                placeholder="وصف الملابس" 
+                                placeholder="┘ê╪╡┘ü ╪º┘ä┘à┘ä╪º╪¿╪│" 
                                 className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                               />
                             </div>
@@ -3489,7 +3519,7 @@ const AdminDashboard: React.FC = () => {
                                 name="description_fr" 
                                 value={clothingForm.description_fr || ''} 
                                 onChange={handleClothingFormChange} 
-                                placeholder="Description du vêtement" 
+                                placeholder="Description du v├¬tement" 
                                 className="w-full h-20 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                               />
                             </div>
@@ -3596,9 +3626,9 @@ const AdminDashboard: React.FC = () => {
                     <User className="h-12 w-12 text-emerald-700" />
                   </div>
                   <div className={`absolute -bottom-2 -right-2 h-8 w-8 rounded-full border-3 border-white flex items-center justify-center shadow-md ${
-                    selectedUser?.status === 'active' ? 'bg-green-500' : 
-                    selectedUser?.status === 'pending' ? 'bg-yellow-500' : 
-                    selectedUser?.status === 'suspended' ? 'bg-orange-500' : 'bg-red-500'
+                    selectedUser?.status === 'ACTIVE' ? 'bg-green-500' : 
+                    selectedUser?.status === 'PENDING' ? 'bg-yellow-500' : 
+                    selectedUser?.status === 'SUSPENDED' ? 'bg-orange-500' : 'bg-red-500'
                   }`}>
                     <div className="h-3 w-3 rounded-full bg-white"></div>
                   </div>
@@ -3611,7 +3641,7 @@ const AdminDashboard: React.FC = () => {
                   {selectedUser?.email}
                 </p>
                 <div className="flex items-center justify-center gap-2 mt-3">
-                  <StatusBadge status={selectedUser?.status || 'pending'} />
+                  <StatusBadge status={selectedUser?.status || 'PENDING'} />
                   <Badge variant="outline" className="bg-white text-emerald-800 border-emerald-300">
                     {selectedUser?.role?.charAt(0).toUpperCase() + selectedUser?.role?.slice(1)}
                   </Badge>
@@ -3649,7 +3679,7 @@ const AdminDashboard: React.FC = () => {
               {/* Quick Actions */}
               <div className="space-y-2 mb-6">
                 <h4 className="text-sm font-semibold text-gray-700 mb-3">Quick Actions</h4>
-                {selectedUser?.status !== 'active' && (
+                {selectedUser?.status !== 'ACTIVE' && (
                   <Button 
                     size="sm" 
                     className="w-full bg-green-600 hover:bg-green-700 text-white"
@@ -3662,7 +3692,7 @@ const AdminDashboard: React.FC = () => {
                     Activate User
                   </Button>
                 )}
-                {selectedUser?.status !== 'suspended' && (
+                {selectedUser?.status !== 'SUSPENDED' && (
                   <Button 
                     size="sm" 
                     variant="outline"

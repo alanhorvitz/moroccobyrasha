@@ -14,7 +14,7 @@ import {
   UserListResponse
 } from '@/lib/types/auth';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.morocco-platform.com';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 // Enhanced API client with security features
 class EnhancedAPIClient {
@@ -51,8 +51,8 @@ class EnhancedAPIClient {
           }
         }
 
-        // Add device fingerprint for additional security
-        config.headers['X-Device-Fingerprint'] = SecurityService.generateDeviceFingerprint();
+        // Add device fingerprint for additional security (simplified for development)
+        config.headers['X-Device-Fingerprint'] = 'dev-fingerprint';
 
         // Add request timestamp to prevent replay attacks
         config.headers['X-Timestamp'] = Date.now().toString();
@@ -161,8 +161,8 @@ const mockUsers = [
     firstName: 'Admin',
     lastName: 'User',
     phone: '+212600000001',
-    role: 'admin',
-    status: 'active',
+    role: 'ADMIN',
+    status: 'ACTIVE',
     emailVerified: true,
     twoFactorEnabled: false,
     bio: 'Platform administrator',
@@ -182,8 +182,8 @@ const mockUsers = [
     firstName: 'Tourist',
     lastName: 'User',
     phone: '+212600000002',
-    role: 'tourist',
-    status: 'active',
+    role: 'TOURIST',
+    status: 'ACTIVE',
     emailVerified: true,
     twoFactorEnabled: false,
     bio: 'Traveler exploring Morocco',
@@ -215,60 +215,24 @@ export class EnhancedAuthAPI {
         };
       }
 
-      // Simulate API call with password check
-      const mockUser = mockUsers.find(user => user.email === credentials.email);
-      
-      if (!mockUser) {
-        return {
-          success: false,
-          message: 'Invalid email or password',
-        };
+      // Make real API call to backend
+      const response = await apiClient.request<{ user: any; tokens: any }>({
+        method: 'POST',
+        url: '/api/auth/login',
+        data: credentials,
+      });
+
+      if (response.success && response.data) {
+        // Store tokens in localStorage
+        localStorage.setItem('accessToken', response.data.tokens.accessToken);
+        localStorage.setItem('refreshToken', response.data.tokens.refreshToken);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        // Reset rate limit on successful login
+        SecurityService.resetRateLimit(credentials.email);
       }
 
-      // Check password (simple mock implementation)
-      const expectedPasswords = {
-        'admin@morocco.com': 'admin123',
-        'user@morocco.com': 'user123'
-      };
-
-      if (expectedPasswords[credentials.email as keyof typeof expectedPasswords] !== credentials.password) {
-        return {
-          success: false,
-          message: 'Invalid email or password',
-        };
-      }
-
-      if (mockUser.status === 'suspended') {
-        return {
-          success: false,
-          message: 'Your account has been suspended. Please contact support.',
-        };
-      }
-
-      // Generate CSRF token
-      SecurityService.generateCSRFToken();
-
-
-
-      // Successful login
-      SecurityService.resetRateLimit(credentials.email);
-
-      const tokens = {
-        accessToken: `enhanced_jwt_${mockUser.id}_${Date.now()}`,
-        refreshToken: `refresh_${mockUser.id}_${SecurityService.generateSecureRandom()}`,
-        expiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
-        tokenType: 'Bearer' as const
-      };
-
-      localStorage.setItem('accessToken', tokens.accessToken);
-      localStorage.setItem('refreshToken', tokens.refreshToken);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-
-      return {
-        success: true,
-        message: 'Login successful',
-        data: { user: mockUser, tokens },
-      };
+      return response as LoginResponse;
 
     } catch (error) {
       console.error('Enhanced login error:', error);
@@ -335,46 +299,17 @@ export class EnhancedAuthAPI {
   // Enhanced registration
   static async register(data: RegisterRequest): Promise<RegisterResponse> {
     try {
-      const existingUser = mockUsers.find(user => user.email === data.email);
-      
-      if (existingUser) {
-        return {
-          success: false,
-          message: 'A user with this email already exists.',
-        };
-      }
+      // Make real API call to backend
+      const response = await apiClient.request<{ user: any; requiresVerification: boolean }>({
+        method: 'POST',
+        url: '/api/auth/register',
+        data: data,
+      });
 
-      const newUser = {
-        id: (mockUsers.length + 1).toString(),
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone,
-        role: data.role,
-        status: 'pending' as const,
-        emailVerified: false,
-        twoFactorEnabled: false,
-        bio: '',
-        loginAttempts: 0,
-        lastLoginAt: new Date(),
-        preferences: {
-          language: 'en',
-          notifications: { email: true, sms: false, push: true },
-          privacy: { profileVisible: true, showPhone: false, showEmail: false },
-        },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      mockUsers.push(newUser as UserProfile);
-
-      return {
-        success: true,
-        message: 'Registration successful. Please check your email to verify your account.',
-        data: { user: newUser, requiresVerification: true },
-      };
+      return response as RegisterResponse;
 
     } catch (error) {
+      console.error('Registration error:', error);
       return {
         success: false,
         message: 'An error occurred during registration. Please try again.',
@@ -387,15 +322,15 @@ export class EnhancedAuthAPI {
     try {
       const dashboardData: AdminDashboardData = {
         totalUsers: mockUsers.length,
-        activeUsers: mockUsers.filter(u => u.status === 'active').length,
+        activeUsers: mockUsers.filter(u => u.status === 'ACTIVE').length,
         newRegistrations: mockUsers.filter(u => 
           new Date(u.createdAt).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
         ).length,
         usersByRole: {
-          tourist: mockUsers.filter(u => u.role === 'tourist').length,
-          guide: mockUsers.filter(u => u.role === 'guide').length,
-          admin: mockUsers.filter(u => u.role === 'admin').length,
-          super_admin: mockUsers.filter(u => u.role === 'super_admin').length,
+          tourist: mockUsers.filter(u => u.role === 'TOURIST').length,
+          guide: mockUsers.filter(u => u.role === 'GUIDE').length,
+          admin: mockUsers.filter(u => u.role === 'ADMIN').length,
+          super_admin: mockUsers.filter(u => u.role === 'SUPER_ADMIN').length,
         },
         loginActivity: Array.from({ length: 7 }, (_, i) => ({
           date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
@@ -479,8 +414,8 @@ export class EnhancedAuthAPI {
           totalPages: Math.ceil(filteredUsers.length / limit),
         },
         filters: {
-          roles: ['tourist', 'guide', 'admin', 'super_admin'],
-          statuses: ['active', 'pending', 'suspended', 'banned'],
+          roles: ['TOURIST', 'GUIDE', 'ADMIN', 'SUPER_ADMIN'],
+          statuses: ['ACTIVE', 'PENDING', 'SUSPENDED', 'BANNED'],
         },
       };
 

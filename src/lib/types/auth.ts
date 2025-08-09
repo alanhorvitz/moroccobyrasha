@@ -1,6 +1,6 @@
 // User role types
-export type UserRole = 'tourist' | 'guide' | 'admin' | 'super_admin';
-export type UserStatus = 'pending' | 'active' | 'suspended' | 'banned';
+export type UserRole = 'TOURIST' | 'GUIDE' | 'ADMIN' | 'SUPER_ADMIN';
+export type UserStatus = 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'BANNED';
 
 // Auth tokens interface
 export interface AuthTokens {

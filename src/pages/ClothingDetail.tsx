@@ -17,7 +17,7 @@ export default function ClothingDetail() {
   // Fetch clothing and regions data
   const { data: apiClothing, isLoading: clothingLoading, error: clothingError } = useQuery({
     queryKey: ['clothing', language],
-    queryFn: apiService.getClothing,
+    queryFn: apiService.getClothingList,
   });
 
   const { data: apiRegions, isLoading: regionsLoading, error: regionsError } = useQuery({

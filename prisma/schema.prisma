@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,132 +8,110 @@ datasource db {
 }
 
 model Region {
-  id                String       @id @default(cuid())
-  name_en           String       @db.VarChar(255)
-  name_ar           String       @db.VarChar(255)
-  name_fr           String       @db.VarChar(255)
-  name_it           String       @db.VarChar(255)
-  name_es           String       @db.VarChar(255)
-  description_en    String?      @db.Text
-  description_ar    String?      @db.Text
-  description_fr    String?      @db.Text
-  description_it    String?      @db.Text
-  description_es    String?      @db.Text
-  climate_en        String?      @db.VarChar(100)
-  climate_ar        String?      @db.VarChar(100)
-  climate_fr        String?      @db.VarChar(100)
-  climate_it        String?      @db.VarChar(100)
-  climate_es        String?      @db.VarChar(100)
-  bestTimeToVisit_en String?      @db.VarChar(100)
-  bestTimeToVisit_ar String?      @db.VarChar(100)
-  bestTimeToVisit_fr String?      @db.VarChar(100)
-  bestTimeToVisit_it String?      @db.VarChar(100)
-  bestTimeToVisit_es String?      @db.VarChar(100)
-  keyFacts_en       String?      @db.Text
-  keyFacts_ar       String?      @db.Text
-  keyFacts_fr       String?      @db.Text
-  keyFacts_it       String?      @db.Text
-  keyFacts_es       String?      @db.Text
-  latitude        Float?
-  longitude       Float?
-  imageUrls       Json
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-
-  // Relations
-  attractions        Attraction[]
-  tourPackageRegions TourPackageRegion[]
-  mediaItems         MediaItem[]
-  contentItems       ContentItem[]
-  guides             GuideRegion[]
-  transportServices  TransportServiceRegion[]
-  festivals         Festival[]
+  id                 String   @id @default(cuid())
+  latitude           Float?
+  longitude          Float?
+  imageUrls          String   @db.LongText
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  bestTimeToVisit_ar String?  @db.VarChar(100)
+  bestTimeToVisit_en String?  @db.VarChar(100)
+  bestTimeToVisit_es String?  @db.VarChar(100)
+  bestTimeToVisit_fr String?  @db.VarChar(100)
+  bestTimeToVisit_it String?  @db.VarChar(100)
+  climate_ar         String?  @db.VarChar(100)
+  climate_en         String?  @db.VarChar(100)
+  climate_es         String?  @db.VarChar(100)
+  climate_fr         String?  @db.VarChar(100)
+  climate_it         String?  @db.VarChar(100)
+  description_ar     String?  @db.Text
+  description_en     String?  @db.Text
+  description_es     String?  @db.Text
+  description_fr     String?  @db.Text
+  description_it     String?  @db.Text
+  keyFacts_ar        String?  @db.Text
+  keyFacts_en        String?  @db.Text
+  keyFacts_es        String?  @db.Text
+  keyFacts_fr        String?  @db.Text
+  keyFacts_it        String?  @db.Text
+  name_ar            String   @db.VarChar(255)
+  name_en            String   @db.VarChar(255)
+  name_es            String   @db.VarChar(255)
+  name_fr            String   @db.VarChar(255)
+  name_it            String   @db.VarChar(255)
 
   @@map("regions")
 }
 
 model Attraction {
-  id                String   @id @default(cuid())
-  name_en           String   @db.VarChar(255)
-  name_ar           String   @db.VarChar(255)
-  name_fr           String   @db.VarChar(255)
-  name_it           String   @db.VarChar(255)
-  name_es           String   @db.VarChar(255)
-  description_en    String?  @db.Text
-  description_ar    String?  @db.Text
-  description_fr    String?  @db.Text
-  description_it    String?  @db.Text
-  description_es    String?  @db.Text
-  category_en       String?  @db.VarChar(100)
-  category_ar       String?  @db.VarChar(100)
-  category_fr       String?  @db.VarChar(100)
-  category_it       String?  @db.VarChar(100)
-  category_es       String?  @db.VarChar(100)
-  regionId    String
-  latitude    Float?
-  longitude   Float?
-  imageUrls   Json
-  rating      Float?   @default(0)
-  tags        Json
-  entryFee    Float?   @default(0)
-  currency    String?  @default("MAD") @db.VarChar(10)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(cuid())
+  regionId       String
+  latitude       Float?
+  longitude      Float?
+  imageUrls      String   @db.LongText
+  rating         Float?   @default(0)
+  tags           String   @db.LongText
+  entryFee       Float?   @default(0)
+  currency       String?  @default("MAD") @db.VarChar(10)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  openingHours   String?  @db.LongText
+  category_ar    String?  @db.VarChar(100)
+  category_en    String?  @db.VarChar(100)
+  category_es    String?  @db.VarChar(100)
+  category_fr    String?  @db.VarChar(100)
+  category_it    String?  @db.VarChar(100)
+  description_ar String?  @db.Text
+  description_en String?  @db.Text
+  description_es String?  @db.Text
+  description_fr String?  @db.Text
+  description_it String?  @db.Text
+  name_ar        String   @db.VarChar(255)
+  name_en        String   @db.VarChar(255)
+  name_es        String   @db.VarChar(255)
+  name_fr        String   @db.VarChar(255)
+  name_it        String   @db.VarChar(255)
 
-  // Opening Hours (stored as JSON)
-  openingHours Json?
-
-  // Relations
-  region  Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
-  reviews Review[]
-
+  @@index([regionId], map: "attractions_regionId_fkey")
   @@map("attractions")
 }
 
 model TourPackage {
-  id                String   @id @default(cuid())
-  title_en          String   @db.VarChar(255)
-  title_ar          String   @db.VarChar(255)
-  title_fr          String   @db.VarChar(255)
-  title_it          String   @db.VarChar(255)
-  title_es          String   @db.VarChar(255)
-  description_en    String?  @db.Text
-  description_ar    String?  @db.Text
-  description_fr    String?  @db.Text
-  description_it    String?  @db.Text
-  description_es    String?  @db.Text
-  difficulty_en     String?  @db.VarChar(50)
-  difficulty_ar     String?  @db.VarChar(50)
-  difficulty_fr     String?  @db.VarChar(50)
-  difficulty_it     String?  @db.VarChar(50)
-  difficulty_es     String?  @db.VarChar(50)
-  duration    Int // in days
-  price       Float
-  currency    String   @default("MAD") @db.VarChar(10)
-  imageUrls   Json
-  included    Json
-  excluded    Json
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  regions   TourPackageRegion[]
-  itinerary Itinerary?
-  reviews   Review[]
+  id             String   @id @default(cuid())
+  duration       Int
+  price          Float
+  currency       String   @default("MAD") @db.VarChar(10)
+  imageUrls      String   @db.LongText
+  included       String   @db.LongText
+  excluded       String   @db.LongText
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  description_ar String?  @db.Text
+  description_en String?  @db.Text
+  description_es String?  @db.Text
+  description_fr String?  @db.Text
+  description_it String?  @db.Text
+  difficulty_ar  String?  @db.VarChar(50)
+  difficulty_en  String?  @db.VarChar(50)
+  difficulty_es  String?  @db.VarChar(50)
+  difficulty_fr  String?  @db.VarChar(50)
+  difficulty_it  String?  @db.VarChar(50)
+  title_ar       String   @db.VarChar(255)
+  title_en       String   @db.VarChar(255)
+  title_es       String   @db.VarChar(255)
+  title_fr       String   @db.VarChar(255)
+  title_it       String   @db.VarChar(255)
 
   @@map("tour_packages")
 }
 
 model TourPackageRegion {
-  id            String      @id @default(cuid())
+  id            String @id @default(cuid())
   tourPackageId String
   regionId      String
 
-  // Relations
-  tourPackage TourPackage @relation(fields: [tourPackageId], references: [id], onDelete: Cascade)
-  region      Region      @relation(fields: [regionId], references: [id], onDelete: Cascade)
-
   @@unique([tourPackageId, regionId])
+  @@index([regionId], map: "tour_package_regions_regionId_fkey")
   @@map("tour_package_regions")
 }
 
@@ -144,180 +119,156 @@ model Itinerary {
   id            String @id @default(cuid())
   tourPackageId String @unique
 
-  // Relations
-  tourPackage TourPackage    @relation(fields: [tourPackageId], references: [id], onDelete: Cascade)
-  days        ItineraryDay[]
-
   @@map("itineraries")
 }
 
 model ItineraryDay {
-  id                String  @id @default(cuid())
-  title_en          String? @db.VarChar(255)
-  title_ar          String? @db.VarChar(255)
-  title_fr          String? @db.VarChar(255)
-  title_it          String? @db.VarChar(255)
-  title_es          String? @db.VarChar(255)
-  description_en    String? @db.Text
-  description_ar    String? @db.Text
-  description_fr    String? @db.Text
-  description_it    String? @db.Text
-  description_es    String? @db.Text
-  itineraryId String
-  dayNumber   Int
-  activities  Json
-
-  // Relations
-  itinerary      Itinerary       @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
-  accommodation  Accommodation?
-  meals          Meal[]
+  id             String  @id @default(cuid())
+  itineraryId    String
+  dayNumber      Int
+  activities     String  @db.LongText
+  description_ar String? @db.Text
+  description_en String? @db.Text
+  description_es String? @db.Text
+  description_fr String? @db.Text
+  description_it String? @db.Text
+  title_ar       String? @db.VarChar(255)
+  title_en       String? @db.VarChar(255)
+  title_es       String? @db.VarChar(255)
+  title_fr       String? @db.VarChar(255)
+  title_it       String? @db.VarChar(255)
 
   @@unique([itineraryId, dayNumber])
   @@map("itinerary_days")
 }
 
 model Accommodation {
-  id                String @id @default(cuid())
-  name_en           String @db.VarChar(255)
-  name_ar           String @db.VarChar(255)
-  name_fr           String @db.VarChar(255)
-  name_it           String @db.VarChar(255)
-  name_es           String @db.VarChar(255)
-  type_en           String? @db.VarChar(100)
-  type_ar           String? @db.VarChar(100)
-  type_fr           String? @db.VarChar(100)
-  type_it           String? @db.VarChar(100)
-  type_es           String? @db.VarChar(100)
-  description_en    String? @db.Text
-  description_ar    String? @db.Text
-  description_fr    String? @db.Text
-  description_it    String? @db.Text
-  description_es    String? @db.Text
-  itineraryDayId String @unique
+  id             String  @id @default(cuid())
+  itineraryDayId String  @unique
   address        String? @db.Text
   stars          Int?
-
-  // Relations
-  itineraryDay ItineraryDay @relation(fields: [itineraryDayId], references: [id], onDelete: Cascade)
+  description_ar String? @db.Text
+  description_en String? @db.Text
+  description_es String? @db.Text
+  description_fr String? @db.Text
+  description_it String? @db.Text
+  name_ar        String  @db.VarChar(255)
+  name_en        String  @db.VarChar(255)
+  name_es        String  @db.VarChar(255)
+  name_fr        String  @db.VarChar(255)
+  name_it        String  @db.VarChar(255)
+  type_ar        String? @db.VarChar(100)
+  type_en        String? @db.VarChar(100)
+  type_es        String? @db.VarChar(100)
+  type_fr        String? @db.VarChar(100)
+  type_it        String? @db.VarChar(100)
 
   @@map("accommodations")
 }
 
 model Meal {
-  id                String  @id @default(cuid())
-  description_en    String? @db.Text
-  description_ar    String? @db.Text
-  description_fr    String? @db.Text
-  description_it    String? @db.Text
-  description_es    String? @db.Text
+  id             String  @id @default(cuid())
   itineraryDayId String
-  type           String  @db.VarChar(50) // breakfast, lunch, dinner
+  type           String  @db.VarChar(50)
   included       Boolean @default(false)
+  description_ar String? @db.Text
+  description_en String? @db.Text
+  description_es String? @db.Text
+  description_fr String? @db.Text
+  description_it String? @db.Text
 
-  // Relations
-  itineraryDay ItineraryDay @relation(fields: [itineraryDayId], references: [id], onDelete: Cascade)
-
+  @@index([itineraryDayId], map: "meals_itineraryDayId_fkey")
   @@map("meals")
 }
 
 model MediaItem {
-  id                String   @id @default(cuid())
-  title_en          String   @db.VarChar(255)
-  title_ar          String   @db.VarChar(255)
-  title_fr          String   @db.VarChar(255)
-  title_it          String   @db.VarChar(255)
-  title_es          String   @db.VarChar(255)
-  description_en    String?  @db.Text
-  description_ar    String?  @db.Text
-  description_fr    String?  @db.Text
-  description_it    String?  @db.Text
-  description_es    String?  @db.Text
-  type          String   @db.VarChar(50) // image, video, 360-photo, etc.
-  url           String   @db.VarChar(500)
-  thumbnailUrl  String?  @db.VarChar(500)
-  tags          Json
-  regionId      String?
-  categoryId    String?  @db.VarChar(100)
-  uploadDate    DateTime @default(now())
-  photographer  String?  @db.VarChar(255)
-  latitude      Float?
-  longitude     Float?
-  isFeatured    Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String   @id @default(cuid())
+  type           String   @db.VarChar(50)
+  url            String   @db.VarChar(500)
+  thumbnailUrl   String?  @db.VarChar(500)
+  tags           String   @db.LongText
+  regionId       String?
+  categoryId     String?  @db.VarChar(100)
+  uploadDate     DateTime @default(now())
+  photographer   String?  @db.VarChar(255)
+  latitude       Float?
+  longitude      Float?
+  isFeatured     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  description_ar String?  @db.Text
+  description_en String?  @db.Text
+  description_es String?  @db.Text
+  description_fr String?  @db.Text
+  description_it String?  @db.Text
+  title_ar       String   @db.VarChar(255)
+  title_en       String   @db.VarChar(255)
+  title_es       String   @db.VarChar(255)
+  title_fr       String   @db.VarChar(255)
+  title_it       String   @db.VarChar(255)
 
-  // Relations
-  region Region? @relation(fields: [regionId], references: [id], onDelete: SetNull)
-
+  @@index([regionId], map: "media_items_regionId_fkey")
   @@map("media_items")
 }
 
 model ContentItem {
-  id                String   @id @default(cuid())
-  title_en          String   @db.VarChar(255)
-  title_ar          String   @db.VarChar(255)
-  title_fr          String   @db.VarChar(255)
-  title_it          String   @db.VarChar(255)
-  title_es          String   @db.VarChar(255)
-  description_en    String?  @db.Text
-  description_ar    String?  @db.Text
-  description_fr    String?  @db.Text
-  description_it    String?  @db.Text
-  description_es    String?  @db.Text
-  content_en        String?  @db.LongText
-  content_ar        String?  @db.LongText
-  content_fr        String?  @db.LongText
-  content_it        String?  @db.LongText
-  content_es        String?  @db.LongText
-  type        String   @db.VarChar(50) // article, blog, guide, etc.
-  tags        Json
-  authorId    String?
-  publishDate DateTime @default(now())
-  mediaIds    Json
-  regionId    String?
-  categoryId  String?  @db.VarChar(100)
-  readTime    Int? // in minutes
-  isFeatured  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(cuid())
+  type           String   @db.VarChar(50)
+  tags           String   @db.LongText
+  authorId       String?
+  publishDate    DateTime @default(now())
+  mediaIds       String   @db.LongText
+  regionId       String?
+  categoryId     String?  @db.VarChar(100)
+  readTime       Int?
+  isFeatured     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  content_ar     String?  @db.LongText
+  content_en     String?  @db.LongText
+  content_es     String?  @db.LongText
+  content_fr     String?  @db.LongText
+  content_it     String?  @db.LongText
+  description_ar String?  @db.Text
+  description_en String?  @db.Text
+  description_es String?  @db.Text
+  description_fr String?  @db.Text
+  description_it String?  @db.Text
+  title_ar       String   @db.VarChar(255)
+  title_en       String   @db.VarChar(255)
+  title_es       String   @db.VarChar(255)
+  title_fr       String   @db.VarChar(255)
+  title_it       String   @db.VarChar(255)
 
-  // Relations
-  region Region? @relation(fields: [regionId], references: [id], onDelete: SetNull)
-
+  @@index([regionId], map: "content_items_regionId_fkey")
   @@map("content_items")
 }
 
 model Guide {
   id                String   @id @default(cuid())
-  name_en           String   @db.VarChar(255)
-  name_ar           String   @db.VarChar(255)
-  name_fr           String   @db.VarChar(255)
-  name_it           String   @db.VarChar(255)
-  name_es           String   @db.VarChar(255)
-  description_en    String?  @db.Text
+  languages         String   @db.LongText
+  specialties       String   @db.LongText
+  certifications    String   @db.LongText
+  yearsOfExperience Int?     @default(0)
+  imageUrls         String   @db.LongText
+  hourlyRate        Float?
+  currency          String?  @default("MAD") @db.VarChar(10)
+  email             String?  @db.VarChar(255)
+  phone             String?  @db.VarChar(50)
+  website           String?  @db.VarChar(500)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  availability      String?  @db.LongText
   description_ar    String?  @db.Text
+  description_en    String?  @db.Text
+  description_es    String?  @db.Text
   description_fr    String?  @db.Text
   description_it    String?  @db.Text
-  description_es    String?  @db.Text
-  languages          Json
-  specialties        Json
-  certifications     Json
-  yearsOfExperience  Int?     @default(0)
-  imageUrls          Json
-  hourlyRate         Float?
-  currency           String?  @default("MAD") @db.VarChar(10)
-  email              String?  @db.VarChar(255)
-  phone              String?  @db.VarChar(50)
-  website            String?  @db.VarChar(500)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  // Availability (stored as JSON)
-  availability Json?
-
-  // Relations
-  regions GuideRegion[]
-  reviews Review[]
+  name_ar           String   @db.VarChar(255)
+  name_en           String   @db.VarChar(255)
+  name_es           String   @db.VarChar(255)
+  name_fr           String   @db.VarChar(255)
+  name_it           String   @db.VarChar(255)
 
   @@map("guides")
 }
@@ -327,46 +278,36 @@ model GuideRegion {
   guideId  String
   regionId String
 
-  // Relations
-  guide  Guide  @relation(fields: [guideId], references: [id], onDelete: Cascade)
-  region Region @relation(fields: [regionId], references: [id], onDelete: Cascade)
-
   @@unique([guideId, regionId])
+  @@index([regionId], map: "guide_regions_regionId_fkey")
   @@map("guide_regions")
 }
 
 model TransportService {
-  id                String   @id @default(cuid())
-  name_en           String   @db.VarChar(255)
-  name_ar           String   @db.VarChar(255)
-  name_fr           String   @db.VarChar(255)
-  name_it           String   @db.VarChar(255)
-  name_es           String   @db.VarChar(255)
-  description_en    String?  @db.Text
-  description_ar    String?  @db.Text
-  description_fr    String?  @db.Text
-  description_it    String?  @db.Text
-  description_es    String?  @db.Text
-  type_en           String   @db.VarChar(100)
-  type_ar           String   @db.VarChar(100)
-  type_fr           String   @db.VarChar(100)
-  type_it           String   @db.VarChar(100)
-  type_es           String   @db.VarChar(100)
+  id              String   @id @default(cuid())
   airportTransfer Boolean  @default(false)
-  imageUrls       Json
+  imageUrls       String   @db.LongText
   email           String?  @db.VarChar(255)
   phone           String?  @db.VarChar(50)
   website         String?  @db.VarChar(500)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-
-  // Service Area (stored as JSON)
-  serviceArea Json?
-
-  // Relations
-  regions        TransportServiceRegion[]
-  vehicleOptions VehicleOption[]
-  reviews        Review[]
+  serviceArea     String?  @db.LongText
+  description_ar  String?  @db.Text
+  description_en  String?  @db.Text
+  description_es  String?  @db.Text
+  description_fr  String?  @db.Text
+  description_it  String?  @db.Text
+  name_ar         String   @db.VarChar(255)
+  name_en         String   @db.VarChar(255)
+  name_es         String   @db.VarChar(255)
+  name_fr         String   @db.VarChar(255)
+  name_it         String   @db.VarChar(255)
+  type_ar         String   @db.VarChar(100)
+  type_en         String   @db.VarChar(100)
+  type_es         String   @db.VarChar(100)
+  type_fr         String   @db.VarChar(100)
+  type_it         String   @db.VarChar(100)
 
   @@map("transport_services")
 }
@@ -376,27 +317,22 @@ model TransportServiceRegion {
   transportServiceId String
   regionId           String
 
-  // Relations
-  transportService TransportService @relation(fields: [transportServiceId], references: [id], onDelete: Cascade)
-  region           Region           @relation(fields: [regionId], references: [id], onDelete: Cascade)
-
   @@unique([transportServiceId, regionId])
+  @@index([regionId], map: "transport_service_regions_regionId_fkey")
   @@map("transport_service_regions")
 }
 
 model VehicleOption {
-  id                 String   @id @default(cuid())
+  id                 String @id @default(cuid())
   transportServiceId String
-  type               String   @db.VarChar(100)
+  type               String @db.VarChar(100)
   capacity           Int
   pricePerDay        Float
-  currency           String   @default("MAD") @db.VarChar(10)
-  features           Json
-  imageUrls          Json
+  currency           String @default("MAD") @db.VarChar(10)
+  features           String @db.LongText
+  imageUrls          String @db.LongText
 
-  // Relations
-  transportService TransportService @relation(fields: [transportServiceId], references: [id], onDelete: Cascade)
-
+  @@index([transportServiceId], map: "vehicle_options_transportServiceId_fkey")
   @@map("vehicle_options")
 }
 
@@ -404,7 +340,7 @@ model Review {
   id               String   @id @default(cuid())
   userId           String
   itemId           String
-  itemType         String   @db.VarChar(50) // attraction, tour_package, guide, transport_service
+  itemType         String   @db.VarChar(50)
   rating           Float
   title            String?  @db.VarChar(255)
   comment          String?  @db.Text
@@ -415,26 +351,22 @@ model Review {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  // Relations (polymorphic) - using unique constraint names
-  attraction       Attraction?       @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "reviews_attraction_fkey")
-  tourPackage      TourPackage?      @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "reviews_tour_package_fkey")
-  guide            Guide?            @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "reviews_guide_fkey")
-  transportService TransportService? @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "reviews_transport_service_fkey")
-
+  @@index([itemId], map: "reviews_transport_service_fkey")
+  @@index([userId], map: "reviews_userId_fkey")
   @@map("reviews")
 }
 
 model UserPreferences {
-  id                   String   @id @default(cuid())
-  userId               String   @unique
-  language             String   @default("en") @db.VarChar(10)
-  currency             String   @default("MAD") @db.VarChar(10)
-  favoriteRegions      Json
-  preferredCategories  Json
-  darkMode             Boolean  @default(false)
-  emailNotifications   Boolean  @default(true)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  language            String   @default("en") @db.VarChar(10)
+  currency            String   @default("MAD") @db.VarChar(10)
+  favoriteRegions     String   @db.LongText
+  preferredCategories String   @db.LongText
+  darkMode            Boolean  @default(false)
+  emailNotifications  Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   @@map("user_preferences")
 }
@@ -443,7 +375,7 @@ model SavedItem {
   id        String   @id @default(cuid())
   userId    String
   itemId    String
-  itemType  String   @db.VarChar(50) // region, attraction, tour_package, media_item, content_item
+  itemType  String   @db.VarChar(50)
   savedDate DateTime @default(now())
   notes     String?  @db.Text
 
@@ -451,7 +383,6 @@ model SavedItem {
   @@map("saved_items")
 }
 
-// Search-related models for better search functionality
 model SearchQuery {
   id        String   @id @default(cuid())
   query     String   @db.VarChar(500)
@@ -460,30 +391,27 @@ model SearchQuery {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId], map: "search_queries_userId_fkey")
   @@map("search_queries")
 }
 
-// New models for missing data entities
-
 model Festival {
-  id                  String   @id @default(cuid())
-  name                String   @db.VarChar(255)
-  description         String?  @db.Text
-  type                String   @db.VarChar(100) // music-festival, film-festival, cultural-festival, etc.
-  location            String   @db.VarChar(255)
-  regionId            String?
-  timeOfYear          String   @db.VarChar(100)
-  duration            Int      @default(1) // in days
-  images              Json
-  videoUrl            String?  @db.VarChar(500)
-  established         String?  @db.VarChar(100)
-  historicalSignificance String? @db.Text
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  name                   String   @db.VarChar(255)
+  description            String?  @db.Text
+  type                   String   @db.VarChar(100)
+  location               String   @db.VarChar(255)
+  regionId               String?
+  timeOfYear             String   @db.VarChar(100)
+  duration               Int      @default(1)
+  images                 String   @db.LongText
+  videoUrl               String?  @db.VarChar(500)
+  established            String?  @db.VarChar(100)
+  historicalSignificance String?  @db.Text
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
-  // Relations
-  region Region? @relation(fields: [regionId], references: [id], onDelete: SetNull)
-
+  @@index([regionId], map: "festivals_regionId_fkey")
   @@map("festivals")
 }
 
@@ -491,13 +419,13 @@ model Cuisine {
   id              String   @id @default(cuid())
   name            String   @db.VarChar(255)
   description     String?  @db.Text
-  type            String   @db.VarChar(100) // main-dish, appetizer, dessert, beverage, etc.
-  regionIds       Json     // Array of region IDs
-  ingredients     Json     // Array of ingredients
-  spiceLevel      String   @db.VarChar(50) // none, mild, medium, hot
-  images          Json
+  type            String   @db.VarChar(100)
+  regionIds       String   @db.LongText
+  ingredients     String   @db.LongText
+  spiceLevel      String   @db.VarChar(50)
+  images          String   @db.LongText
   videoUrl        String?  @db.VarChar(500)
-  popularVariants Json     // Array of variant names
+  popularVariants String   @db.LongText
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -508,9 +436,9 @@ model Heritage {
   id          String   @id @default(cuid())
   name        String   @db.VarChar(255)
   description String?  @db.Text
-  type        String   @db.VarChar(100) // cultural-performance, music-dance, craft, art, etc.
-  regionIds   Json     // Array of region IDs
-  images      Json
+  type        String   @db.VarChar(100)
+  regionIds   String   @db.LongText
+  images      String   @db.LongText
   videoUrl    String?  @db.VarChar(500)
   importance  String?  @db.Text
   createdAt   DateTime @default(now())
@@ -520,17 +448,60 @@ model Heritage {
 }
 
 model Clothing {
-  id             String   @id @default(cuid())
-  name           String   @db.VarChar(255)
-  description    String?  @db.Text
-  gender         String   @db.VarChar(50) // male, female, unisex
-  regionIds      Json     // Array of region IDs
-  materials      Json     // Array of materials
-  occasions      Json     // Array of occasions
-  images         Json
+  id              String   @id @default(cuid())
+  name            String   @db.VarChar(255)
+  description     String?  @db.Text
+  gender          String   @db.VarChar(50)
+  regionIds       String   @db.LongText
+  materials       String   @db.LongText
+  occasions       String   @db.LongText
+  images          String   @db.LongText
   historicalNotes String?  @db.Text
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@map("clothing")
+}
+
+model User {
+  id                       String     @id @default(cuid())
+  email                    String     @unique @db.VarChar(255)
+  passwordHash             String     @db.VarChar(255)
+  firstName                String     @db.VarChar(100)
+  lastName                 String     @db.VarChar(100)
+  phone                    String?    @db.VarChar(50)
+  role                     UserRole   @default(TOURIST)
+  status                   UserStatus @default(PENDING)
+  emailVerified            Boolean    @default(false)
+  twoFactorEnabled         Boolean    @default(false)
+  twoFactorSecret          String?    @db.VarChar(255)
+  bio                      String?    @db.Text
+  avatarUrl                String?    @db.VarChar(500)
+  preferences              String?    @db.LongText
+  lastLogin                DateTime?
+  loginCount               Int        @default(0)
+  failedLoginAttempts      Int        @default(0)
+  lockedUntil              DateTime?
+  resetPasswordToken       String?    @db.VarChar(255)
+  resetPasswordExpires     DateTime?
+  emailVerificationToken   String?    @db.VarChar(255)
+  emailVerificationExpires DateTime?
+  createdAt                DateTime   @default(now())
+  updatedAt                DateTime   @updatedAt
+
+  @@map("users")
+}
+
+enum UserRole {
+  TOURIST
+  GUIDE
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  BANNED
 }

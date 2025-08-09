@@ -175,8 +175,24 @@ export interface ApiTourPackage {
 export const apiService = {
   // Regions
   async getRegions(): Promise<ApiRegion[]> {
-    const response = await api.get('/regions');
-    return response.data;
+    try {
+      console.log('Making API call to /regions...');
+      const response = await api.get('/regions');
+      console.log('API response received:', response.status, response.data);
+      return response.data;
+    } catch (error) {
+      console.error('API call failed:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.status, error.response.data);
+        throw new Error(`API Error: ${error.response.status} - ${error.response.data?.error || 'Unknown error'}`);
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+        throw new Error('No response from server. Check if the backend is running.');
+      } else {
+        console.error('Request setup error:', error.message);
+        throw new Error(`Request error: ${error.message}`);
+      }
+    }
   },
 
   async getRegion(id: string): Promise<ApiRegion> {
@@ -322,12 +338,12 @@ export const apiService = {
   },
 
   // Clothing
-  async getClothing(): Promise<ApiClothing[]> {
+  async getClothingList(): Promise<ApiClothing[]> {
     const response = await api.get('/clothing');
     return response.data;
   },
 
-  async getClothing(id: string): Promise<ApiClothing> {
+  async getClothingById(id: string): Promise<ApiClothing> {
     const response = await api.get(`/clothing/${id}`);
     return response.data;
   },

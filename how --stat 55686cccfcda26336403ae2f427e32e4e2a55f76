@@ -1,0 +1,84 @@
+[33mcommit 55686cccfcda26336403ae2f427e32e4e2a55f76[m
+Author: alanhorvitz <alanennia@proton.me>
+Date:   Fri Aug 8 13:58:44 2025 +0100
+
+    .
+
+[1mdiff --git a/src/pages/dashboard/AdminDashboard.tsx b/src/pages/dashboard/AdminDashboard.tsx[m
+[1mindex dbd130b..6020333 100644[m
+[1m--- a/src/pages/dashboard/AdminDashboard.tsx[m
+[1m+++ b/src/pages/dashboard/AdminDashboard.tsx[m
+[36m@@ -1,70 +1,7 @@[m
+[31m-import React, { useEffect, useState, useCallback } from 'react';[m
+[31m-import { useNavigate } from 'react-router-dom';[m
+[31m-import { AuthAPI } from '@/lib/auth/api';[m
+[31m-import { EnhancedAuthAPI } from '@/lib/auth/enhanced-api';[m
+[32m+[m[32mimport React from 'react';[m
+ import { useAuth } from '@/contexts/AuthContext';[m
+[31m-import { AuditLogger } from '@/lib/admin/audit-logger';[m
+[31m-// import EnhancedUserTable from '@/components/admin/EnhancedUserTable';[m
+[31m-import AuditLogViewer from '@/components/admin/AuditLogViewer';[m
+[31m-import {[m
+[31m-  LayoutDashboard, Users, FileText, User, Clock, Filter, RefreshCcw, Search, ChevronLeft, ChevronRight,[m
+[31m-  Check, X, Trash2, UserCheck, UserX, MoreHorizontal, MapPin, Landmark, Calendar, Utensils, Star, Shirt, Eye, Plus, Pencil,[m
+[31m-  Mail, Shield, Settings, MessageSquare, Bell, Phone, Globe, Activity, CalendarDays, AlertCircle, Info[m
+[31m-} from 'lucide-react';[m
+[31m-import {[m
+[31m-  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle[m
+[31m-} from '@/components/ui/card';[m
+[31m-import { Button } from '@/components/ui/button';[m
+[31m-import { Input } from '@/components/ui/input';[m
+[31m-import { Badge } from '@/components/ui/badge';[m
+[31m-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';[m
+[31m-import {[m
+[31m-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger[m
+[31m-} from '@/components/ui/dropdown-menu';[m
+[31m-import {[m
+[31m-  Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue[m
+[31m-} from '@/components/ui/select';[m
+[31m-import {[m
+[31m-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader,[m
+[31m-  DialogTitle, DialogTrigger, DialogClose[m
+[31m-} from '@/components/ui/dialog';[m
+[31m-import {[m
+[31m-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow[m
+[31m-} from '@/components/ui/table';[m
+[31m-import { Alert, AlertDescription } from '@/components/ui/alert';[m
+[31m-import {[m
+[31m-  Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart,[m
+[31m-  ResponsiveContainer, Tooltip, XAxis, YAxis[m
+[31m-} from 'recharts';[m
+[31m-import { toast } from '@/hooks/use-toast';[m
+[31m-[m
+[31m-// Types[m
+[31m-import { AdminDashboardData, UserProfile } from '@/lib/types/auth';[m
+[31m-import { apiService, transformApiData } from '@/lib/api';[m
+[31m-import { useLanguage } from '@/contexts/LanguageContext';[m
+[31m-[m
+[31m-const StatusBadge = ({ status }: { status: string }) => {[m
+[31m-  const getStatusColor = () => {[m
+[31m-    switch (status) {[m
+[31m-      case 'active':[m
+[31m-        return 'bg-green-100 text-green-800 hover:bg-green-200';[m
+[31m-      case 'pending':[m
+[31m-        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';[m
+[31m-      case 'suspended':[m
+[31m-        return 'bg-orange-100 text-orange-800 hover:bg-orange-200';[m
+[31m-      case 'banned':[m
+[31m-        return 'bg-red-100 text-red-800 hover:bg-red-200';[m
+[31m-      default:[m
+[31m-        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';[m
+[31m-    }[m
+[31m-  };[m
+[31m-[m
+[31m-  return ([m
+[31m-    <Badge variant="outline" className={getStatusColor()}>[m
+[31m-      {status.charAt(0).toUpperCase() + status.slice(1)}[m
+[31m-    </Badge>[m
+[31m-  );[m
+[31m-};[m
+[32m+[m[32mimport { AdminDashboard as AdminDashboardComponent } from '@/components/dashboard/AdminDashboard';[m
+[32m+[m[32mimport { ProtectedRoute } from '@/components/auth/ProtectedRoute';[m
+ [m
+ const AdminDashboard: React.FC = () => {[m
+   const navigate = useNavigate();[m

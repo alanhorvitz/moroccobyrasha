@@ -152,10 +152,9 @@ app.get('/api/regions', async (req, res) => {
     const regions = await prisma.region.findMany();
     console.log(`Found ${regions.length} regions`);
     res.json(regions);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching regions:', error);
     console.error('Detailed error:', error.message);
-    
     // Fallback to mock data
     const mockRegions = [
       {
@@ -187,9 +186,20 @@ app.get('/api/regions', async (req, res) => {
         updatedAt: new Date()
       }
     ];
-    
     console.log('Returning mock regions data');
     res.json(mockRegions);
+  }
+});
+
+// NEW: Get region by id
+app.get('/api/regions/:id', async (req, res) => {
+  try {
+    const region = await prisma.region.findUnique({ where: { id: req.params.id } });
+    if (!region) return res.status(404).json({ error: 'Not found' });
+    res.json(region);
+  } catch (error) {
+    console.error('Error fetching region:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -270,6 +280,18 @@ app.get('/api/attractions', async (req, res) => {
     res.json(attractions);
   } catch (error) {
     console.error('Error fetching attractions:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// NEW: Get attraction by id
+app.get('/api/attractions/:id', async (req, res) => {
+  try {
+    const attraction = await prisma.attraction.findUnique({ where: { id: req.params.id } });
+    if (!attraction) return res.status(404).json({ error: 'Not found' });
+    res.json(attraction);
+  } catch (error) {
+    console.error('Error fetching attraction:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -377,29 +399,22 @@ app.delete('/api/attractions/:id', async (req, res) => {
 // Tour Packages API routes
 app.get('/api/tour-packages', async (req, res) => {
   try {
-    const tourPackages = await prisma.tourPackage.findMany({
-      include: {
-        regions: {
-          include: {
-            region: true,
-          },
-        },
-        itinerary: {
-          include: {
-            days: {
-              include: {
-                accommodation: true,
-                meals: true,
-              },
-            },
-          },
-        },
-        reviews: true,
-      },
-    });
+    const tourPackages = await prisma.tourPackage.findMany();
     res.json(tourPackages);
   } catch (error) {
     console.error('Error fetching tour packages:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// NEW: Get tour package by id
+app.get('/api/tour-packages/:id', async (req, res) => {
+  try {
+    const tourPackage = await prisma.tourPackage.findUnique({ where: { id: req.params.id } });
+    if (!tourPackage) return res.status(404).json({ error: 'Not found' });
+    res.json(tourPackage);
+  } catch (error) {
+    console.error('Error fetching tour package:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -410,7 +425,7 @@ app.post('/api/tour-packages', async (req, res) => {
       title_en, title_ar, title_fr, title_it, title_es,
       description_en, description_ar, description_fr, description_it, description_es,
       difficulty_en, difficulty_ar, difficulty_fr, difficulty_it, difficulty_es,
-      duration, price, currency, imageUrls, included, excluded 
+      duration, price, currency, imageUrls, included, excluded, regionId 
     } = req.body;
     
     const tourPackage = await prisma.tourPackage.create({
@@ -419,6 +434,7 @@ app.post('/api/tour-packages', async (req, res) => {
         description_en, description_ar, description_fr, description_it, description_es,
         difficulty_en, difficulty_ar, difficulty_fr, difficulty_it, difficulty_es,
         duration, price, currency, imageUrls, included, excluded,
+        regionId,
       },
     });
     res.status(201).json(tourPackage);
@@ -431,16 +447,7 @@ app.post('/api/tour-packages', async (req, res) => {
 // Guides API routes
 app.get('/api/guides', async (req, res) => {
   try {
-    const guides = await prisma.guide.findMany({
-      include: {
-        regions: {
-          include: {
-            region: true,
-          },
-        },
-        reviews: true,
-      },
-    });
+    const guides = await prisma.guide.findMany();
     res.json(guides);
   } catch (error) {
     console.error('Error fetching guides:', error);
@@ -473,11 +480,7 @@ app.post('/api/guides', async (req, res) => {
 // Media Items API routes
 app.get('/api/media', async (req, res) => {
   try {
-    const mediaItems = await prisma.mediaItem.findMany({
-      include: {
-        region: true,
-      },
-    });
+    const mediaItems = await prisma.mediaItem.findMany();
     res.json(mediaItems);
   } catch (error) {
     console.error('Error fetching media items:', error);
@@ -492,15 +495,11 @@ app.post('/api/media', async (req, res) => {
       description_en, description_ar, description_fr, description_it, description_es,
       type, url, thumbnailUrl, tags, regionId, categoryId, photographer, latitude, longitude, isFeatured 
     } = req.body;
-    
     const mediaItem = await prisma.mediaItem.create({
       data: {
         title_en, title_ar, title_fr, title_it, title_es,
         description_en, description_ar, description_fr, description_it, description_es,
         type, url, thumbnailUrl, tags, regionId, categoryId, photographer, latitude, longitude, isFeatured,
-      },
-      include: {
-        region: true,
       },
     });
     res.status(201).json(mediaItem);
@@ -513,11 +512,7 @@ app.post('/api/media', async (req, res) => {
 // Content Items API routes
 app.get('/api/content', async (req, res) => {
   try {
-    const contentItems = await prisma.contentItem.findMany({
-      include: {
-        region: true,
-      },
-    });
+    const contentItems = await prisma.contentItem.findMany();
     res.json(contentItems);
   } catch (error) {
     console.error('Error fetching content items:', error);
@@ -533,16 +528,12 @@ app.post('/api/content', async (req, res) => {
       content_en, content_ar, content_fr, content_it, content_es,
       type, tags, authorId, mediaIds, regionId, categoryId, readTime, isFeatured 
     } = req.body;
-    
     const contentItem = await prisma.contentItem.create({
       data: {
         title_en, title_ar, title_fr, title_it, title_es,
         description_en, description_ar, description_fr, description_it, description_es,
         content_en, content_ar, content_fr, content_it, content_es,
         type, tags, authorId, mediaIds, regionId, categoryId, readTime, isFeatured,
-      },
-      include: {
-        region: true,
       },
     });
     res.status(201).json(contentItem);
@@ -555,17 +546,7 @@ app.post('/api/content', async (req, res) => {
 // Transport Services API routes
 app.get('/api/transport', async (req, res) => {
   try {
-    const transportServices = await prisma.transportService.findMany({
-      include: {
-        regions: {
-          include: {
-            region: true,
-          },
-        },
-        vehicleOptions: true,
-        reviews: true,
-      },
-    });
+    const transportServices = await prisma.transportService.findMany();
     res.json(transportServices);
   } catch (error) {
     console.error('Error fetching transport services:', error);
@@ -578,7 +559,7 @@ app.post('/api/transport', async (req, res) => {
     const { 
       name_en, name_ar, name_fr, name_it, name_es,
       description_en, description_ar, description_fr, description_it, description_es,
-      type_en, type_ar, type_fr, type_it, type_es,
+      type, type_en, type_ar, type_fr, type_it, type_es,
       airportTransfer, imageUrls, email, phone, website, serviceArea 
     } = req.body;
     
@@ -586,7 +567,7 @@ app.post('/api/transport', async (req, res) => {
       data: {
         name_en, name_ar, name_fr, name_it, name_es,
         description_en, description_ar, description_fr, description_it, description_es,
-        type_en, type_ar, type_fr, type_it, type_es,
+        type, type_en, type_ar, type_fr, type_it, type_es,
         airportTransfer, imageUrls, email, phone, website, serviceArea,
       },
     });
@@ -600,14 +581,7 @@ app.post('/api/transport', async (req, res) => {
 // Reviews API routes
 app.get('/api/reviews', async (req, res) => {
   try {
-    const reviews = await prisma.review.findMany({
-      include: {
-        attraction: true,
-        tourPackage: true,
-        guide: true,
-        transportService: true,
-      },
-    });
+    const reviews = await prisma.review.findMany();
     res.json(reviews);
   } catch (error) {
     console.error('Error fetching reviews:', error);
@@ -655,7 +629,6 @@ app.post('/api/festivals', async (req, res) => {
       name, description, type, location, regionId, timeOfYear, duration, 
       images, videoUrl, established, historicalSignificance 
     } = req.body;
-    
     const festival = await prisma.festival.create({
       data: {
         name,
@@ -669,9 +642,6 @@ app.post('/api/festivals', async (req, res) => {
         videoUrl: videoUrl ?? null,
         established: established ?? null,
         historicalSignificance: historicalSignificance ?? null,
-      },
-      include: {
-        region: true,
       },
     });
     res.status(201).json(festival);
@@ -938,6 +908,38 @@ app.delete('/api/clothing/:id', async (req, res) => {
   }
 });
 
+// Travel Guides API routes
+app.get('/api/travel-guides', async (req, res) => {
+  try {
+    const guides = await (prisma as any).travelGuide.findMany();
+    res.json(guides);
+  } catch (error) {
+    console.error('Error fetching travel guides:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/travel-guides/:id', async (req, res) => {
+  try {
+    const guide = await (prisma as any).travelGuide.findUnique({ where: { id: req.params.id } });
+    if (!guide) return res.status(404).json({ error: 'Not found' });
+    res.json(guide);
+  } catch (error) {
+    console.error('Error fetching travel guide:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/travel-guides', async (req, res) => {
+  try {
+    const guide = await (prisma as any).travelGuide.create({ data: req.body });
+    res.status(201).json(guide);
+  } catch (error) {
+    console.error('Error creating travel guide:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
@@ -965,6 +967,7 @@ app.listen(PORT, () => {
   console.log(`🍽️  Cuisines: http://localhost:${PORT}/api/cuisines`);
   console.log(`🏺 Heritage: http://localhost:${PORT}/api/heritages`);
   console.log(`👕 Clothing: http://localhost:${PORT}/api/clothing`);
+  console.log(`👨‍💼 Travel Guides: http://localhost:${PORT}/api/travel-guides`);
 });
 
 // Graceful shutdown
